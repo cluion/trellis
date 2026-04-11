@@ -1,1 +1,1 @@
-export {};
+export { createSortPlugin } from './sort-plugin';

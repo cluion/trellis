@@ -24,6 +24,51 @@ importers:
         specifier: ^3.1.0
         version: 3.2.4(jsdom@26.1.0)
 
+  packages/plugin-filter:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(jsdom@26.1.0)
+
+  packages/plugin-pagination:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(jsdom@26.1.0)
+
+  packages/plugin-sort:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(jsdom@26.1.0)
+
   packages/react:
     devDependencies:
       '@testing-library/jest-dom':
