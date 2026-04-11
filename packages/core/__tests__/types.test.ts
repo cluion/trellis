@@ -4,6 +4,10 @@ import type {
   ColumnSortFn,
   DataRow,
   DataId,
+  SortState,
+  FilterState,
+  PaginationState,
+  TableState,
 } from '../src/types';
 
 describe('核心型別', () => {
@@ -41,6 +45,23 @@ describe('核心型別', () => {
       expectTypeOf(row.id).toBeString();
       expectTypeOf(row.original).toMatchTypeOf<{ name: string }>();
       expectTypeOf(row.index).toBeNumber();
+    });
+  });
+
+  describe('TableState', () => {
+    it('組合所有子狀態', () => {
+      type User = { name: string; age: number };
+      const state: TableState<User> = {
+        data: [],
+        columns: [],
+        sorting: { columnId: '', direction: null },
+        filtering: { query: '', columnFilters: {} },
+        pagination: { page: 1, pageSize: 10 },
+        selection: new Set(),
+      };
+      expectTypeOf(state.data).toBeArray();
+      expectTypeOf(state.sorting.direction).toEqualTypeOf<'asc' | 'desc' | null>();
+      expectTypeOf(state.pagination.page).toBeNumber();
     });
   });
 });
