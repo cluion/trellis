@@ -1,0 +1,33 @@
+{
+  "name": "@trellisjs/plugin-sort",
+  "version": "0.1.0",
+  "description": "Trellis 排序插件 — 本地排序，支援多型別比較器",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@trellisjs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@trellisjs/core": "workspace:*",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.1.0"
+  },
+  "license": "MIT",
+  "sideEffects": false
+}
