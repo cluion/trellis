@@ -120,6 +120,18 @@ importers:
         specifier: ^3.1.0
         version: 3.2.4(jsdom@26.1.0)
 
+  packages/server:
+    devDependencies:
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(jsdom@26.1.0)
+
 packages:
 
   '@adobe/css-tools@4.4.4':
