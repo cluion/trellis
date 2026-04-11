@@ -1,1 +1,1 @@
-export {};
+export { createPaginationPlugin } from './pagination-plugin';

@@ -63,7 +63,7 @@ export function createSortPlugin(): TrellisPlugin {
         if (column && column.sortable === false) return;
 
         if (!direction) {
-          api.setState((prev) => ({
+          api.setState(() => ({
             sorting: { columnId: '', direction: null },
             data: originalData,
           }));
@@ -86,7 +86,7 @@ export function createSortPlugin(): TrellisPlugin {
           return direction === 'desc' ? -result : result;
         });
 
-        api.setState((prev) => ({
+        api.setState(() => ({
           sorting: { columnId, direction },
           data: sorted,
         }));
