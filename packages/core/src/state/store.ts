@@ -5,7 +5,7 @@
  * - `setState` 產生新物件；前一個快照永遠不會被修改。
  * - 每次狀態變更後同步通知訂閱者。
  */
-export class StateStore<T extends Record<string, unknown>> {
+export class StateStore<T extends object> {
   private state: Readonly<T>;
   private listeners = new Set<(state: T) => void>();
 
