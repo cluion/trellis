@@ -8,3 +8,4 @@ export type {
 } from './types';
 export { buildQueryFromState } from './types';
 export { createStaticDatasource } from './static-datasource';
+export { createRemoteDatasource } from './remote-datasource';
