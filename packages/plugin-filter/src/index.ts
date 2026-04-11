@@ -1,1 +1,1 @@
-export {};
+export { createFilterPlugin } from './filter-plugin';
