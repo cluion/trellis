@@ -7,3 +7,4 @@ export type {
   RemoteDatasourceOptions,
 } from './types';
 export { buildQueryFromState } from './types';
+export { createStaticDatasource } from './static-datasource';
