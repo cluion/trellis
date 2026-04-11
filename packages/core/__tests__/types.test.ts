@@ -8,6 +8,12 @@ import type {
   FilterState,
   PaginationState,
   TableState,
+  EventHandler,
+  SlotRenderer,
+  SlotContext,
+  TrellisPlugin,
+  TrellisAPI,
+  TrellisOptions,
 } from '../src/types';
 
 describe('核心型別', () => {
@@ -62,6 +68,53 @@ describe('核心型別', () => {
       expectTypeOf(state.data).toBeArray();
       expectTypeOf(state.sorting.direction).toEqualTypeOf<'asc' | 'desc' | null>();
       expectTypeOf(state.pagination.page).toBeNumber();
+    });
+  });
+
+  describe('事件型別', () => {
+    it('EventHandler 接受任意參數', () => {
+      const handler: EventHandler = (payload: unknown) => {};
+      expectTypeOf(handler).toBeFunction();
+    });
+  });
+
+  describe('插槽型別', () => {
+    it('SlotRenderer 接收 context 並回傳可渲染內容', () => {
+      const renderer: SlotRenderer = (ctx: SlotContext) => {
+        return ctx.value;
+      };
+      expectTypeOf(renderer).toBeFunction();
+    });
+
+    it('SlotContext 包含 column、row 和 value', () => {
+      const ctx: SlotContext = {
+        column: { id: 'name', header: 'Name' },
+        row: { id: '0', original: {}, index: 0 },
+        value: 'Alice',
+        data: {},
+      };
+      expectTypeOf(ctx).toBeObject();
+    });
+  });
+
+  describe('插件型別', () => {
+    it('TrellisPlugin 有 name 和 install', () => {
+      const plugin: TrellisPlugin = {
+        name: 'test-plugin',
+        install: (api: TrellisAPI) => {
+          api.registerSlot('test', () => null);
+        },
+      };
+      expectTypeOf(plugin.name).toBeString();
+    });
+
+    it('TrellisOptions 需要 data 和 columns', () => {
+      type User = { name: string };
+      const options: TrellisOptions<User> = {
+        data: [{ name: 'Alice' }],
+        columns: [{ id: 'name', accessor: 'name', header: 'Name' }],
+      };
+      expectTypeOf(options.data).toBeArray();
     });
   });
 });

@@ -6,3 +6,10 @@ export type {
   PaginationState,
   TableState,
 } from './state';
+export type { EventHandler } from './event';
+export type { SlotRenderer, SlotContext } from './slot';
+export type {
+  TrellisAPI,
+  TrellisPlugin,
+  TrellisOptions,
+} from './plugin';
