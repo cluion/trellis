@@ -23,6 +23,8 @@ export interface PaginationState {
   page: number;
   /** 每頁筆數 */
   pageSize: number;
+  /** 當前資料總筆數（經排序/篩選後，分頁前） */
+  totalItems: number;
 }
 
 /**

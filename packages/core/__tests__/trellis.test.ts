@@ -48,7 +48,7 @@ describe('Trellis', () => {
 
   it('sets default pagination state', () => {
     const state = trellis.api.getState();
-    expect(state.pagination).toEqual({ page: 1, pageSize: 10 });
+    expect(state.pagination).toEqual({ page: 1, pageSize: 10, totalItems: 3 });
   });
 
   it('respects custom pageSize option', () => {

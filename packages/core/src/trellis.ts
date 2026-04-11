@@ -32,7 +32,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       columns: options.columns,
       sorting: { columnId: '', direction: null },
       filtering: { query: '', columnFilters: {} },
-      pagination: { page: 1, pageSize: options.pageSize ?? 10 },
+      pagination: { page: 1, pageSize: options.pageSize ?? 10, totalItems: options.data.length },
       selection: new Set(),
     };
 
