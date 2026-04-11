@@ -17,7 +17,9 @@
       }
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -26,13 +28,14 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "peerDependencies": {
+    "@trellisjs/core": "workspace:*",
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0",
-    "@trellisjs/core": "workspace:*"
+    "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@trellisjs/core": "workspace:*",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
+    "@trellisjs/core": "workspace:*",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "jsdom": "^26.1.0",
