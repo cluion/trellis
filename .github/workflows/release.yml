@@ -35,6 +35,7 @@ jobs:
       - run: pnpm -r build
 
       - name: Create Release Pull Request or Publish
+        id: changeset
         uses: changesets/action@v1
         with:
           publish: pnpm changeset publish
@@ -44,3 +45,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Create GitHub Release
+        if: steps.changeset.outputs.published == 'true'
+        run: |
+          for tag in $(git tag --points-at HEAD); do
+            gh release create "${tag}" --title "${tag}" --generate-notes || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
