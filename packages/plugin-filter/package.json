@@ -36,6 +36,11 @@
     "typescript": "^5.7.0",
     "vitest": "^3.1.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cluion/trellis.git",
+    "directory": "packages/plugin-filter"
+  },
   "license": "MIT",
   "sideEffects": false
 }
