@@ -94,12 +94,15 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       const sorted = [...this.transforms].sort((a, b) => a.priority - b.priority);
 
       let data: DataRow<T>[] = [...this.sourceData];
-      for (const entry of sorted) {
-        data = entry.fn(data, state);
-      }
+      let totalItems = data.length;
 
-      // 追蹤最後一個 transform 前的 data.length 作為 totalItems
-      const totalItems = data.length;
+      for (let i = 0; i < sorted.length; i++) {
+        // 在最後一個 transform 前捕獲長度（避免 pagination 切片影響）
+        if (i === sorted.length - 1) {
+          totalItems = data.length;
+        }
+        data = sorted[i].fn(data, state);
+      }
 
       // 一次 setState 寫入結果
       this.store.setState(() => ({

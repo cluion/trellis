@@ -43,36 +43,15 @@ export function createSortPlugin(): TrellisPlugin {
     name: 'sort',
 
     install(api: TrellisAPI) {
-      // 儲存原始資料順序，用於取消排序
-      let originalData: DataRow[] = [];
+      // 註冊管線轉換函式 (priority=20)
+      api.registerTransform('sort', 20, (data, state) => {
+        const { columnId, direction } = state.sorting;
+        if (!columnId || !direction) return data;
 
-      // 首次讀取時記錄原始順序
-      const captured = api.getState().data;
-      originalData = captured.map((row) => ({ ...row }));
-
-      api.on('sort:change', (payload) => {
-        const { columnId, direction } = payload as {
-          columnId: string;
-          direction: 'asc' | 'desc' | null;
-        };
-
-        const state = api.getState();
         const column = state.columns.find((col) => col.id === columnId);
+        if (!column || column.sortable === false) return data;
 
-        // 尊重 sortable: false 設定
-        if (column && column.sortable === false) return;
-
-        if (!direction) {
-          api.setState(() => ({
-            sorting: { columnId: '', direction: null },
-            data: originalData,
-          }));
-          return;
-        }
-
-        if (!column) return;
-
-        const sorted = [...state.data].sort((a, b) => {
+        return [...data].sort((a, b) => {
           const valA = getCellValue(a, column);
           const valB = getCellValue(b, column);
 
@@ -85,11 +64,23 @@ export function createSortPlugin(): TrellisPlugin {
 
           return direction === 'desc' ? -result : result;
         });
+      });
 
-        api.setState(() => ({
-          sorting: { columnId, direction },
-          data: sorted,
-        }));
+      // 排序變更 → 重跑管線
+      api.on('sort:change', (payload) => {
+        const { columnId, direction } = payload as {
+          columnId: string;
+          direction: 'asc' | 'desc' | null;
+        };
+
+        const state = api.getState();
+        const column = state.columns.find((col) => col.id === columnId);
+
+        if (column && column.sortable === false) return;
+
+        api.recompute({
+          sorting: { columnId: direction ? columnId : '', direction: direction ?? null },
+        });
       });
     },
   };

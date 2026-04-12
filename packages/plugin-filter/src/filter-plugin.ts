@@ -20,35 +20,26 @@ export function createFilterPlugin(): TrellisPlugin {
     name: 'filter',
 
     install(api: TrellisAPI) {
-      // 儲存原始資料供重新篩選使用
-      let originalData: DataRow[] = [...api.getState().data];
-
-      api.on('filter:change', (payload) => {
-        const { query } = payload as { query: string };
-        const state = api.getState();
-
-        if (!query) {
-          api.setState(() => ({
-            data: originalData,
-            filtering: { ...state.filtering, query: '' },
-          }));
-          return;
-        }
+      // 註冊管線轉換函式 (priority=10)
+      api.registerTransform('filter', 10, (data, state) => {
+        const query = state.filtering.query;
+        if (!query) return data;
 
         const lowerQuery = query.toLowerCase();
-
-        const filtered = originalData.filter((row) => {
+        return data.filter((row) => {
           return state.columns.some((column) => {
             const value = getCellValue(row, column);
             if (value == null) return false;
             return String(value).toLowerCase().includes(lowerQuery);
           });
         });
+      });
 
-        api.setState(() => ({
-          data: filtered,
-          filtering: { ...state.filtering, query },
-        }));
+      // 篩選關鍵字變更 → 重跑管線
+      api.on('filter:change', (payload) => {
+        const { query } = payload as { query: string };
+        const state = api.getState();
+        api.recompute({ filtering: { ...state.filtering, query } });
       });
     },
   };
