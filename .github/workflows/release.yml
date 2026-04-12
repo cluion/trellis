@@ -31,7 +31,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Upgrade npm to v11+
-        run: npm install -g npm@latest
+        run: npm install -g npm@latest --force
 
       - run: pnpm install --frozen-lockfile
 
