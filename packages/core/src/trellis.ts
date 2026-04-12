@@ -5,6 +5,7 @@ import { PluginManager } from './plugin/plugin-manager';
 import type { TableState } from './types/state';
 import type { DataRow, DataId } from './types/data';
 import type { TrellisAPI, TrellisOptions } from './types/plugin';
+import type { TransformEntry } from './types/pipeline';
 import type { EventHandler } from './types/event';
 import type { SlotRenderer } from './types/slot';
 
@@ -21,14 +22,20 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
   private slotRegistry: SlotRegistry;
   private options: TrellisOptions<T>;
   private _api: TrellisAPI<T>;
+  private sourceData: DataRow<T>[];
+  private transforms: TransformEntry<T>[];
+  private pipelineLock: boolean;
 
   constructor(options: TrellisOptions<T>) {
     this.options = options;
     this.eventBus = new EventBus();
     this.slotRegistry = new SlotRegistry();
+    this.sourceData = this.processData(options.data);
+    this.transforms = [];
+    this.pipelineLock = false;
 
     const initialState: TableState<T> = {
-      data: this.processData(options.data),
+      data: [...this.sourceData],
       columns: options.columns,
       sorting: { columnId: '', direction: null },
       filtering: { query: '', columnFilters: {} },
@@ -42,6 +49,9 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
 
     // 所有系統初始化完成後再註冊插件
     options.plugins?.forEach((plugin) => this.pluginManager.register(plugin));
+
+    // 插件註冊完成後執行管線，確保初始 state.data 正確
+    this.runPipeline();
   }
 
   /**
@@ -67,6 +77,41 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
   }
 
   /**
+   * 執行 Transform Pipeline。
+   * 若提供 withState，先合併到 store（不觸發通知），再從 sourceData 重跑所有 transform。
+   */
+  private runPipeline(withState?: Partial<TableState<T>>): void {
+    if (this.pipelineLock) return;
+    this.pipelineLock = true;
+
+    try {
+      // 合併狀態（直接寫入 store，不觸發通知）
+      if (withState) {
+        this.store.setState(() => withState);
+      }
+
+      const state = this.store.getState() as TableState<T>;
+      const sorted = [...this.transforms].sort((a, b) => a.priority - b.priority);
+
+      let data: DataRow<T>[] = [...this.sourceData];
+      for (const entry of sorted) {
+        data = entry.fn(data, state);
+      }
+
+      // 追蹤最後一個 transform 前的 data.length 作為 totalItems
+      const totalItems = data.length;
+
+      // 一次 setState 寫入結果
+      this.store.setState(() => ({
+        data,
+        pagination: { ...state.pagination, totalItems },
+      }));
+    } finally {
+      this.pipelineLock = false;
+    }
+  }
+
+  /**
    * 建構暴露給插件和適配器的公開 API 物件。
    */
   private buildAPI(): TrellisAPI<T> {
@@ -82,6 +127,16 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       registerSlot: (name: string, renderer: SlotRenderer) =>
         this.slotRegistry.register(name, renderer),
       getSlot: (name: string) => this.slotRegistry.get(name),
+      registerTransform: (name, priority, fn) => {
+        this.transforms.push({ name, priority, fn });
+      },
+      recompute: (withState) => {
+        this.runPipeline(withState);
+      },
+      updateSourceData: (data) => {
+        this.sourceData = this.processData(data);
+        this.runPipeline();
+      },
     };
   }
 
