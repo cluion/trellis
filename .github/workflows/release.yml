@@ -30,6 +30,9 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      - name: Upgrade npm to v11+
+        run: npm install -g npm@latest
+
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm -r build
@@ -44,7 +47,6 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
 
       - name: Create GitHub Release
         if: steps.changeset.outputs.published == 'true'
