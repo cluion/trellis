@@ -3,6 +3,7 @@ import type { ColumnDef } from './column';
 import type { SlotRenderer } from './slot';
 import type { EventHandler } from './event';
 import type { DataId } from './data';
+import type { TransformFn } from './pipeline';
 
 /**
  * 暴露給插件和框架適配器的 API。
@@ -23,6 +24,12 @@ export interface TrellisAPI<T = Record<string, unknown>> {
   registerSlot: (name: string, renderer: SlotRenderer) => () => void;
   /** 依名稱取得已註冊的插槽渲染器 */
   getSlot: (name: string) => SlotRenderer | undefined;
+  /** 註冊管線轉換函式 */
+  registerTransform: (name: string, priority: number, fn: TransformFn<T>) => void;
+  /** 重跑管線，可合併狀態更新 */
+  recompute: (withState?: Partial<TableState<T>>) => void;
+  /** 替換原始資料並重跑管線 */
+  updateSourceData: (data: T[]) => void;
 }
 
 /**

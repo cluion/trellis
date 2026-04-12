@@ -6,6 +6,7 @@ export type {
   PaginationState,
   TableState,
 } from './state';
+export type { TransformFn, TransformEntry } from './pipeline';
 export type { EventHandler } from './event';
 export type { SlotRenderer, SlotContext } from './slot';
 export type {
