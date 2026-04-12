@@ -1,12 +1,18 @@
 import type { ColumnDef } from './column';
 import type { DataRow, DataId } from './data';
 
+/** 單一排序條件 */
+export interface SortCriterion {
+  /** 排序欄位 */
+  columnId: string;
+  /** 排序方向 */
+  direction: 'asc' | 'desc';
+}
+
 /** 目前排序設定 */
 export interface SortState {
-  /** 目前排序的欄位 */
-  columnId: string;
-  /** 排序方向，null 表示未排序 */
-  direction: 'asc' | 'desc' | null;
+  /** 排序條件列表，index 0 為主排序；空陣列表示未排序 */
+  sortBy: SortCriterion[];
 }
 
 /** 目前篩選設定 */

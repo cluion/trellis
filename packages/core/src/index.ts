@@ -13,6 +13,7 @@ export { PluginManager } from './plugin/plugin-manager';
 export type { ColumnDef, ColumnSortFn } from './types/column';
 export type { DataRow, DataId } from './types/data';
 export type {
+  SortCriterion,
   SortState,
   FilterState,
   PaginationState,
