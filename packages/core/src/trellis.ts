@@ -37,7 +37,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
     const initialState: TableState<T> = {
       data: [...this.sourceData],
       columns: options.columns,
-      sorting: { columnId: '', direction: null },
+      sorting: { sortBy: [] },
       filtering: { query: '', columnFilters: {} },
       pagination: { page: 1, pageSize: options.pageSize ?? 10, totalItems: options.data.length },
       selection: new Set(),
