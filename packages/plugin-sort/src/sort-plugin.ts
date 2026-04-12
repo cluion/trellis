@@ -45,42 +45,71 @@ export function createSortPlugin(): TrellisPlugin {
     install(api: TrellisAPI) {
       // 註冊管線轉換函式 (priority=20)
       api.registerTransform('sort', 20, (data, state) => {
-        const { columnId, direction } = state.sorting;
-        if (!columnId || !direction) return data;
+        const { sortBy } = state.sorting;
+        if (sortBy.length === 0) return data;
 
-        const column = state.columns.find((col) => col.id === columnId);
-        if (!column || column.sortable === false) return data;
+        // 預建 columnId → ColumnDef 查找表
+        const colMap = new Map(state.columns.map((col) => [col.id, col]));
 
         return [...data].sort((a, b) => {
-          const valA = getCellValue(a, column);
-          const valB = getCellValue(b, column);
+          for (const criterion of sortBy) {
+            const column = colMap.get(criterion.columnId);
+            if (!column || column.sortable === false) continue;
 
-          let result: number;
-          if (column.sortFn) {
-            result = column.sortFn(valA, valB);
-          } else {
-            result = compareValues(valA, valB);
+            const valA = getCellValue(a, column);
+            const valB = getCellValue(b, column);
+
+            let result: number;
+            if (column.sortFn) {
+              result = column.sortFn(valA, valB);
+            } else {
+              result = compareValues(valA, valB);
+            }
+
+            if (result !== 0) {
+              return criterion.direction === 'desc' ? -result : result;
+            }
           }
-
-          return direction === 'desc' ? -result : result;
+          return 0;
         });
       });
 
       // 排序變更 → 重跑管線
       api.on('sort:change', (payload) => {
-        const { columnId, direction } = payload as {
+        const { columnId, direction, append } = payload as {
           columnId: string;
           direction: 'asc' | 'desc' | null;
+          append?: boolean;
         };
 
         const state = api.getState();
         const column = state.columns.find((col) => col.id === columnId);
-
         if (column && column.sortable === false) return;
 
-        api.recompute({
-          sorting: { columnId: direction ? columnId : '', direction: direction ?? null },
-        });
+        const current = state.sorting.sortBy;
+        let next: { columnId: string; direction: 'asc' | 'desc' }[];
+
+        if (direction === null) {
+          // 清除模式
+          if (append) {
+            // 移除單一欄位排序
+            next = current.filter((c) => c.columnId !== columnId);
+          } else {
+            // 清除全部排序
+            next = [];
+          }
+        } else if (append) {
+          // 追加模式：移除同欄位既有條件，加到最後
+          next = [
+            ...current.filter((c) => c.columnId !== columnId),
+            { columnId, direction },
+          ];
+        } else {
+          // 取代模式：只保留這一個條件
+          next = [{ columnId, direction }];
+        }
+
+        api.recompute({ sorting: { sortBy: next } });
       });
     },
   };
