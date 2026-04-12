@@ -12,6 +12,9 @@ function createMockAPI(): TrellisAPI {
     emit: vi.fn(),
     registerSlot: vi.fn(() => () => {}),
     getSlot: vi.fn(() => undefined),
+    registerTransform: vi.fn(),
+    recompute: vi.fn(),
+    updateSourceData: vi.fn(),
   };
 }
 
