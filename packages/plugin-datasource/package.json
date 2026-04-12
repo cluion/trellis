@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-datasource",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "資料源插件 — 支援靜態資料與遠端 API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

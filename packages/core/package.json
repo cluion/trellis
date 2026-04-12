@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/core",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0",
   "description": "無頭式資料表格引擎 — 狀態、插件、插槽、事件",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
