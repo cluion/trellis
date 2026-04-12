@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-filter",
-  "version": "0.1.0-alpha.1",
+  "version": "1.0.0",
   "description": "Trellis 篩選插件 — 全域搜尋與單欄篩選",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
