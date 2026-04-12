@@ -90,8 +90,7 @@ describe('SortPlugin', () => {
     trellis.api.emit('sort:change', { columnId: 'name', direction: 'desc' });
     const state = trellis.api.getState();
 
-    expect(state.sorting.columnId).toBe('name');
-    expect(state.sorting.direction).toBe('desc');
+    expect(state.sorting.sortBy).toEqual([{ columnId: 'name', direction: 'desc' }]);
   });
 
   it('respects custom sortFn on column', () => {
@@ -128,7 +127,7 @@ describe('SortPlugin', () => {
     trellis.api.emit('sort:change', { columnId: 'name', direction: null });
 
     const state = trellis.api.getState();
-    expect(state.sorting.direction).toBeNull();
+    expect(state.sorting.sortBy).toEqual([]);
     // 應恢復原始順序
     expect(state.data[0].original.name).toBe('Charlie');
   });
@@ -149,7 +148,7 @@ describe('SortPlugin', () => {
     const state = trellis.api.getState();
 
     // 不應排序 — 欄位不可排序
-    expect(state.sorting.direction).toBeNull();
+    expect(state.sorting.sortBy).toEqual([]);
     expect(state.data[0].original.name).toBe('Charlie');
   });
 });
