@@ -22,6 +22,7 @@ interface FullFeatureTableProps {
 
 export function FullFeatureTable({ data }: FullFeatureTableProps) {
   const [query, setQuery] = useState('');
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const { api } = useTrellis<User>({
     data,
     columns,
@@ -68,6 +69,17 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
     api.emit('filter:change', { query: value });
   };
 
+  const handleColumnFilter = (columnId: string, value: string) => {
+    setColumnFilters((prev) => {
+      const next = value !== '' ? { ...prev, [columnId]: value } : (() => {
+        const { [columnId]: _, ...rest } = prev;
+        return rest;
+      })();
+      return next;
+    });
+    api.emit('filter:column', { columnId, value });
+  };
+
   return (
     <div>
       <div className="toolbar">
@@ -103,6 +115,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           顯示 {startIndex}-{endIndex}，共 {totalCount} 筆
           {(sorting?.sortBy?.length ?? 0) > 0 && ` | 排序：${sorting.sortBy.map((c) => `${c.columnId} ${c.direction === 'asc' ? '↑' : '↓'}`).join(', ')}`}
           {query && ` | 搜尋："${query}"`}
+          {Object.entries(columnFilters).length > 0 && ` | 欄篩選：${Object.entries(columnFilters).map(([k, v]) => `${k}="${v}"`).join(', ')}`}
         </span>
       </div>
 
@@ -126,6 +139,20 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                     {getSortIndicator(col.id)}
                   </span>
                 )}
+              </th>
+            ))}
+          </tr>
+          <tr>
+            {columns.map((col) => (
+              <th key={`filter-${col.id}`}>
+                <input
+                  type="text"
+                  placeholder={`篩選 ${col.header}`}
+                  value={columnFilters[col.id] ?? ''}
+                  onChange={(e) => handleColumnFilter(col.id, e.target.value)}
+                  className="column-filter-input"
+                  onClick={(e) => e.stopPropagation()}
+                />
               </th>
             ))}
           </tr>

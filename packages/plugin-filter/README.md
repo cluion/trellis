@@ -1,6 +1,6 @@
 # @trellisjs/plugin-filter
 
-Global search filter plugin for Trellis data tables.
+Filter plugin for Trellis data tables — supports global search and per-column filtering.
 
 ## Installation
 
@@ -14,22 +14,26 @@ npm install @trellisjs/plugin-filter
 
 | Event | Payload | Description |
 |---|---|---|
-| `filter:change` | `{ query: string }` | Filter rows across all columns. An empty string clears the filter and restores the original dataset. |
+| `filter:change` | `{ query: string }` | Filter rows across all columns. An empty string clears the global filter. |
+| `filter:column` | `{ columnId: string, value: string }` | Filter rows by a specific column. An empty string clears that column's filter. |
 
 ### State Updated
 
-After handling `filter:change`, the plugin updates:
+- `state.filtering.query` — the current global search keyword.
+- `state.filtering.columnFilters` — a `Record<string, string>` of per-column filter values.
+- `state.data` — rows matching all active filters, or the full dataset when all are cleared.
 
-- `state.filtering.query` -- the current search keyword.
-- `state.data` -- rows matching the filter, or the full dataset when cleared.
+Global search and per-column filters are **AND** relationship: a row must match all conditions to appear.
 
 ## Usage
 
+### Global Search
+
 ```ts
-import { createTrellis } from '@trellisjs/core';
+import { Trellis } from '@trellisjs/core';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 
-const api = createTrellis({
+const trellis = new Trellis({
   columns: [
     { id: 'name', accessor: 'name' },
     { id: 'email', accessor: 'email' },
@@ -42,15 +46,60 @@ const api = createTrellis({
 });
 
 // Filter rows where any column contains "alice"
-api.emit('filter:change', { query: 'alice' });
+trellis.api.emit('filter:change', { query: 'alice' });
 
-// Clear the filter (restores all rows)
-api.emit('filter:change', { query: '' });
+// Clear the global filter
+trellis.api.emit('filter:change', { query: '' });
 ```
 
-### How It Works
+### Per-Column Filter
 
-The plugin stores a snapshot of the original data on install. On each `filter:change` event it performs a case-insensitive substring match across every column value. Columns that use a function accessor are also supported -- the function is called to resolve each cell value before comparison.
+```ts
+// Filter rows where the "city" column contains "Taipei"
+trellis.api.emit('filter:column', { columnId: 'city', value: 'Taipei' });
+
+// Clear the "city" column filter
+trellis.api.emit('filter:column', { columnId: 'city', value: '' });
+```
+
+The matching is case-insensitive substring match — same behavior as global search.
+
+### Per-Column Filter with React
+
+The plugin only provides the filtering logic. The UI is up to you:
+
+```tsx
+function MyTable({ data }) {
+  const { api } = useTrellis({
+    data,
+    columns,
+    plugins: [createFilterPlugin()],
+  });
+
+  const handleColumnFilter = (columnId: string, value: string) => {
+    api.emit('filter:column', { columnId, value });
+  };
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          {columns.map((col) => (
+            <th key={col.id}>
+              {col.header}
+              <input
+                placeholder={`Filter ${col.header}`}
+                onChange={(e) => handleColumnFilter(col.id, e.target.value)}
+              />
+            </th>
+          ))}
+        </tr>
+      </thead>
+      {/* ... */}
+    </table>
+  );
+}
+```
 
 ### Combination with Other Plugins
 
