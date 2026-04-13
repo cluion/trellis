@@ -1,5 +1,12 @@
 # @trellisjs/demo
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [[`441c1d8`](https://github.com/cluion/trellis/commit/441c1d81e7b28e04b4c4d6355e3cbee9b11cab6a)]:
+  - @trellisjs/plugin-selection@1.0.0
+
 ## 0.1.3
 
 ### Patch Changes
