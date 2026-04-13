@@ -76,11 +76,8 @@ export function buildQueryFromState(api: TrellisAPI): TrellisQuery {
     pageSize: state.pagination.pageSize,
   };
 
-  if (state.sorting.direction) {
-    query.sort = [{
-      columnId: state.sorting.columnId,
-      direction: state.sorting.direction,
-    }];
+  if (state.sorting.sortBy.length > 0) {
+    query.sort = state.sorting.sortBy;
   }
 
   if (state.filtering.query || Object.keys(state.filtering.columnFilters).length > 0) {

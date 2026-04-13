@@ -41,10 +41,26 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
   const startIndex = totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0;
   const endIndex = totalCount > 0 ? Math.min(pagination.page * pagination.pageSize, totalCount) : 0;
 
-  const handleSort = (columnId: string) => {
-    const current = sorting?.columnId === columnId ? sorting.direction : null;
+  const handleSort = (columnId: string, shiftKey: boolean) => {
+    const sortBy = sorting?.sortBy ?? [];
+    const existing = sortBy.find((c) => c.columnId === columnId);
+    const current = existing?.direction ?? null;
     const next = current === 'asc' ? 'desc' : current === 'desc' ? null : 'asc';
-    api.emit('sort:change', { columnId, direction: next });
+
+    if (next === null && !shiftKey) {
+      api.emit('sort:change', { columnId: '', direction: null });
+    } else {
+      api.emit('sort:change', { columnId, direction: next, append: shiftKey });
+    }
+  };
+
+  const getSortIndicator = (columnId: string) => {
+    const sortBy = sorting?.sortBy ?? [];
+    const index = sortBy.findIndex((c) => c.columnId === columnId);
+    if (index === -1) return ' ⇅';
+    const criterion = sortBy[index];
+    const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
+    return sortBy.length > 1 ? `${arrow}${index + 1}` : arrow;
   };
 
   const handleSearch = (value: string) => {
@@ -85,7 +101,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
       <div className="status-bar">
         <span>
           顯示 {startIndex}-{endIndex}，共 {totalCount} 筆
-          {sorting?.columnId && ` | 排序：${sorting.columnId} ${sorting.direction === 'asc' ? '↑' : '↓'}`}
+          {(sorting?.sortBy?.length ?? 0) > 0 && ` | 排序：${sorting.sortBy.map((c) => `${c.columnId} ${c.direction === 'asc' ? '↑' : '↓'}`).join(', ')}`}
           {query && ` | 搜尋："${query}"`}
         </span>
       </div>
@@ -102,16 +118,12 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                   cursor: col.sortable !== false ? 'pointer' : 'default',
                   userSelect: 'none',
                 }}
-                onClick={() => col.sortable !== false && handleSort(col.id)}
+                onClick={(e) => col.sortable !== false && handleSort(col.id, e.shiftKey)}
               >
                 {String(col.header)}
                 {col.sortable !== false && (
                   <span className="sort-indicator">
-                    {sorting?.columnId === col.id
-                      ? sorting.direction === 'asc'
-                        ? ' ▲'
-                        : ' ▼'
-                      : ' ⇅'}
+                    {getSortIndicator(col.id)}
                   </span>
                 )}
               </th>

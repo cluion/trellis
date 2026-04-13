@@ -46,7 +46,7 @@ describe('buildQueryFromState', () => {
     });
 
     trellis.api.setState(() => ({
-      sorting: { columnId: 'name', direction: 'asc' },
+      sorting: { sortBy: [{ columnId: 'name', direction: 'asc' }] },
       filtering: { query: 'alice', columnFilters: {} },
       pagination: { page: 2, pageSize: 10 },
     }));
