@@ -1,5 +1,12 @@
 # @trellisjs/demo
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`4290d58`](https://github.com/cluion/trellis/commit/4290d58860bf5046ec44a201d1e14c363723f18e)]:
+  - @trellisjs/plugin-filter@2.1.0
+
 ## 0.1.2
 
 ### Patch Changes

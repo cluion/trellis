@@ -1,5 +1,15 @@
 # @trellisjs/plugin-filter
 
+## 2.1.0
+
+### Minor Changes
+
+- [`4290d58`](https://github.com/cluion/trellis/commit/4290d58860bf5046ec44a201d1e14c363723f18e) Thanks [@cluion](https://github.com/cluion)! - 新增單欄篩選功能（`filter:column` 事件）
+
+  - 新增 `filter:column` 事件：`{ columnId: string, value: string }` 設定/清除個別欄位篩選
+  - 全域搜尋與單欄篩選為 AND 關係
+  - 完全向後相容 — 不使用 `filter:column` 則行為不變
+
 ## 2.0.0
 
 ### Patch Changes
