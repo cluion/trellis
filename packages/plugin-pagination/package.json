@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-pagination",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Trellis 分頁插件 — 基本頁碼導航",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
