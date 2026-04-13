@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/react",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Trellis 的 React 適配器 — 無頭式資料表格元件",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
