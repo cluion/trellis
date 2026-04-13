@@ -60,13 +60,13 @@ describe('核心型別', () => {
       const state: TableState<User> = {
         data: [],
         columns: [],
-        sorting: { columnId: '', direction: null },
+        sorting: { sortBy: [] },
         filtering: { query: '', columnFilters: {} },
         pagination: { page: 1, pageSize: 10 },
         selection: new Set(),
       };
       expectTypeOf(state.data).toBeArray();
-      expectTypeOf(state.sorting.direction).toEqualTypeOf<'asc' | 'desc' | null>();
+      expectTypeOf(state.sorting.sortBy).toEqualTypeOf<{ columnId: string; direction: 'asc' | 'desc' }[]>();
       expectTypeOf(state.pagination.page).toBeNumber();
     });
   });
