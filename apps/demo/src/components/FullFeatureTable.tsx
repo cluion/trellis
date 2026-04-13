@@ -3,6 +3,7 @@ import { useTrellis } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
+import { createSelectionPlugin } from '@trellisjs/plugin-selection';
 import type { ColumnDef } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
@@ -31,12 +32,14 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
       createSortPlugin(),
       createFilterPlugin(),
       createPaginationPlugin(),
+      createSelectionPlugin(),
     ],
   });
 
   const state = api.getState();
   const sorting = state.sorting;
   const pagination = state.pagination;
+  const selection = state.selection;
   const totalCount = pagination.totalItems;
   const totalPages = Math.max(1, Math.ceil(totalCount / pagination.pageSize));
   const startIndex = totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0;
@@ -80,6 +83,21 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
     api.emit('filter:column', { columnId, value });
   };
 
+  const allSelected = state.data.length > 0 && selection.size === state.data.length;
+  const someSelected = selection.size > 0 && !allSelected;
+
+  const handleToggleAll = () => {
+    api.emit('selection:all', { select: !allSelected });
+  };
+
+  const handleToggleRow = (rowId: string | number, shiftKey: boolean, rowIndex: number) => {
+    if (shiftKey) {
+      api.emit('selection:range', { toIndex: rowIndex });
+    } else {
+      api.emit('selection:toggle', { rowId });
+    }
+  };
+
   return (
     <div>
       <div className="toolbar">
@@ -116,12 +134,21 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           {(sorting?.sortBy?.length ?? 0) > 0 && ` | 排序：${sorting.sortBy.map((c) => `${c.columnId} ${c.direction === 'asc' ? '↑' : '↓'}`).join(', ')}`}
           {query && ` | 搜尋："${query}"`}
           {Object.entries(columnFilters).length > 0 && ` | 欄篩選：${Object.entries(columnFilters).map(([k, v]) => `${k}="${v}"`).join(', ')}`}
+          {selection.size > 0 && ` | 已選取：${selection.size} 列`}
         </span>
       </div>
 
       <table className="trellis-table">
         <thead>
           <tr>
+            <th style={{ width: 40, textAlign: 'center' }}>
+              <input
+                type="checkbox"
+                ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                checked={allSelected}
+                onChange={handleToggleAll}
+              />
+            </th>
             {columns.map((col) => (
               <th
                 key={col.id}
@@ -143,6 +170,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
             ))}
           </tr>
           <tr>
+            <th></th>
             {columns.map((col) => (
               <th key={`filter-${col.id}`}>
                 <input
@@ -158,8 +186,19 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           </tr>
         </thead>
         <tbody>
-          {state.data.map((row) => (
-            <tr key={row.id}>
+          {state.data.map((row, rowIndex) => (
+            <tr key={row.id} style={{ background: selection.has(row.id) ? '#eff6ff' : undefined }}>
+              <td style={{ textAlign: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={selection.has(row.id)}
+                  onChange={() => {}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleRow(row.id, e.shiftKey, rowIndex);
+                  }}
+                />
+              </td>
               {columns.map((col) => (
                 <td key={col.id} style={{ textAlign: col.align }}>
                   {String(row.original[col.accessor as keyof User] ?? '')}
@@ -169,7 +208,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           ))}
           {state.data.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="empty-row">
+              <td colSpan={columns.length + 1} className="empty-row">
                 沒有符合的結果
               </td>
             </tr>

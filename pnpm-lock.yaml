@@ -35,6 +35,9 @@ importers:
       '@trellisjs/plugin-pagination':
         specifier: workspace:*
         version: link:../../packages/plugin-pagination
+      '@trellisjs/plugin-selection':
+        specifier: workspace:*
+        version: link:../../packages/plugin-selection
       '@trellisjs/plugin-sort':
         specifier: workspace:*
         version: link:../../packages/plugin-sort
@@ -107,6 +110,21 @@ importers:
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-pagination:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.0
+        version: 3.2.4(jsdom@26.1.0)
+
+  packages/plugin-selection:
     devDependencies:
       '@trellisjs/core':
         specifier: workspace:*
