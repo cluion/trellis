@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-sort",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Trellis 排序插件 — 本地排序，支援多型別比較器",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

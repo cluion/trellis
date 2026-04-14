@@ -1,5 +1,12 @@
 # @trellisjs/plugin-pagination
 
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`bb74e13`](https://github.com/cluion/trellis/commit/bb74e1395d460df150b349442f3f506ab87d5eb2)]:
+  - @trellisjs/core@1.2.0
+
 ## 3.0.0
 
 ### Patch Changes

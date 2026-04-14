@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-column-visibility",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 欄可見性插件 — 動態顯示或隱藏欄位",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-selection",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Trellis 行選取插件 — 單選、全選、Shift 範圍選",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
