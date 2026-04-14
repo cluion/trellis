@@ -28,7 +28,7 @@
     "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "@trellisjs/core": "workspace:*"
+    "@trellisjs/core": "workspace:^1"
   },
   "devDependencies": {
     "@trellisjs/core": "workspace:*",
