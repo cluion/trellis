@@ -1,5 +1,12 @@
 # @trellisjs/plugin-sort
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`f36fb6e`](https://github.com/cluion/trellis/commit/f36fb6e6e959001eefe8f8428d5186e67c7574d6)]:
+  - @trellisjs/core@1.1.0
+
 ## 2.0.0
 
 ### Major Changes

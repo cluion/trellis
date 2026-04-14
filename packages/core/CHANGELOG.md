@@ -1,5 +1,11 @@
 # @trellisjs/core
 
+## 1.1.0
+
+### Minor Changes
+
+- [`f36fb6e`](https://github.com/cluion/trellis/commit/f36fb6e6e959001eefe8f8428d5186e67c7574d6) Thanks [@cluion](https://github.com/cluion)! - Add `addRow`, `removeRow`, `updateRow` methods to TrellisAPI for dynamic data manipulation. Each method modifies `sourceData` and re-runs the Transform Pipeline, so sort/filter/pagination update automatically. Emits `data:added`, `data:removed`, `data:updated` events respectively.
+
 ## 1.0.0
 
 ### Major Changes
