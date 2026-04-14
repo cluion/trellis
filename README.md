@@ -26,6 +26,8 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 | [`@trellisjs/plugin-filter`](./packages/plugin-filter) | Global text search |
 | [`@trellisjs/plugin-pagination`](./packages/plugin-pagination) | Page navigation and page size |
 | [`@trellisjs/plugin-datasource`](./packages/plugin-datasource) | Remote API data fetching |
+| [`@trellisjs/plugin-selection`](./packages/plugin-selection) | Row selection (single, multi, range) |
+| [`@trellisjs/plugin-column-visibility`](./packages/plugin-column-visibility) | Dynamic column show/hide |
 | [`@trellisjs/react`](./packages/react) | React hooks and components |
 | [`@trellisjs/server`](./packages/server) | Backend query parser and SQL builder |
 | [`@trellisjs/server-prisma`](./packages/server-prisma) | Prisma ORM adapter |
@@ -35,7 +37,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 ### Install
 
 ```bash
-npm install @trellisjs/core @trellisjs/react @trellisjs/plugin-sort @trellisjs/plugin-filter @trellisjs/plugin-pagination
+npm install @trellisjs/core @trellisjs/react @trellisjs/plugin-sort @trellisjs/plugin-filter @trellisjs/plugin-pagination @trellisjs/plugin-selection @trellisjs/plugin-column-visibility
 ```
 
 ### React Example
@@ -151,15 +153,17 @@ app.get('/api/users', async (req, res) => {
 ## Architecture
 
 ```
-@trellisjs/core        ← State management, plugin system, events, slots
-  ├── plugin-sort      ← Independent sorting plugin
-  ├── plugin-filter    ← Independent filtering plugin
-  ├── plugin-pagination ← Independent pagination plugin
-  ├── plugin-datasource ← Remote data fetching plugin
-  └── react            ← React adapter (useTrellis hook)
+@trellisjs/core              ← State management, plugin system, events, slots
+  ├── plugin-sort            ← Independent sorting plugin
+  ├── plugin-filter          ← Independent filtering plugin
+  ├── plugin-pagination      ← Independent pagination plugin
+  ├── plugin-datasource      ← Remote data fetching plugin
+  ├── plugin-selection       ← Row selection plugin
+  ├── plugin-column-visibility ← Column visibility plugin
+  └── react                  ← React adapter (useTrellis hook)
 
-@trellisjs/server      ← Backend query parser
-  └── server-prisma    ← Prisma ORM adapter
+@trellisjs/server            ← Backend query parser
+  └── server-prisma          ← Prisma ORM adapter
 ```
 
 Each plugin:

@@ -6,6 +6,6 @@
   "linked": [],
   "access": "public",
   "baseBranch": "main",
-  "updateInternalDependencies": "lockfile-only",
+  "updateInternalDependencies": "patch",
   "ignore": []
 }
