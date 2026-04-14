@@ -184,4 +184,141 @@ describe('Trellis', () => {
     const state = instance.api.getState();
     expect(state.data[1].id).toBe('bob@test.com');
   });
+
+  // --- 動態資料操作 ---
+  describe('addRow', () => {
+    it('adds a row to sourceData and updates state.data', () => {
+      trellis.api.addRow({ name: 'Dave', age: 28, email: 'dave@test.com' });
+
+      const state = trellis.api.getState();
+      expect(state.data).toHaveLength(4);
+      expect(state.data[3].original.name).toBe('Dave');
+    });
+
+    it('auto-generates ID based on index', () => {
+      trellis.api.addRow({ name: 'Dave', age: 28, email: 'dave@test.com' });
+
+      const state = trellis.api.getState();
+      expect(state.data[3].id).toBe('3');
+    });
+
+    it('emits data:added event with new row ID', () => {
+      const handler = vi.fn();
+      trellis.api.on('data:added', handler);
+
+      trellis.api.addRow({ name: 'Dave', age: 28, email: 'dave@test.com' });
+
+      expect(handler).toHaveBeenCalledWith('3');
+    });
+
+    it('re-runs pipeline (respects sorting)', () => {
+      const sorted = new Trellis<User>({
+        data: sampleData,
+        columns: sampleColumns,
+        plugins: [
+          {
+            name: 'sort',
+            install: (api) => {
+              api.registerTransform('sort', 20, (data) =>
+                [...data].sort((a, b) => a.original.age - b.original.age),
+              );
+            },
+          },
+        ],
+      });
+
+      sorted.api.addRow({ name: 'Dave', age: 22, email: 'dave@test.com' });
+
+      const state = sorted.api.getState();
+      // Dave (22) should be first after sorting by age
+      expect(state.data[0].original.name).toBe('Dave');
+    });
+  });
+
+  describe('removeRow', () => {
+    it('removes a row by ID', () => {
+      trellis.api.removeRow('1');
+
+      const state = trellis.api.getState();
+      expect(state.data).toHaveLength(2);
+      expect(state.data.find((r) => r.id === '1')).toBeUndefined();
+    });
+
+    it('is a no-op for non-existent ID', () => {
+      const before = trellis.api.getState().data;
+      trellis.api.removeRow('nonexistent');
+
+      const after = trellis.api.getState();
+      expect(after.data).toHaveLength(before.length);
+    });
+
+    it('emits data:removed event with removed ID', () => {
+      const handler = vi.fn();
+      trellis.api.on('data:removed', handler);
+
+      trellis.api.removeRow('1');
+
+      expect(handler).toHaveBeenCalledWith('1');
+    });
+
+    it('does not emit event for non-existent ID', () => {
+      const handler = vi.fn();
+      trellis.api.on('data:removed', handler);
+
+      trellis.api.removeRow('nonexistent');
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateRow', () => {
+    it('merges partial update into existing row', () => {
+      trellis.api.updateRow('1', { age: 99 });
+
+      const state = trellis.api.getState();
+      const row = state.data.find((r) => r.id === '1');
+      expect(row?.original.age).toBe(99);
+      expect(row?.original.name).toBe('Bob');
+    });
+
+    it('is a no-op for non-existent ID', () => {
+      const before = trellis.api.getState().data;
+      trellis.api.updateRow('nonexistent', { age: 99 });
+
+      const after = trellis.api.getState();
+      expect(after.data).toHaveLength(before.length);
+    });
+
+    it('emits data:updated event with updated ID', () => {
+      const handler = vi.fn();
+      trellis.api.on('data:updated', handler);
+
+      trellis.api.updateRow('1', { age: 99 });
+
+      expect(handler).toHaveBeenCalledWith('1');
+    });
+
+    it('re-runs pipeline after update', () => {
+      const sorted = new Trellis<User>({
+        data: sampleData,
+        columns: sampleColumns,
+        plugins: [
+          {
+            name: 'sort',
+            install: (api) => {
+              api.registerTransform('sort', 20, (data) =>
+                [...data].sort((a, b) => a.original.age - b.original.age),
+              );
+            },
+          },
+        ],
+      });
+
+      // Update Alice's age from 30 to 40 — she should move to last position
+      sorted.api.updateRow('0', { age: 40 });
+
+      const state = sorted.api.getState();
+      expect(state.data[state.data.length - 1].original.name).toBe('Alice');
+    });
+  });
 });

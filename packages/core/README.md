@@ -49,6 +49,26 @@ table.api.on('row:click', (payload) => {
 table.destroy()
 ```
 
+## Dynamic Data Operations
+
+Add, remove, or update individual rows. Each operation modifies `sourceData` and re-runs the Transform Pipeline so sort/filter/pagination stay in sync.
+
+```typescript
+// Add a new row — appended to sourceData, pipeline re-runs
+table.api.addRow({ id: 3, name: 'Charlie', email: 'charlie@example.com' })
+
+// Remove a row by ID — no-op if ID not found
+table.api.removeRow('2')
+
+// Update a row (shallow merge) — no-op if ID not found
+table.api.updateRow('1', { name: 'Alice Updated' })
+
+// Listen for data change events
+table.api.on('data:added', (id) => console.log('Added:', id))
+table.api.on('data:removed', (id) => console.log('Removed:', id))
+table.api.on('data:updated', (id) => console.log('Updated:', id))
+```
+
 ## API Reference
 
 ### `Trellis<T>`
@@ -73,6 +93,12 @@ const table = new Trellis(options)
 | `emit` | `(event: string, payload: unknown) => void` | `void` | Dispatch an event |
 | `registerSlot` | `(name: string, renderer: SlotRenderer) => () => void` | Unregister fn | Register a named render slot |
 | `getSlot` | `(name: string) => SlotRenderer \| undefined` | Renderer or undefined | Retrieve a registered slot |
+| `registerTransform` | `(name: string, priority: number, fn: TransformFn<T>) => void` | `void` | Register a pipeline transform |
+| `recompute` | `(withState?: Partial<TableState<T>>) => void` | `void` | Re-run pipeline, optionally merging state |
+| `updateSourceData` | `(data: T[]) => void` | `void` | Replace all source data and re-run pipeline |
+| `addRow` | `(item: T) => void` | `void` | Append a row to sourceData and re-run pipeline. Emits `data:added` |
+| `removeRow` | `(id: DataId) => void` | `void` | Remove a row by ID and re-run pipeline. Emits `data:removed` |
+| `updateRow` | `(id: DataId, partial: Partial<T>) => void` | `void` | Merge-update a row by ID and re-run pipeline. Emits `data:updated` |
 
 ## Types
 

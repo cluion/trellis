@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTrellis } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
@@ -16,6 +16,11 @@ const columns: ColumnDef<User>[] = [
   { id: 'city', accessor: 'city', header: '城市', sortable: true },
   { id: 'joinDate', accessor: 'joinDate', header: '入職日期', sortable: true },
 ];
+
+const roles = ['Engineer', 'Manager', 'Designer', 'QA', 'PM', 'Director', 'Intern'];
+const cities = ['台北', '台中', '高雄', '新竹'];
+
+let nextUserId = 100;
 
 interface FullFeatureTableProps {
   data: User[];
@@ -98,6 +103,35 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
     }
   };
 
+  const handleAddRow = useCallback(() => {
+    nextUserId++;
+    api.addRow({
+      id: nextUserId,
+      name: `User ${nextUserId}`,
+      email: `user${nextUserId}@example.com`,
+      age: 20 + Math.floor(Math.random() * 30),
+      role: roles[Math.floor(Math.random() * roles.length)],
+      city: cities[Math.floor(Math.random() * cities.length)],
+      joinDate: new Date().toISOString().slice(0, 10),
+    });
+  }, [api]);
+
+  const handleDeleteRow = useCallback((rowId: string | number) => {
+    api.removeRow(rowId);
+  }, [api]);
+
+  const handleDeleteSelected = useCallback(() => {
+    const ids = api.getState().selection;
+    ids.forEach((id) => api.removeRow(id));
+  }, [api]);
+
+  const handleIncrementAge = useCallback((rowId: string | number) => {
+    const row = api.getState().data.find((r) => r.id === rowId);
+    if (row) {
+      api.updateRow(rowId, { age: (row.original.age as number) + 1 });
+    }
+  }, [api]);
+
   return (
     <div>
       <div className="toolbar">
@@ -111,6 +145,14 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
         {query && (
           <button onClick={() => handleSearch('')} className="btn btn-sm">
             清除
+          </button>
+        )}
+        <button onClick={handleAddRow} className="btn btn-sm btn-primary">
+          + 新增
+        </button>
+        {selection.size > 0 && (
+          <button onClick={handleDeleteSelected} className="btn btn-sm">
+            刪除選取 ({selection.size})
           </button>
         )}
         <div className="page-size-selector">
@@ -149,6 +191,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                 onChange={handleToggleAll}
               />
             </th>
+            <th style={{ width: 120 }}>操作</th>
             {columns.map((col) => (
               <th
                 key={col.id}
@@ -170,6 +213,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
             ))}
           </tr>
           <tr>
+            <th></th>
             <th></th>
             {columns.map((col) => (
               <th key={`filter-${col.id}`}>
@@ -199,6 +243,22 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                   }}
                 />
               </td>
+              <td>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handleIncrementAge(row.id)}
+                  title="年齡 +1"
+                >
+                  +age
+                </button>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handleDeleteRow(row.id)}
+                  title="刪除此列"
+                >
+                  刪除
+                </button>
+              </td>
               {columns.map((col) => (
                 <td key={col.id} style={{ textAlign: col.align }}>
                   {String(row.original[col.accessor as keyof User] ?? '')}
@@ -208,7 +268,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           ))}
           {state.data.length === 0 && (
             <tr>
-              <td colSpan={columns.length + 1} className="empty-row">
+              <td colSpan={columns.length + 2} className="empty-row">
                 沒有符合的結果
               </td>
             </tr>

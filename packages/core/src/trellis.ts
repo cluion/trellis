@@ -140,6 +140,35 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
         this.sourceData = this.processData(data);
         this.runPipeline();
       },
+      addRow: (item) => {
+        const index = this.sourceData.length;
+        const row: DataRow<T> = {
+          id: this.resolveRowId(item, index),
+          original: item,
+          index,
+        };
+        this.sourceData = [...this.sourceData, row];
+        this.runPipeline();
+        this.eventBus.emit('data:added', row.id);
+      },
+      removeRow: (id) => {
+        const index = this.sourceData.findIndex((row) => row.id === id);
+        if (index === -1) return;
+        this.sourceData = this.sourceData.filter((row) => row.id !== id);
+        this.runPipeline();
+        this.eventBus.emit('data:removed', id);
+      },
+      updateRow: (id, partial) => {
+        const index = this.sourceData.findIndex((row) => row.id === id);
+        if (index === -1) return;
+        this.sourceData = this.sourceData.map((row) =>
+          row.id === id
+            ? { ...row, original: { ...row.original, ...partial } as T }
+            : row,
+        );
+        this.runPipeline();
+        this.eventBus.emit('data:updated', id);
+      },
     };
   }
 

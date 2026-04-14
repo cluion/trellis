@@ -30,6 +30,12 @@ export interface TrellisAPI<T = Record<string, unknown>> {
   recompute: (withState?: Partial<TableState<T>>) => void;
   /** 替換原始資料並重跑管線 */
   updateSourceData: (data: T[]) => void;
+  /** 新增一筆資料到 sourceData 末端，重跑管線 */
+  addRow: (item: T) => void;
+  /** 依 ID 移除一筆資料，重跑管線 */
+  removeRow: (id: DataId) => void;
+  /** 依 ID 合併更新一筆資料，重跑管線 */
+  updateRow: (id: DataId, partial: Partial<T>) => void;
 }
 
 /**

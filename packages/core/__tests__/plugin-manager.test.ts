@@ -15,6 +15,9 @@ function createMockAPI(): TrellisAPI {
     registerTransform: vi.fn(),
     recompute: vi.fn(),
     updateSourceData: vi.fn(),
+    addRow: vi.fn(),
+    removeRow: vi.fn(),
+    updateRow: vi.fn(),
   };
 }
 
