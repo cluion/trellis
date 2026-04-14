@@ -1,5 +1,19 @@
 # @trellisjs/demo
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`bb74e13`](https://github.com/cluion/trellis/commit/bb74e1395d460df150b349442f3f506ab87d5eb2)]:
+  - @trellisjs/core@1.2.0
+  - @trellisjs/plugin-column-visibility@1.0.0
+  - @trellisjs/plugin-datasource@3.0.0
+  - @trellisjs/plugin-filter@3.0.0
+  - @trellisjs/plugin-pagination@3.0.0
+  - @trellisjs/plugin-selection@2.0.0
+  - @trellisjs/plugin-sort@3.0.0
+  - @trellisjs/react@3.0.0
+
 ## 0.1.5
 
 ### Patch Changes
