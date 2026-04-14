@@ -4,6 +4,7 @@ import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 import { createSelectionPlugin } from '@trellisjs/plugin-selection';
+import { createColumnVisibilityPlugin } from '@trellisjs/plugin-column-visibility';
 import type { ColumnDef } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
@@ -38,6 +39,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
       createFilterPlugin(),
       createPaginationPlugin(),
       createSelectionPlugin(),
+      createColumnVisibilityPlugin(),
     ],
   });
 
@@ -168,6 +170,21 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           </select>
           筆
         </div>
+        <div className="column-visibility">
+          {columns.map((col) => {
+            const visible = state.columnVisibility?.[col.id] !== false;
+            return (
+              <label key={col.id} className="column-vis-label">
+                <input
+                  type="checkbox"
+                  checked={visible}
+                  onChange={() => api.emit('column:toggle', { columnId: col.id })}
+                />
+                {String(col.header)}
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       <div className="status-bar">
@@ -192,7 +209,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
               />
             </th>
             <th style={{ width: 120 }}>操作</th>
-            {columns.map((col) => (
+            {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
               <th
                 key={col.id}
                 style={{
@@ -215,7 +232,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           <tr>
             <th></th>
             <th></th>
-            {columns.map((col) => (
+            {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
               <th key={`filter-${col.id}`}>
                 <input
                   type="text"
@@ -259,7 +276,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                   刪除
                 </button>
               </td>
-              {columns.map((col) => (
+              {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
                 <td key={col.id} style={{ textAlign: col.align }}>
                   {String(row.original[col.accessor as keyof User] ?? '')}
                 </td>
@@ -268,7 +285,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           ))}
           {state.data.length === 0 && (
             <tr>
-              <td colSpan={columns.length + 2} className="empty-row">
+              <td colSpan={columns.filter((col) => state.columnVisibility?.[col.id] !== false).length + 2} className="empty-row">
                 沒有符合的結果
               </td>
             </tr>

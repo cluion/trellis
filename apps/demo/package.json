@@ -16,6 +16,7 @@
     "@trellisjs/plugin-pagination": "workspace:*",
     "@trellisjs/plugin-datasource": "workspace:*",
     "@trellisjs/plugin-selection": "workspace:*",
+    "@trellisjs/plugin-column-visibility": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

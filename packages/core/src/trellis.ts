@@ -41,6 +41,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       filtering: { query: '', columnFilters: {} },
       pagination: { page: 1, pageSize: options.pageSize ?? 10, totalItems: options.data.length },
       selection: new Set(),
+      columnVisibility: {},
     };
 
     this.store = new StateStore(initialState);

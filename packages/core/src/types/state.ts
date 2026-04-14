@@ -50,4 +50,6 @@ export interface TableState<T = Record<string, unknown>> {
   pagination: PaginationState;
   /** 已選取的列 ID 集合 */
   selection: Set<DataId>;
+  /** 欄位可見性：key 為 columnId，值 false 表示隱藏（未定義或 true 表示可見） */
+  columnVisibility: Record<string, boolean>;
 }

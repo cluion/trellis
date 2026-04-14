@@ -163,6 +163,7 @@ interface TableState<T> {
   filtering: { query: string; columnFilters: Record<string, unknown> }
   pagination: { page: number; pageSize: number; totalItems: number }
   selection: Set<DataId>
+  columnVisibility: Record<string, boolean>
 }
 ```
 
