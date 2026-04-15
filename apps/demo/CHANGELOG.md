@@ -1,5 +1,12 @@
 # @trellisjs/demo
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [[`745cb8a`](https://github.com/cluion/trellis/commit/745cb8a4a3f7c370901e8a8a2c970120bf9686c9)]:
+  - @trellisjs/react@3.1.0
+
 ## 0.1.6
 
 ### Patch Changes
