@@ -40,7 +40,7 @@ outside a provider.
 
 | Component | Description |
 |-----------|-------------|
-| `Table` | Renders a `<table>` with `<TableHead>` and `<TableBody>`. |
+| `Table` | Renders a `<table>` with `<TableHead>` and `<TableBody>`. Supports `stickyHeader` prop. |
 | `TableHead` | Header row from column definitions. |
 | `TableBody` | Body rows from current data and columns. |
 | `Tr` / `Th` / `Td` | Primitive row and cell components. |
@@ -58,6 +58,18 @@ Props:
 - `name` -- slot name to look up.
 - `context` -- optional `SlotContext` passed to the renderer.
 - `fallback` -- rendered when no slot is registered.
+
+### `TableProps`
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `stickyHeader` | `boolean` | `false` | Enables sticky header — `<th>` elements get `position: sticky; top: 0` so the header stays visible during vertical scroll. Requires the container to have `max-height` and `overflow: auto`. |
+
+```tsx
+<div style={{ maxHeight: 400, overflow: 'auto' }}>
+  <Table stickyHeader />
+</div>
+```
 
 ## Quick Usage
 

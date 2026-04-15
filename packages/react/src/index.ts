@@ -15,6 +15,7 @@ export {
   Th,
   Td,
 } from './components';
+export type { TableProps } from './components';
 
 // 插槽
 export { SlotRenderer } from './slots/slot-renderer';

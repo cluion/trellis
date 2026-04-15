@@ -15,7 +15,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 - **Full-Stack Protocol** — `TrellisQuery / TrellisResponse` unifies frontend and backend interfaces.
 - **Server Helpers** — Query parsing, SQL construction, and ORM adapters.
 - **Tree-Shakeable** — Install only the plugins you need.
-- **React Adapter** — First-class React support via `@trellisjs/react`.
+- **React Adapter** — First-class React support via `@trellisjs/react`, including sticky header.
 
 ## Packages
 

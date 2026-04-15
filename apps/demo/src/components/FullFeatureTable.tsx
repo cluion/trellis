@@ -197,10 +197,11 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
         </span>
       </div>
 
+      <div style={{ maxHeight: 400, overflow: 'auto' }}>
       <table className="trellis-table">
         <thead>
           <tr>
-            <th style={{ width: 40, textAlign: 'center' }}>
+            <th style={{ width: 40, textAlign: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
               <input
                 type="checkbox"
                 ref={(el) => { if (el) el.indeterminate = someSelected; }}
@@ -208,7 +209,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                 onChange={handleToggleAll}
               />
             </th>
-            <th style={{ width: 120 }}>操作</th>
+            <th style={{ width: 120, position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>操作</th>
             {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
               <th
                 key={col.id}
@@ -217,6 +218,10 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                   textAlign: col.align,
                   cursor: col.sortable !== false ? 'pointer' : 'default',
                   userSelect: 'none',
+                  position: 'sticky',
+                  top: 0,
+                  background: '#fff',
+                  zIndex: 1,
                 }}
                 onClick={(e) => col.sortable !== false && handleSort(col.id, e.shiftKey)}
               >
@@ -292,6 +297,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           )}
         </tbody>
       </table>
+      </div>
 
       <div className="pagination">
         <button

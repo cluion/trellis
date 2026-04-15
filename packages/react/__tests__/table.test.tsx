@@ -75,4 +75,32 @@ describe('Table', () => {
     const headerCells = container.querySelectorAll('thead th');
     expect(headerCells).toHaveLength(3);
   });
+
+  describe('stickyHeader', () => {
+    it('applies sticky styles to th elements when enabled', () => {
+      const { container } = render(
+        <Table stickyHeader />,
+        { wrapper: Wrapper },
+      );
+      const thead = container.querySelector('thead');
+      expect(thead).toHaveClass('trellis-thead--sticky');
+      const thElements = container.querySelectorAll('thead th');
+      thElements.forEach((th) => {
+        expect(th).toHaveStyle({ position: 'sticky', top: '0px' });
+      });
+    });
+
+    it('does not apply sticky styles when disabled', () => {
+      const { container } = render(
+        <Table />,
+        { wrapper: Wrapper },
+      );
+      const thead = container.querySelector('thead');
+      expect(thead).not.toHaveClass('trellis-thead--sticky');
+      const thElements = container.querySelectorAll('thead th');
+      thElements.forEach((th) => {
+        expect(th).not.toHaveAttribute('style');
+      });
+    });
+  });
 });
