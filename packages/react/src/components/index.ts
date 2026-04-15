@@ -5,3 +5,5 @@ export { TableBody } from './tbody';
 export { Tr } from './tr';
 export { Th } from './th';
 export { Td } from './td';
+export { TableInfo } from './table-info';
+export type { TableInfoProps } from './table-info';

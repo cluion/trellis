@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useTrellis } from '@trellisjs/react';
+import { useTrellis, TableInfo } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
@@ -49,8 +49,6 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
   const selection = state.selection;
   const totalCount = pagination.totalItems;
   const totalPages = Math.max(1, Math.ceil(totalCount / pagination.pageSize));
-  const startIndex = totalCount > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0;
-  const endIndex = totalCount > 0 ? Math.min(pagination.page * pagination.pageSize, totalCount) : 0;
 
   const handleSort = (columnId: string, shiftKey: boolean) => {
     const sortBy = sorting?.sortBy ?? [];
@@ -189,7 +187,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
 
       <div className="status-bar">
         <span>
-          顯示 {startIndex}-{endIndex}，共 {totalCount} 筆
+          <TableInfo format="顯示 {start}-{end}，共 {total} 筆" pagination={pagination} />
           {(sorting?.sortBy?.length ?? 0) > 0 && ` | 排序：${sorting.sortBy.map((c) => `${c.columnId} ${c.direction === 'asc' ? '↑' : '↓'}`).join(', ')}`}
           {query && ` | 搜尋："${query}"`}
           {Object.entries(columnFilters).length > 0 && ` | 欄篩選：${Object.entries(columnFilters).map(([k, v]) => `${k}="${v}"`).join(', ')}`}

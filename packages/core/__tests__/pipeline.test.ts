@@ -154,4 +154,48 @@ describe('Transform Pipeline', () => {
     expect(state.data).toHaveLength(1);
     expect(state.pagination.totalItems).toBe(2); // filter 後、pagination 前
   });
+
+  it('刪除資料後 page 自動校正到有效範圍', () => {
+    // 25 筆資料，每頁 5 筆 = 5 頁
+    const data25 = Array.from({ length: 25 }, (_, i) => ({ name: `U${i}`, age: i }));
+    const cols = [
+      { id: 'name', accessor: 'name' as const, header: 'Name' },
+      { id: 'age', accessor: 'age' as const, header: 'Age' },
+    ];
+
+    const paginationPlugin: TrellisPlugin = {
+      name: 'pagination',
+      install(api: TrellisAPI) {
+        api.registerTransform('pagination', 30, (data, state) => {
+          const start = (state.pagination.page - 1) * state.pagination.pageSize;
+          return data.slice(start, start + state.pagination.pageSize);
+        });
+      },
+    };
+
+    const trellis = new Trellis({
+      data: data25,
+      columns: cols,
+      pageSize: 5,
+      plugins: [paginationPlugin],
+    });
+
+    // 導航到第 5 頁
+    trellis.api.setState(() => ({
+      pagination: { ...trellis.api.getState().pagination, page: 5 },
+    }));
+    trellis.api.recompute();
+    expect(trellis.api.getState().pagination.page).toBe(5);
+
+    // 刪除最後 5 筆 → 只剩 20 筆 = 4 頁
+    const last5Ids = trellis.api.getState().data.map((r) => r.id);
+    last5Ids.forEach((id) => trellis.api.removeRow(id));
+
+    const state = trellis.api.getState();
+    // page 應自動校正到第 4 頁（新的最後一頁）
+    expect(state.pagination.page).toBe(4);
+    expect(state.pagination.totalItems).toBe(20);
+    // 第 4 頁應有資料
+    expect(state.data.length).toBeGreaterThan(0);
+  });
 });

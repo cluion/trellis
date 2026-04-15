@@ -95,21 +95,38 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       const sorted = [...this.transforms].sort((a, b) => a.priority - b.priority);
 
       let data: DataRow<T>[] = [...this.sourceData];
-      let totalItems = data.length;
+      let effectiveState = state;
 
-      for (let i = 0; i < sorted.length; i++) {
-        // 在最後一個 transform 前捕獲長度（避免 pagination 切片影響）
-        if (i === sorted.length - 1) {
-          totalItems = data.length;
+      if (sorted.length > 0) {
+        // 階段一：執行所有 transform（最後一個除外）→ 取得 totalItems
+        for (let i = 0; i < sorted.length - 1; i++) {
+          data = sorted[i].fn(data, state);
         }
-        data = sorted[i].fn(data, state);
-      }
 
-      // 一次 setState 寫入結果
-      this.store.setState(() => ({
-        data,
-        pagination: { ...state.pagination, totalItems },
-      }));
+        const totalItems = data.length;
+
+        // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
+        const totalPages = Math.max(1, Math.ceil(totalItems / state.pagination.pageSize));
+        const clampedPage = Math.min(state.pagination.page, totalPages);
+
+        if (clampedPage !== state.pagination.page) {
+          effectiveState = { ...state, pagination: { ...state.pagination, page: clampedPage } };
+        }
+
+        // 階段二：用校正後的頁碼執行最後一個 transform（pagination）
+        data = sorted[sorted.length - 1].fn(data, effectiveState);
+
+        // 一次 setState 寫入結果
+        this.store.setState(() => ({
+          data,
+          pagination: { ...state.pagination, totalItems, page: clampedPage },
+        }));
+      } else {
+        this.store.setState(() => ({
+          data,
+          pagination: { ...state.pagination, totalItems: data.length },
+        }));
+      }
     } finally {
       this.pipelineLock = false;
     }

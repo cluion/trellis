@@ -41,6 +41,7 @@ outside a provider.
 | Component | Description |
 |-----------|-------------|
 | `Table` | Renders a `<table>` with `<TableHead>` and `<TableBody>`. Supports `stickyHeader` prop. |
+| `TableInfo` | Displays pagination info ("Showing X to Y of Z entries"). |
 | `TableHead` | Header row from column definitions. |
 | `TableBody` | Body rows from current data and columns. |
 | `Tr` / `Th` / `Td` | Primitive row and cell components. |
@@ -69,6 +70,33 @@ Props:
 <div style={{ maxHeight: 400, overflow: 'auto' }}>
   <Table stickyHeader />
 </div>
+```
+
+### `TableInfo`
+
+Displays the current page's data range (e.g. "Showing 1 to 10 of 25 entries").
+
+```tsx
+// Auto-reads from TrellisContext
+<TableInfo />
+
+// Or pass pagination directly (no context required)
+<TableInfo pagination={{ page: 1, pageSize: 10, totalItems: 25 }} />
+```
+
+Props:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `format` | `string \| FormatFn` | `"Showing {start} to {end} of {total} entries"` | Custom format string (supports `{start}`, `{end}`, `{total}` placeholders) or a render function `({ start, end, total }) => ReactNode`. |
+| `pagination` | `{ page, pageSize, totalItems }` | — | When provided, uses this instead of reading from `TrellisContext`. |
+
+```tsx
+// String template
+<TableInfo format="第 {start} 到 {end} 筆，共 {total} 筆" />
+
+// Render function
+<TableInfo format={({ start, end, total }) => `${start}-${end} / ${total}`} />
 ```
 
 ## Quick Usage
