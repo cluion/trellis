@@ -1,5 +1,11 @@
 # @trellisjs/react
 
+## 3.1.0
+
+### Minor Changes
+
+- [`745cb8a`](https://github.com/cluion/trellis/commit/745cb8a4a3f7c370901e8a8a2c970120bf9686c9) Thanks [@cluion](https://github.com/cluion)! - Add `stickyHeader` prop to Table component: enables sticky table headers during vertical scrolling via CSS `position: sticky` on `<th>` elements.
+
 ## 3.0.0
 
 ### Patch Changes
