@@ -4,6 +4,30 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/react':
+      specifier: ^19.1.0
+      version: 19.2.14
+    '@types/react-dom':
+      specifier: ^19.1.0
+      version: 19.2.3
+    react:
+      specifier: ^19.1.0
+      version: 19.2.5
+    react-dom:
+      specifier: ^19.1.0
+      version: 19.2.5
+    tsup:
+      specifier: ^8.4.0
+      version: 8.5.1
+    typescript:
+      specifier: ^5.7.0
+      version: 5.9.3
+    vitest:
+      specifier: ^3.1.0
+      version: 3.2.4
+
 importers:
 
   .:
@@ -48,23 +72,23 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       react:
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.5
       react-dom:
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.5(react@19.2.5)
     devDependencies:
       '@types/react':
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.14
       '@types/react-dom':
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.14)
       '@vitejs/plugin-react':
         specifier: ^4.4.1
         version: 4.7.0(vite@6.4.2)
       typescript:
-        specifier: ^5.8.3
+        specifier: 'catalog:'
         version: 5.9.3
       vite:
         specifier: ^6.3.2
@@ -73,13 +97,13 @@ importers:
   packages/core:
     devDependencies:
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-column-visibility:
@@ -88,13 +112,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-datasource:
@@ -103,13 +127,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-filter:
@@ -118,13 +142,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-pagination:
@@ -133,13 +157,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-selection:
@@ -148,13 +172,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/plugin-sort:
@@ -163,13 +187,13 @@ importers:
         specifier: workspace:*
         version: link:../core
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/react:
@@ -184,40 +208,40 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@types/react':
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.14
       '@types/react-dom':
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.14)
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
       react:
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.5
       react-dom:
-        specifier: ^19.1.0
+        specifier: 'catalog:'
         version: 19.2.5(react@19.2.5)
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/server:
     devDependencies:
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
   packages/server-prisma:
@@ -230,13 +254,13 @@ importers:
         specifier: workspace:*
         version: link:../server
       tsup:
-        specifier: ^8.4.0
+        specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
       typescript:
-        specifier: ^5.7.0
+        specifier: 'catalog:'
         version: 5.9.3
       vitest:
-        specifier: ^3.1.0
+        specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
 packages:

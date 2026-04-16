@@ -28,9 +28,9 @@
     "clean": "rm -rf dist"
   },
   "devDependencies": {
-    "tsup": "^8.4.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.1.0"
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "repository": {
     "type": "git",

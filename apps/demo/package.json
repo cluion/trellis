@@ -17,14 +17,14 @@
     "@trellisjs/plugin-datasource": "workspace:*",
     "@trellisjs/plugin-selection": "workspace:*",
     "@trellisjs/plugin-column-visibility": "workspace:*",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^4.4.1",
-    "typescript": "^5.8.3",
+    "typescript": "catalog:",
     "vite": "^6.3.2"
   }
 }

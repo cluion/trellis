@@ -28,7 +28,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "peerDependencies": {
-    "@trellisjs/core": "workspace:^1.2.0",
+    "@trellisjs/core": "workspace:^",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
@@ -36,14 +36,14 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@trellisjs/core": "workspace:*",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "jsdom": "^26.1.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tsup": "^8.4.0",
-    "typescript": "^5.7.0",
-    "vitest": "^3.1.0"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "repository": {
     "type": "git",
