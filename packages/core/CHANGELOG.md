@@ -1,5 +1,11 @@
 # @trellisjs/core
 
+## 1.2.1
+
+### Patch Changes
+
+- [`484c381`](https://github.com/cluion/trellis/commit/484c381e67406bcd3180329009924fffb54e79de) Thanks [@cluion](https://github.com/cluion)! - Add `TableInfo` component for displaying pagination info. Fix page not auto-clamping after data deletion.
+
 ## 1.2.0
 
 ### Minor Changes
