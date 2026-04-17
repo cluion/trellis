@@ -1,5 +1,6 @@
 import type { ColumnDef } from './column';
 import type { DataRow, DataId } from './data';
+import type { VirtualScrollState } from './virtual-scroll';
 
 /** 單一排序條件 */
 export interface SortCriterion {
@@ -52,4 +53,6 @@ export interface TableState<T = Record<string, unknown>> {
   selection: Set<DataId>;
   /** 欄位可見性：key 為 columnId，值 false 表示隱藏（未定義或 true 表示可見） */
   columnVisibility: Record<string, boolean>;
+  /** 虛擬滾動狀態（僅在啟用插件時有值） */
+  virtualScroll?: VirtualScrollState;
 }

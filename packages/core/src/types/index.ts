@@ -7,6 +7,7 @@ export type {
   TableState,
 } from './state';
 export type { TransformFn, TransformEntry } from './pipeline';
+export type { VirtualScrollState } from './virtual-scroll';
 export type { EventHandler } from './event';
 export type { SlotRenderer, SlotContext } from './slot';
 export type {

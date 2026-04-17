@@ -175,6 +175,20 @@ body {
   color: #94a3b8;
 }
 
+.column-vis-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.column-visibility {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .page-size-selector {
   margin-left: auto;
   display: flex;

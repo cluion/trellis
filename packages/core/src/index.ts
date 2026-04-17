@@ -19,6 +19,7 @@ export type {
   PaginationState,
   TableState,
 } from './types/state';
+export type { VirtualScrollState } from './types/virtual-scroll';
 export type { EventHandler } from './types/event';
 export type { SlotRenderer, SlotContext } from './types/slot';
 export type {

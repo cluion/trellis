@@ -5,12 +5,14 @@ export { TrellisContext, useTrellisContext } from './context';
 
 // Hooks
 export { useTrellis } from './hooks/use-trellis';
+export { useVirtualScroll } from './hooks/use-virtual-scroll';
 
 // 元件
 export {
   Table,
   TableHead,
   TableBody,
+  VirtualScrollBody,
   Tr,
   Th,
   Td,

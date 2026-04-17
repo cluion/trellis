@@ -164,6 +164,7 @@ interface TableState<T> {
   pagination: { page: number; pageSize: number; totalItems: number }
   selection: Set<DataId>
   columnVisibility: Record<string, boolean>
+  virtualScroll?: { startIndex: number; endIndex: number; totalHeight: number; rowHeight: number }
 }
 ```
 

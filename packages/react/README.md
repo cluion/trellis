@@ -40,10 +40,11 @@ outside a provider.
 
 | Component | Description |
 |-----------|-------------|
-| `Table` | Renders a `<table>` with `<TableHead>` and `<TableBody>`. Supports `stickyHeader` prop. |
+| `Table` | Renders a `<table>` with `<TableHead>` and `<TableBody>`. Supports `stickyHeader` and `virtualScroll` props. |
 | `TableInfo` | Displays pagination info ("Showing X to Y of Z entries"). |
 | `TableHead` | Header row from column definitions. |
 | `TableBody` | Body rows from current data and columns. |
+| `VirtualScrollBody` | Virtual-scrolled body — only renders visible rows with spacer rows for scrollbar accuracy. |
 | `Tr` / `Th` / `Td` | Primitive row and cell components. |
 
 ### `SlotRenderer`
@@ -65,6 +66,31 @@ Props:
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `stickyHeader` | `boolean` | `false` | Enables sticky header — `<th>` elements get `position: sticky; top: 0` so the header stays visible during vertical scroll. Requires the container to have `max-height` and `overflow: auto`. |
+| `virtualScroll` | `boolean` | `false` | Enables virtual scrolling — uses `VirtualScrollBody` instead of `TableBody` to render only visible rows. |
+
+### `useVirtualScroll(plugin)`
+
+Hook that binds a scroll container to a virtual scroll plugin. Manages lifecycle (attach/detach).
+
+```tsx
+import { useVirtualScroll } from '@trellisjs/react';
+import { createVirtualScrollPlugin } from '@trellisjs/plugin-virtual-scroll';
+
+const vsPlugin = createVirtualScrollPlugin({ rowHeight: 40 });
+
+function MyTable() {
+  const { api } = useTrellis({ data, columns, pageSize: data.length, plugins: [vsPlugin] });
+  const { containerRef, style } = useVirtualScroll(vsPlugin);
+
+  return (
+    <div ref={containerRef} style={{ ...style, maxHeight: 500 }}>
+      <table>...</table>
+    </div>
+  );
+}
+```
+
+Returns `{ containerRef: RefObject<HTMLDivElement>, style: { overflowY: 'auto' } }`.
 
 ```tsx
 <div style={{ maxHeight: 400, overflow: 'auto' }}>
@@ -102,7 +128,7 @@ Props:
 ## Quick Usage
 
 ```tsx
-import { useTrellis, TrellisContext, Table, SlotRenderer } from '@trellisjs/react';
+import { useTrellis, TrellisContext, Table, SlotRenderer, VirtualScrollBody, useVirtualScroll } from '@trellisjs/react';
 
 const columns = [
   { id: 'name', label: 'Name' },

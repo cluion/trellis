@@ -5,6 +5,7 @@ import { FilterableTable } from './components/FilterableTable';
 import { PaginatedTable } from './components/PaginatedTable';
 import { FullFeatureTable } from './components/FullFeatureTable';
 import { SlotExample } from './components/SlotExample';
+import { VirtualScrollTable } from './components/VirtualScrollTable';
 import { mockUsers } from './data/mock-data';
 
 const tabs = [
@@ -12,6 +13,7 @@ const tabs = [
   { id: 'sort', label: '排序' },
   { id: 'filter', label: '篩選' },
   { id: 'pagination', label: '分頁' },
+  { id: 'virtual-scroll', label: '虛擬滾動' },
   { id: 'full', label: '全功能整合' },
   { id: 'slot', label: 'Slot 自定義' },
 ] as const;
@@ -90,6 +92,19 @@ export function App() {
           </section>
         )}
 
+        {activeTab === 'virtual-scroll' && (
+          <section>
+            <h2>虛擬滾動</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-virtual-scroll 插件。10,000 筆資料只渲染可視區域的 DOM 節點，
+              保持 60fps 流暢滾動。拖動捲軸觀察渲染範圍變化。
+            </p>
+            <div className="card">
+              <VirtualScrollTable count={10000} />
+            </div>
+          </section>
+        )}
+
         {activeTab === 'full' && (
           <section>
             <h2>全功能整合</h2>
@@ -117,7 +132,7 @@ export function App() {
       </main>
 
       <footer className="footer">
-        <span>Trellis v0.1.0 | 8 套件 | 133 測試 | TypeScript</span>
+        <span>Trellis | 11 套件 | 219 測試 | TypeScript</span>
       </footer>
     </div>
   );

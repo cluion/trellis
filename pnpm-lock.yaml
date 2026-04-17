@@ -68,6 +68,9 @@ importers:
       '@trellisjs/plugin-sort':
         specifier: workspace:*
         version: link:../../packages/plugin-sort
+      '@trellisjs/plugin-virtual-scroll':
+        specifier: workspace:*
+        version: link:../../packages/plugin-virtual-scroll
       '@trellisjs/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -196,6 +199,24 @@ importers:
         specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
+  packages/plugin-virtual-scroll:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@trellisjs/plugin-pagination':
+        specifier: workspace:*
+        version: link:../plugin-pagination
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(jsdom@26.1.0)
+
   packages/react:
     devDependencies:
       '@testing-library/jest-dom':
@@ -207,6 +228,9 @@ importers:
       '@trellisjs/core':
         specifier: workspace:*
         version: link:../core
+      '@trellisjs/plugin-virtual-scroll':
+        specifier: workspace:*
+        version: link:../plugin-virtual-scroll
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.14

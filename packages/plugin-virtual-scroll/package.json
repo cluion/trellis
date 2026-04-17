@@ -1,7 +1,7 @@
 {
-  "name": "@trellisjs/react",
-  "version": "3.2.0",
-  "description": "Trellis 的 React 適配器 — 無頭式資料表格元件",
+  "name": "@trellisjs/plugin-virtual-scroll",
+  "version": "0.1.0",
+  "description": "Trellis 虛擬滾動插件 — DOM-based 行虛擬化",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -25,23 +25,14 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "@trellisjs/core": "workspace:^",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "@trellisjs/core": "workspace:^"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
     "@trellisjs/core": "workspace:*",
-    "@trellisjs/plugin-virtual-scroll": "workspace:*",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "jsdom": "^26.1.0",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "@trellisjs/plugin-pagination": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -49,7 +40,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cluion/trellis.git",
-    "directory": "packages/react"
+    "directory": "packages/plugin-virtual-scroll"
   },
   "license": "MIT",
   "sideEffects": false

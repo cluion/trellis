@@ -98,29 +98,49 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       let effectiveState = state;
 
       if (sorted.length > 0) {
-        // 階段一：執行所有 transform（最後一個除外）→ 取得 totalItems
-        for (let i = 0; i < sorted.length - 1; i++) {
-          data = sorted[i].fn(data, state);
+        // 找到 pagination transform 的位置
+        const paginationIndex = sorted.findIndex((t) => t.name === 'pagination');
+
+        if (paginationIndex !== -1) {
+          // 階段一：執行 pagination 之前的所有 transform → 取得 totalItems
+          for (let i = 0; i < paginationIndex; i++) {
+            data = sorted[i].fn(data, state);
+          }
+
+          const totalItems = data.length;
+
+          // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
+          const totalPages = Math.max(1, Math.ceil(totalItems / state.pagination.pageSize));
+          const clampedPage = Math.min(state.pagination.page, totalPages);
+
+          if (clampedPage !== state.pagination.page) {
+            effectiveState = { ...state, pagination: { ...state.pagination, page: clampedPage } };
+          }
+
+          // 階段二：執行 pagination transform（用校正後的頁碼）
+          data = sorted[paginationIndex].fn(data, effectiveState);
+
+          // 階段三：執行 pagination 之後的所有 transform（如 virtualScroll）
+          for (let i = paginationIndex + 1; i < sorted.length; i++) {
+            data = sorted[i].fn(data, effectiveState);
+          }
+
+          // 一次 setState 寫入結果
+          this.store.setState(() => ({
+            data,
+            pagination: { ...effectiveState.pagination, totalItems, page: clampedPage },
+          }));
+        } else {
+          // 沒有 pagination transform，依序執行所有 transform
+          for (const transform of sorted) {
+            data = transform.fn(data, state);
+          }
+
+          this.store.setState(() => ({
+            data,
+            pagination: { ...state.pagination, totalItems: this.sourceData.length },
+          }));
         }
-
-        const totalItems = data.length;
-
-        // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
-        const totalPages = Math.max(1, Math.ceil(totalItems / state.pagination.pageSize));
-        const clampedPage = Math.min(state.pagination.page, totalPages);
-
-        if (clampedPage !== state.pagination.page) {
-          effectiveState = { ...state, pagination: { ...state.pagination, page: clampedPage } };
-        }
-
-        // 階段二：用校正後的頁碼執行最後一個 transform（pagination）
-        data = sorted[sorted.length - 1].fn(data, effectiveState);
-
-        // 一次 setState 寫入結果
-        this.store.setState(() => ({
-          data,
-          pagination: { ...state.pagination, totalItems, page: clampedPage },
-        }));
       } else {
         this.store.setState(() => ({
           data,
