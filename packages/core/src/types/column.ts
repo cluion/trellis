@@ -38,4 +38,6 @@ export interface ColumnDef<T = Record<string, unknown>> {
   className?: string | ((row: T, value: unknown) => string);
   /** 此欄位是否可見 */
   visible?: boolean;
+  /** 釘選方向：固定在左側或右側 */
+  pin?: 'left' | 'right';
 }

@@ -116,6 +116,14 @@ body {
   border-bottom: 1px solid #f1f5f9;
 }
 
+.trellis-pin-shadow--left {
+  box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.12);
+}
+
+.trellis-pin-shadow--right {
+  box-shadow: -4px 0 8px -2px rgba(0, 0, 0, 0.12);
+}
+
 .trellis-table tbody tr:hover {
   background: #f8fafc;
 }

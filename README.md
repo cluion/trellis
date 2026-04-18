@@ -28,6 +28,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 | [`@trellisjs/plugin-datasource`](./packages/plugin-datasource) | Remote API data fetching |
 | [`@trellisjs/plugin-selection`](./packages/plugin-selection) | Row selection (single, multi, range) |
 | [`@trellisjs/plugin-column-visibility`](./packages/plugin-column-visibility) | Dynamic column show/hide |
+| [`@trellisjs/plugin-column-pinning`](./packages/plugin-column-pinning) | Pin columns to left/right with CSS sticky |
 | [`@trellisjs/plugin-virtual-scroll`](./packages/plugin-virtual-scroll) | Virtual scrolling for large datasets |
 | [`@trellisjs/react`](./packages/react) | React hooks and components |
 | [`@trellisjs/server`](./packages/server) | Backend query parser and SQL builder |
@@ -161,6 +162,7 @@ app.get('/api/users', async (req, res) => {
   ├── plugin-datasource      ← Remote data fetching plugin
   ├── plugin-selection       ← Row selection plugin
   ├── plugin-column-visibility ← Column visibility plugin
+  ├── plugin-column-pinning  ← Column pinning plugin
   ├── plugin-virtual-scroll  ← Virtual scrolling plugin
   └── react                  ← React adapter (useTrellis hook)
 

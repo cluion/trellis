@@ -1,10 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useTrellis, TableInfo } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
-import { createSelectionPlugin } from '@trellisjs/plugin-selection';
-import { createColumnVisibilityPlugin } from '@trellisjs/plugin-column-visibility';
 import type { ColumnDef } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
@@ -23,13 +21,12 @@ const cities = ['台北', '台中', '高雄', '新竹'];
 
 let nextUserId = 100;
 
-interface FullFeatureTableProps {
+interface ThreePluginsTableProps {
   data: User[];
 }
 
-export function FullFeatureTable({ data }: FullFeatureTableProps) {
+export function ThreePluginsTable({ data }: ThreePluginsTableProps) {
   const [query, setQuery] = useState('');
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const { api } = useTrellis<User>({
     data,
     columns,
@@ -38,15 +35,12 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
       createSortPlugin(),
       createFilterPlugin(),
       createPaginationPlugin(),
-      createSelectionPlugin(),
-      createColumnVisibilityPlugin(),
     ],
   });
 
   const state = api.getState();
   const sorting = state.sorting;
   const pagination = state.pagination;
-  const selection = state.selection;
   const totalCount = pagination.totalItems;
   const totalPages = Math.max(1, Math.ceil(totalCount / pagination.pageSize));
 
@@ -77,33 +71,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
     api.emit('filter:change', { query: value });
   };
 
-  const handleColumnFilter = (columnId: string, value: string) => {
-    setColumnFilters((prev) => {
-      const next = value !== '' ? { ...prev, [columnId]: value } : (() => {
-        const { [columnId]: _, ...rest } = prev;
-        return rest;
-      })();
-      return next;
-    });
-    api.emit('filter:column', { columnId, value });
-  };
-
-  const allSelected = state.data.length > 0 && selection.size === state.data.length;
-  const someSelected = selection.size > 0 && !allSelected;
-
-  const handleToggleAll = () => {
-    api.emit('selection:all', { select: !allSelected });
-  };
-
-  const handleToggleRow = (rowId: string | number, shiftKey: boolean, rowIndex: number) => {
-    if (shiftKey) {
-      api.emit('selection:range', { toIndex: rowIndex });
-    } else {
-      api.emit('selection:toggle', { rowId });
-    }
-  };
-
-  const handleAddRow = useCallback(() => {
+  const handleAddRow = () => {
     nextUserId++;
     api.addRow({
       id: nextUserId,
@@ -114,23 +82,7 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
       city: cities[Math.floor(Math.random() * cities.length)],
       joinDate: new Date().toISOString().slice(0, 10),
     });
-  }, [api]);
-
-  const handleDeleteRow = useCallback((rowId: string | number) => {
-    api.removeRow(rowId);
-  }, [api]);
-
-  const handleDeleteSelected = useCallback(() => {
-    const ids = api.getState().selection;
-    ids.forEach((id) => api.removeRow(id));
-  }, [api]);
-
-  const handleIncrementAge = useCallback((rowId: string | number) => {
-    const row = api.getState().data.find((r) => r.id === rowId);
-    if (row) {
-      api.updateRow(rowId, { age: (row.original.age as number) + 1 });
-    }
-  }, [api]);
+  };
 
   return (
     <div>
@@ -150,11 +102,6 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
         <button onClick={handleAddRow} className="btn btn-sm btn-primary">
           + 新增
         </button>
-        {selection.size > 0 && (
-          <button onClick={handleDeleteSelected} className="btn btn-sm">
-            刪除選取 ({selection.size})
-          </button>
-        )}
         <div className="page-size-selector">
           每頁
           <select
@@ -168,21 +115,6 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           </select>
           筆
         </div>
-        <div className="column-visibility">
-          {columns.map((col) => {
-            const visible = state.columnVisibility?.[col.id] !== false;
-            return (
-              <label key={col.id} className="column-vis-label">
-                <input
-                  type="checkbox"
-                  checked={visible}
-                  onChange={() => api.emit('column:toggle', { columnId: col.id })}
-                />
-                {String(col.header)}
-              </label>
-            );
-          })}
-        </div>
       </div>
 
       <div className="status-bar">
@@ -190,25 +122,14 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           <TableInfo format="顯示 {start}-{end}，共 {total} 筆" pagination={pagination} />
           {(sorting?.sortBy?.length ?? 0) > 0 && ` | 排序：${sorting.sortBy.map((c) => `${c.columnId} ${c.direction === 'asc' ? '↑' : '↓'}`).join(', ')}`}
           {query && ` | 搜尋："${query}"`}
-          {Object.entries(columnFilters).length > 0 && ` | 欄篩選：${Object.entries(columnFilters).map(([k, v]) => `${k}="${v}"`).join(', ')}`}
-          {selection.size > 0 && ` | 已選取：${selection.size} 列`}
         </span>
       </div>
 
-      <div style={{ maxHeight: 400, overflow: 'auto' }}>
       <table className="trellis-table">
         <thead>
           <tr>
-            <th style={{ width: 40, textAlign: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
-              <input
-                type="checkbox"
-                ref={(el) => { if (el) el.indeterminate = someSelected; }}
-                checked={allSelected}
-                onChange={handleToggleAll}
-              />
-            </th>
-            <th style={{ width: 120, position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>操作</th>
-            {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
+            <th style={{ width: 120 }}>操作</th>
+            {columns.map((col) => (
               <th
                 key={col.id}
                 style={{
@@ -216,10 +137,6 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
                   textAlign: col.align,
                   cursor: col.sortable !== false ? 'pointer' : 'default',
                   userSelect: 'none',
-                  position: 'sticky',
-                  top: 0,
-                  background: '#fff',
-                  zIndex: 1,
                 }}
                 onClick={(e) => col.sortable !== false && handleSort(col.id, e.shiftKey)}
               >
@@ -232,54 +149,19 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
               </th>
             ))}
           </tr>
-          <tr>
-            <th></th>
-            <th></th>
-            {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
-              <th key={`filter-${col.id}`}>
-                <input
-                  type="text"
-                  placeholder={`篩選 ${col.header}`}
-                  value={columnFilters[col.id] ?? ''}
-                  onChange={(e) => handleColumnFilter(col.id, e.target.value)}
-                  className="column-filter-input"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </th>
-            ))}
-          </tr>
         </thead>
         <tbody>
-          {state.data.map((row, rowIndex) => (
-            <tr key={row.id} style={{ background: selection.has(row.id) ? '#eff6ff' : undefined }}>
-              <td style={{ textAlign: 'center' }}>
-                <input
-                  type="checkbox"
-                  checked={selection.has(row.id)}
-                  onChange={() => {}}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggleRow(row.id, e.shiftKey, rowIndex);
-                  }}
-                />
-              </td>
+          {state.data.map((row) => (
+            <tr key={row.id}>
               <td>
                 <button
                   className="btn btn-sm"
-                  onClick={() => handleIncrementAge(row.id)}
-                  title="年齡 +1"
-                >
-                  +age
-                </button>
-                <button
-                  className="btn btn-sm"
-                  onClick={() => handleDeleteRow(row.id)}
-                  title="刪除此列"
+                  onClick={() => api.removeRow(row.id)}
                 >
                   刪除
                 </button>
               </td>
-              {columns.filter((col) => state.columnVisibility?.[col.id] !== false).map((col) => (
+              {columns.map((col) => (
                 <td key={col.id} style={{ textAlign: col.align }}>
                   {String(row.original[col.accessor as keyof User] ?? '')}
                 </td>
@@ -288,14 +170,13 @@ export function FullFeatureTable({ data }: FullFeatureTableProps) {
           ))}
           {state.data.length === 0 && (
             <tr>
-              <td colSpan={columns.filter((col) => state.columnVisibility?.[col.id] !== false).length + 2} className="empty-row">
+              <td colSpan={columns.length + 1} className="empty-row">
                 沒有符合的結果
               </td>
             </tr>
           )}
         </tbody>
       </table>
-      </div>
 
       <div className="pagination">
         <button

@@ -3,9 +3,11 @@ import { BasicTable } from './components/BasicTable';
 import { SortableTable } from './components/SortableTable';
 import { FilterableTable } from './components/FilterableTable';
 import { PaginatedTable } from './components/PaginatedTable';
-import { FullFeatureTable } from './components/FullFeatureTable';
-import { SlotExample } from './components/SlotExample';
+import { ThreePluginsTable } from './components/ThreePluginsTable';
+import { SelectionVisibilityTable } from './components/SelectionVisibilityTable';
+import { ColumnPinningTable } from './components/ColumnPinningTable';
 import { VirtualScrollTable } from './components/VirtualScrollTable';
+import { SlotExample } from './components/SlotExample';
 import { mockUsers } from './data/mock-data';
 
 const tabs = [
@@ -13,15 +15,17 @@ const tabs = [
   { id: 'sort', label: '排序' },
   { id: 'filter', label: '篩選' },
   { id: 'pagination', label: '分頁' },
+  { id: 'three-plugins', label: '基礎三插件' },
+  { id: 'selection-visibility', label: '選取 + 可見性' },
+  { id: 'column-pinning', label: '欄位釘選' },
   { id: 'virtual-scroll', label: '虛擬滾動' },
-  { id: 'full', label: '全功能整合' },
   { id: 'slot', label: 'Slot 自定義' },
 ] as const;
 
 type TabId = typeof tabs[number]['id'];
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('full');
+  const [activeTab, setActiveTab] = useState<TabId>('three-plugins');
 
   return (
     <div className="app">
@@ -92,6 +96,46 @@ export function App() {
           </section>
         )}
 
+        {activeTab === 'three-plugins' && (
+          <section>
+            <h2>基礎三插件</h2>
+            <p className="description">
+              排序 + 篩選 + 分頁三個插件同時運作，展示真實使用場景。
+            </p>
+            <div className="card">
+              <ThreePluginsTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'selection-visibility' && (
+          <section>
+            <h2>選取 + 欄位可見性</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-selection（單選、全選、Shift 範圍選）和
+              @trellisjs/plugin-column-visibility（動態顯示/隱藏欄位）。
+              勾選欄位名稱可切換顯示。
+            </p>
+            <div className="card">
+              <SelectionVisibilityTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'column-pinning' && (
+          <section>
+            <h2>欄位釘選</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-column-pinning 插件。ID 和姓名固定在左側，
+              操作固定在右側。水平滾動時釘選欄不隨之移動，邊界有陰影分隔線。
+              隱藏釘選欄位前的欄位可觀察 offset 自動重新計算。
+            </p>
+            <div className="card">
+              <ColumnPinningTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
         {activeTab === 'virtual-scroll' && (
           <section>
             <h2>虛擬滾動</h2>
@@ -101,18 +145,6 @@ export function App() {
             </p>
             <div className="card">
               <VirtualScrollTable count={10000} />
-            </div>
-          </section>
-        )}
-
-        {activeTab === 'full' && (
-          <section>
-            <h2>全功能整合</h2>
-            <p className="description">
-              排序 + 篩選 + 分頁三個插件同時運作，展示真實使用場景。
-            </p>
-            <div className="card">
-              <FullFeatureTable data={mockUsers} />
             </div>
           </section>
         )}
@@ -132,7 +164,7 @@ export function App() {
       </main>
 
       <footer className="footer">
-        <span>Trellis | 11 套件 | 219 測試 | TypeScript</span>
+        <span>Trellis | 12 套件 | 233 測試 | TypeScript</span>
       </footer>
     </div>
   );

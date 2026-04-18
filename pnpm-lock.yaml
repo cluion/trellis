@@ -50,6 +50,9 @@ importers:
       '@trellisjs/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@trellisjs/plugin-column-pinning':
+        specifier: workspace:*
+        version: link:../../packages/plugin-column-pinning
       '@trellisjs/plugin-column-visibility':
         specifier: workspace:*
         version: link:../../packages/plugin-column-visibility
@@ -99,6 +102,21 @@ importers:
 
   packages/core:
     devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(jsdom@26.1.0)
+
+  packages/plugin-column-pinning:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
@@ -228,6 +246,9 @@ importers:
       '@trellisjs/core':
         specifier: workspace:*
         version: link:../core
+      '@trellisjs/plugin-column-pinning':
+        specifier: workspace:*
+        version: link:../plugin-column-pinning
       '@trellisjs/plugin-virtual-scroll':
         specifier: workspace:*
         version: link:../plugin-virtual-scroll

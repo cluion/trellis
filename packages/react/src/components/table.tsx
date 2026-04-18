@@ -18,9 +18,17 @@ export function Table({ stickyHeader = false, virtualScroll = false }: TableProp
   const api = useTrellisContext();
 
   const BodyComponent = virtualScroll ? VirtualScrollBody : TableBody;
+  const state = api.getState();
+  const hasPinnedColumns =
+    state.columnPinning &&
+    (state.columnPinning.left.length > 0 || state.columnPinning.right.length > 0);
+
+  const wrapperStyle: React.CSSProperties = {};
+  if (virtualScroll) wrapperStyle.overflowY = 'auto';
+  if (hasPinnedColumns) wrapperStyle.overflowX = 'auto';
 
   return (
-    <div style={virtualScroll ? { overflowY: 'auto' } : undefined}>
+    <div style={Object.keys(wrapperStyle).length > 0 ? wrapperStyle : undefined}>
       <table>
         <TableHead
           columns={api.getState().columns}

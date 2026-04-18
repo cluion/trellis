@@ -1,6 +1,7 @@
 import type { ColumnDef } from './column';
 import type { DataRow, DataId } from './data';
 import type { VirtualScrollState } from './virtual-scroll';
+import type { ColumnPinningState } from './column-pinning';
 
 /** 單一排序條件 */
 export interface SortCriterion {
@@ -55,4 +56,6 @@ export interface TableState<T = Record<string, unknown>> {
   columnVisibility: Record<string, boolean>;
   /** 虛擬滾動狀態（僅在啟用插件時有值） */
   virtualScroll?: VirtualScrollState;
+  /** 欄釘選狀態 */
+  columnPinning: ColumnPinningState;
 }

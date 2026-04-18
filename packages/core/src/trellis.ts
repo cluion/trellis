@@ -42,6 +42,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       pagination: { page: 1, pageSize: options.pageSize ?? 10, totalItems: options.data.length },
       selection: new Set(),
       columnVisibility: {},
+      columnPinning: { left: [], right: [] },
     };
 
     this.store = new StateStore(initialState);

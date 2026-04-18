@@ -68,6 +68,8 @@ Props:
 | `stickyHeader` | `boolean` | `false` | Enables sticky header — `<th>` elements get `position: sticky; top: 0` so the header stays visible during vertical scroll. Requires the container to have `max-height` and `overflow: auto`. |
 | `virtualScroll` | `boolean` | `false` | Enables virtual scrolling — uses `VirtualScrollBody` instead of `TableBody` to render only visible rows. |
 
+The `Table` component automatically applies `overflowX: 'auto'` when pinned columns are detected, enabling CSS sticky positioning.
+
 ### `useVirtualScroll(plugin)`
 
 Hook that binds a scroll container to a virtual scroll plugin. Manages lifecycle (attach/detach).
