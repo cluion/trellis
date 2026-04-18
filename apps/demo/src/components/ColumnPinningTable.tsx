@@ -2,9 +2,10 @@ import { useTrellis } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
-import { createColumnPinningPlugin, calculatePinOffsets } from '@trellisjs/plugin-column-pinning';
+import { createColumnPinningPlugin } from '@trellisjs/plugin-column-pinning';
 import { createColumnVisibilityPlugin } from '@trellisjs/plugin-column-visibility';
 import type { ColumnDef } from '@trellisjs/core';
+import { calculatePinOffsets } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
 const columns: ColumnDef<User>[] = [

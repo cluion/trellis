@@ -20,7 +20,8 @@ export type {
   TableState,
 } from './types/state';
 export type { VirtualScrollState } from './types/virtual-scroll';
-export type { ColumnPinningState } from './types/column-pinning';
+export type { ColumnPinningState, PinOffset } from './types/column-pinning';
+export { calculatePinOffsets } from './types/column-pinning';
 export type { EventHandler } from './types/event';
 export type { SlotRenderer, SlotContext } from './types/slot';
 export type {

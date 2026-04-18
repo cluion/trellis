@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Trellis } from '@trellisjs/core';
-import { createColumnPinningPlugin, calculatePinOffsets } from '../src/column-pinning-plugin';
+import { Trellis, calculatePinOffsets } from '@trellisjs/core';
+import { createColumnPinningPlugin } from '../src/column-pinning-plugin';
 import type { ColumnDef } from '@trellisjs/core';
 
 interface Item {

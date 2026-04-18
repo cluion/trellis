@@ -29,7 +29,6 @@
   },
   "peerDependencies": {
     "@trellisjs/core": "workspace:^",
-    "@trellisjs/plugin-column-pinning": "workspace:^",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },

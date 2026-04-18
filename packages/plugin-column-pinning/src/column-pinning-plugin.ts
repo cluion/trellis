@@ -1,4 +1,9 @@
 import type { TrellisPlugin, TrellisAPI, ColumnDef, TableState } from '@trellisjs/core';
+import { calculatePinOffsets } from '@trellisjs/core';
+import type { PinOffset } from '@trellisjs/core';
+
+export type { PinOffset } from '@trellisjs/core';
+export { calculatePinOffsets } from '@trellisjs/core';
 
 export interface PinTogglePayload {
   columnId: string;
@@ -8,67 +13,6 @@ export interface PinTogglePayload {
 export interface PinSetPayload {
   left: string[];
   right: string[];
-}
-
-export interface PinOffset {
-  side: 'left' | 'right';
-  offset: number;
-  isLastLeft: boolean;
-  isFirstRight: boolean;
-}
-
-/**
- * 計算釘選欄位的 CSS offset。
- * left offset = 同側前面所有可見釘選欄位的 width 總和
- * right offset = 同側後面所有可見釘選欄位的 width 總和
- */
-export function calculatePinOffsets<T>(
-  columns: ColumnDef<T>[],
-  columnPinning: { left: string[]; right: string[] },
-  columnVisibility: Record<string, boolean>,
-): Map<string, PinOffset> {
-  const offsets = new Map<string, PinOffset>();
-  const isHidden = (id: string) => columnVisibility[id] === false;
-
-  // Left offsets
-  let leftAccum = 0;
-  for (let i = 0; i < columnPinning.left.length; i++) {
-    const colId = columnPinning.left[i];
-    const isLastLeft = i === columnPinning.left.length - 1;
-
-    offsets.set(colId, {
-      side: 'left',
-      offset: leftAccum,
-      isLastLeft,
-      isFirstRight: false,
-    });
-
-    if (!isHidden(colId)) {
-      const col = columns.find((c) => c.id === colId);
-      leftAccum += typeof col?.width === 'number' ? col.width : 0;
-    }
-  }
-
-  // Right offsets — accumulate from right to left
-  let rightAccum = 0;
-  for (let i = columnPinning.right.length - 1; i >= 0; i--) {
-    const colId = columnPinning.right[i];
-    const isFirstRight = i === 0;
-
-    offsets.set(colId, {
-      side: 'right',
-      offset: rightAccum,
-      isLastLeft: false,
-      isFirstRight,
-    });
-
-    if (!isHidden(colId)) {
-      const col = columns.find((c) => c.id === colId);
-      rightAccum += typeof col?.width === 'number' ? col.width : 0;
-    }
-  }
-
-  return offsets;
 }
 
 /**

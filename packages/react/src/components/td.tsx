@@ -1,6 +1,6 @@
 import type { ColumnDef, DataRow } from '@trellisjs/core';
+import { calculatePinOffsets } from '@trellisjs/core';
 import { useTrellisContext } from '../context';
-import { calculatePinOffsets } from '@trellisjs/plugin-column-pinning';
 
 interface TdProps<T = Record<string, unknown>> {
   row: DataRow<T>;

@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@trellisjs/core';
+import { calculatePinOffsets } from '@trellisjs/core';
 import { useTrellisContext } from '../context';
-import { calculatePinOffsets } from '@trellisjs/plugin-column-pinning';
 
 interface ThProps<T = Record<string, unknown>> {
   column: ColumnDef<T>;
