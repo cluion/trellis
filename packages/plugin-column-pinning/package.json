@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-column-pinning",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 欄釘選插件 — CSS sticky 定位，左/右側欄位固定",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
