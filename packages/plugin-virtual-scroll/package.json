@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-virtual-scroll",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 虛擬滾動插件 — DOM-based 行虛擬化",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
