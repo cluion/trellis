@@ -18,6 +18,7 @@
     "@trellisjs/plugin-selection": "workspace:*",
     "@trellisjs/plugin-column-visibility": "workspace:*",
     "@trellisjs/plugin-column-pinning": "workspace:*",
+    "@trellisjs/plugin-row-expansion": "workspace:*",
     "@trellisjs/plugin-virtual-scroll": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"

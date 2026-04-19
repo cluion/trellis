@@ -43,6 +43,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
       selection: new Set(),
       columnVisibility: {},
       columnPinning: { left: [], right: [] },
+      expandedRows: new Set(),
     };
 
     this.store = new StateStore(initialState);

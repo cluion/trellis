@@ -65,6 +65,9 @@ importers:
       '@trellisjs/plugin-pagination':
         specifier: workspace:*
         version: link:../../packages/plugin-pagination
+      '@trellisjs/plugin-row-expansion':
+        specifier: workspace:*
+        version: link:../../packages/plugin-row-expansion
       '@trellisjs/plugin-selection':
         specifier: workspace:*
         version: link:../../packages/plugin-selection
@@ -187,6 +190,30 @@ importers:
         specifier: 'catalog:'
         version: 3.2.4(jsdom@26.1.0)
 
+  packages/plugin-row-expansion:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@trellisjs/plugin-filter':
+        specifier: workspace:*
+        version: link:../plugin-filter
+      '@trellisjs/plugin-pagination':
+        specifier: workspace:*
+        version: link:../plugin-pagination
+      '@trellisjs/plugin-sort':
+        specifier: workspace:*
+        version: link:../plugin-sort
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(postcss@8.5.9)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.4(jsdom@26.1.0)
+
   packages/plugin-selection:
     devDependencies:
       '@trellisjs/core':
@@ -249,6 +276,9 @@ importers:
       '@trellisjs/plugin-column-pinning':
         specifier: workspace:*
         version: link:../plugin-column-pinning
+      '@trellisjs/plugin-row-expansion':
+        specifier: workspace:*
+        version: link:../plugin-row-expansion
       '@trellisjs/plugin-virtual-scroll':
         specifier: workspace:*
         version: link:../plugin-virtual-scroll

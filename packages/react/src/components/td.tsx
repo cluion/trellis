@@ -1,6 +1,6 @@
 import type { ColumnDef, DataRow } from '@trellisjs/core';
 import { calculatePinOffsets } from '@trellisjs/core';
-import { useTrellisContext } from '../context';
+import { useTrellisState } from '../hooks/use-trellis-state';
 
 interface TdProps<T = Record<string, unknown>> {
   row: DataRow<T>;
@@ -16,8 +16,7 @@ function getCellValue<T>(row: DataRow<T>, column: ColumnDef<T>): unknown {
 }
 
 export function Td<T>({ row, column }: TdProps<T>) {
-  const api = useTrellisContext();
-  const state = api.getState();
+  const state = useTrellisState();
   const value = getCellValue(row, column);
   const style: React.CSSProperties = {};
   if (column.align) style.textAlign = column.align;

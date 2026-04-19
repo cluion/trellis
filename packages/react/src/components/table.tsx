@@ -1,6 +1,7 @@
 import { TableHead } from './thead';
 import { TableBody } from './tbody';
 import { VirtualScrollBody } from './virtual-scroll-body';
+import { useTrellisState } from '../hooks/use-trellis-state';
 import { useTrellisContext } from '../context';
 
 export interface TableProps {
@@ -16,9 +17,9 @@ export interface TableProps {
  */
 export function Table({ stickyHeader = false, virtualScroll = false }: TableProps) {
   const api = useTrellisContext();
+  const state = useTrellisState();
 
   const BodyComponent = virtualScroll ? VirtualScrollBody : TableBody;
-  const state = api.getState();
   const hasPinnedColumns =
     state.columnPinning &&
     (state.columnPinning.left.length > 0 || state.columnPinning.right.length > 0);

@@ -58,4 +58,12 @@ export interface TableState<T = Record<string, unknown>> {
   virtualScroll?: VirtualScrollState;
   /** 欄釘選狀態 */
   columnPinning: ColumnPinningState;
+  /** 已展開的行 ID 集合 */
+  expandedRows: Set<DataId>;
+  /** 行展開設定（由插件安裝時設定） */
+  rowExpansion?: {
+    mode: 'single' | 'multi';
+    expandIcon?: unknown;
+    collapseIcon?: unknown;
+  };
 }

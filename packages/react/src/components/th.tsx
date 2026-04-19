@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@trellisjs/core';
 import { calculatePinOffsets } from '@trellisjs/core';
-import { useTrellisContext } from '../context';
+import { useTrellisState } from '../hooks/use-trellis-state';
 
 interface ThProps<T = Record<string, unknown>> {
   column: ColumnDef<T>;
@@ -8,8 +8,7 @@ interface ThProps<T = Record<string, unknown>> {
 }
 
 export function Th<T>({ column, stickyHeader = false }: ThProps<T>) {
-  const api = useTrellisContext();
-  const state = api.getState();
+  const state = useTrellisState();
   const style: React.CSSProperties = {};
   if (column.width) style.width = column.width;
   if (column.minWidth) style.minWidth = column.minWidth;

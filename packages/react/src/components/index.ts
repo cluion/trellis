@@ -8,3 +8,5 @@ export { Th } from './th';
 export { Td } from './td';
 export { TableInfo } from './table-info';
 export type { TableInfoProps } from './table-info';
+export { ExpansionToggle } from './expansion-toggle';
+export { ExpansionRow } from './expansion-row';

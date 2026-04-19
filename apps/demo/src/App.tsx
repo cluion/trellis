@@ -6,6 +6,7 @@ import { PaginatedTable } from './components/PaginatedTable';
 import { ThreePluginsTable } from './components/ThreePluginsTable';
 import { SelectionVisibilityTable } from './components/SelectionVisibilityTable';
 import { ColumnPinningTable } from './components/ColumnPinningTable';
+import { RowExpansionTable } from './components/RowExpansionTable';
 import { VirtualScrollTable } from './components/VirtualScrollTable';
 import { SlotExample } from './components/SlotExample';
 import { mockUsers } from './data/mock-data';
@@ -18,6 +19,7 @@ const tabs = [
   { id: 'three-plugins', label: '基礎三插件' },
   { id: 'selection-visibility', label: '選取 + 可見性' },
   { id: 'column-pinning', label: '欄位釘選' },
+  { id: 'row-expansion', label: '行展開' },
   { id: 'virtual-scroll', label: '虛擬滾動' },
   { id: 'slot', label: 'Slot 自定義' },
 ] as const;
@@ -136,6 +138,20 @@ export function App() {
           </section>
         )}
 
+        {activeTab === 'row-expansion' && (
+          <section>
+            <h2>行展開</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-row-expansion 插件。點擊箭頭展開查看完整明細資訊。
+              支援 single（accordion）和 multi（多行展開）兩種模式。
+              展開內容透過 Slot 系統完全自定義。
+            </p>
+            <div className="card">
+              <RowExpansionTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
         {activeTab === 'virtual-scroll' && (
           <section>
             <h2>虛擬滾動</h2>
@@ -164,7 +180,7 @@ export function App() {
       </main>
 
       <footer className="footer">
-        <span>Trellis | 12 套件 | 233 測試 | TypeScript</span>
+        <span>Trellis | 13 套件 | 254 測試 | TypeScript</span>
       </footer>
     </div>
   );
