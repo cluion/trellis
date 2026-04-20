@@ -1,5 +1,4 @@
 import type { DataRow } from '@trellisjs/core';
-import { useTrellisContext } from '../context';
 import { SlotRenderer } from '../slots/slot-renderer';
 
 interface ExpansionRowProps<T = Record<string, unknown>> {
