@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-row-expansion",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 行展開插件 — 支援 accordion 和 multi 展開模式",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
