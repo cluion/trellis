@@ -1,5 +1,16 @@
 # @trellisjs/plugin-filter
 
+## 3.1.0
+
+### Minor Changes
+
+- [`2c89bf5`](https://github.com/cluion/trellis/commit/2c89bf569327813a72962647881a1d1fca316d55) Thanks [@cluion](https://github.com/cluion)! - feat: add `debounceMs` option to filter plugin
+
+  - New `debounceMs` option delays `filter:change` and `filter:column` recompute
+  - Shared debounce timer: last event wins when both fire rapidly
+  - New `destroy()` method cancels pending timers
+  - Default `debounceMs: 0` preserves existing behavior (backward compatible)
+
 ## 3.0.0
 
 ### Patch Changes
