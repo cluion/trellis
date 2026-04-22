@@ -1,5 +1,13 @@
 # @trellisjs/demo
 
+## 0.1.12
+
+### Patch Changes
+
+- Updated dependencies [[`2c89bf5`](https://github.com/cluion/trellis/commit/2c89bf569327813a72962647881a1d1fca316d55)]:
+  - @trellisjs/plugin-filter@3.1.0
+  - @trellisjs/plugin-row-expansion@1.0.0
+
 ## 0.1.11
 
 ### Patch Changes
