@@ -22,7 +22,7 @@ export function FilterableTable({ data }: FilterableTableProps) {
   const { api } = useTrellis<User>({
     data,
     columns,
-    plugins: [createFilterPlugin()],
+    plugins: [createFilterPlugin({ debounceMs: 300 })],
   });
 
   const state = api.getState();

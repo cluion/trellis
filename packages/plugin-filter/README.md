@@ -27,6 +27,30 @@ Global search and per-column filters are **AND** relationship: a row must match 
 
 ## Usage
 
+### Debounced Filtering
+
+Pass `debounceMs` to delay recompute until the user stops typing:
+
+```ts
+import { createFilterPlugin } from '@trellisjs/plugin-filter';
+
+// Wait 300ms after the last keystroke before filtering
+createFilterPlugin({ debounceMs: 300 })
+
+// Default: no debounce — every keystroke triggers immediate recompute
+createFilterPlugin()
+```
+
+Both `filter:change` and `filter:column` share the same debounce timer. When a new event fires during the delay, the timer resets and only the last event's recompute executes.
+
+When `debounceMs > 0`, call `plugin.destroy()` on unmount to cancel any pending timers and prevent memory leaks:
+
+```ts
+const plugin = createFilterPlugin({ debounceMs: 300 });
+// ... later, on unmount
+plugin.destroy();
+```
+
 ### Global Search
 
 ```ts

@@ -1,4 +1,10 @@
 import type { TrellisPlugin, TrellisAPI, ColumnDef, DataRow } from '@trellisjs/core';
+import { debounce } from './debounce';
+
+export interface FilterPluginOptions {
+  /** Debounce delay in ms for filter:change and filter:column events. Default: 0 (no debounce). */
+  debounceMs?: number;
+}
 
 /**
  * 從列和欄位解析儲存格的值。
@@ -15,7 +21,22 @@ function getCellValue<T>(row: DataRow<T>, column: ColumnDef<T>): unknown {
  * 建立篩選插件實例。
  * 支援跨所有欄位的全域搜尋與單欄篩選。
  */
-export function createFilterPlugin(): TrellisPlugin {
+export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPlugin {
+  const { debounceMs = 0 } = options;
+
+  let activeDebounced: { cancel: () => void } | null = null;
+
+  const scheduleRecompute = (doRecompute: () => void) => {
+    if (debounceMs > 0) {
+      activeDebounced?.cancel();
+      const debounced = debounce(doRecompute, debounceMs);
+      activeDebounced = debounced;
+      debounced();
+    } else {
+      doRecompute();
+    }
+  };
+
   return {
     name: 'filter',
 
@@ -67,8 +88,10 @@ export function createFilterPlugin(): TrellisPlugin {
       // 篩選關鍵字變更 → 重跑管線
       api.on('filter:change', (payload) => {
         const { query } = payload as { query: string };
-        const state = api.getState();
-        api.recompute({ filtering: { ...state.filtering, query } });
+        scheduleRecompute(() => {
+          const state = api.getState();
+          api.recompute({ filtering: { ...state.filtering, query } });
+        });
       });
 
       // 單欄篩選變更 → 重跑管線
@@ -77,20 +100,25 @@ export function createFilterPlugin(): TrellisPlugin {
           columnId: string;
           value: string;
         };
-        const state = api.getState();
-        const { columnFilters } = state.filtering;
-        const nextColumnFilters =
-          value !== ''
-            ? { ...columnFilters, [columnId]: value }
-            : (() => {
-                // 清除該欄篩選
-                const { [columnId]: _, ...rest } = columnFilters;
-                return rest;
-              })();
-        api.recompute({
-          filtering: { ...state.filtering, columnFilters: nextColumnFilters },
+        scheduleRecompute(() => {
+          const state = api.getState();
+          const { columnFilters } = state.filtering;
+          const nextColumnFilters =
+            value !== ''
+              ? { ...columnFilters, [columnId]: value }
+              : (() => {
+                  const { [columnId]: _, ...rest } = columnFilters;
+                  return rest;
+                })();
+          api.recompute({
+            filtering: { ...state.filtering, columnFilters: nextColumnFilters },
+          });
         });
       });
+    },
+
+    destroy() {
+      activeDebounced?.cancel();
     },
   };
 }
