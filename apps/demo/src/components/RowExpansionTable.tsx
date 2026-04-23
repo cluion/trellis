@@ -3,6 +3,7 @@ import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 import { createRowExpansionPlugin } from '@trellisjs/plugin-row-expansion';
+import { createExportCSVPlugin } from '@trellisjs/plugin-export-csv';
 import type { ColumnDef } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
@@ -51,6 +52,7 @@ export function RowExpansionTable({ data }: RowExpansionTableProps) {
       createFilterPlugin(),
       createPaginationPlugin(),
       createRowExpansionPlugin({ mode: 'multi' }),
+      createExportCSVPlugin(),
     ],
   });
 
@@ -75,6 +77,12 @@ export function RowExpansionTable({ data }: RowExpansionTableProps) {
           value={state.filtering.query}
           onChange={(e) => api.recompute({ filtering: { query: e.target.value, columnFilters: {} } })}
         />
+        <button
+          onClick={() => api.emit('export:csv', { filename: 'current-page.csv', currentPageOnly: true })}
+          className="btn btn-sm"
+        >
+          匯出當前頁
+        </button>
         <span className="status-bar">
           展開 {expandedCount} 行 | 模式：multi（可同時展開多行）
         </span>

@@ -25,6 +25,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
   private sourceData: DataRow<T>[];
   private transforms: TransformEntry<T>[];
   private pipelineLock: boolean;
+  private filteredData: DataRow<T>[];
 
   constructor(options: TrellisOptions<T>) {
     this.options = options;
@@ -33,6 +34,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
     this.sourceData = this.processData(options.data);
     this.transforms = [];
     this.pipelineLock = false;
+    this.filteredData = [...this.sourceData];
 
     const initialState: TableState<T> = {
       data: [...this.sourceData],
@@ -109,6 +111,9 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
             data = sorted[i].fn(data, state);
           }
 
+          // 快取 pagination 前的資料（篩選+排序後的完整結果）
+          this.filteredData = [...data];
+
           const totalItems = data.length;
 
           // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
@@ -138,12 +143,16 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
             data = transform.fn(data, state);
           }
 
+          this.filteredData = [...data];
+
           this.store.setState(() => ({
             data,
             pagination: { ...state.pagination, totalItems: this.sourceData.length },
           }));
         }
       } else {
+        this.filteredData = [...data];
+
         this.store.setState(() => ({
           data,
           pagination: { ...state.pagination, totalItems: data.length },
@@ -209,6 +218,7 @@ export class Trellis<T extends Record<string, unknown> = Record<string, unknown>
         this.runPipeline();
         this.eventBus.emit('data:updated', id);
       },
+      getFilteredData: () => [...this.filteredData],
     };
   }
 

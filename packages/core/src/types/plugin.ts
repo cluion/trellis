@@ -2,7 +2,7 @@ import type { TableState } from './state';
 import type { ColumnDef } from './column';
 import type { SlotRenderer } from './slot';
 import type { EventHandler } from './event';
-import type { DataId } from './data';
+import type { DataRow, DataId } from './data';
 import type { TransformFn } from './pipeline';
 
 /**
@@ -36,6 +36,8 @@ export interface TrellisAPI<T = Record<string, unknown>> {
   removeRow: (id: DataId) => void;
   /** 依 ID 合併更新一筆資料，重跑管線 */
   updateRow: (id: DataId, partial: Partial<T>) => void;
+  /** 取得篩選排序後但未分頁的完整資料 */
+  getFilteredData: () => DataRow<T>[];
 }
 
 /**

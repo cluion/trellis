@@ -321,4 +321,64 @@ describe('Trellis', () => {
       expect(state.data[state.data.length - 1].original.name).toBe('Alice');
     });
   });
+
+  // --- getFilteredData ---
+  describe('getFilteredData', () => {
+    it('returns all data when no transforms are registered', () => {
+      const filtered = trellis.api.getFilteredData();
+      expect(filtered).toHaveLength(3);
+      expect(filtered.map((r) => r.original.name)).toEqual(['Alice', 'Bob', 'Charlie']);
+    });
+
+    it('returns filtered+sorted data before pagination', () => {
+      const instance = new Trellis<User>({
+        data: sampleData,
+        columns: sampleColumns,
+        pageSize: 1,
+        plugins: [
+          {
+            name: 'filter',
+            install: (api) => {
+              api.registerTransform('filter', 10, (data) =>
+                data.filter((row) => row.original.age >= 30),
+              );
+            },
+          },
+          {
+            name: 'sort',
+            install: (api) => {
+              api.registerTransform('sort', 20, (data) =>
+                [...data].sort((a, b) => b.original.age - a.original.age),
+              );
+            },
+          },
+          {
+            name: 'pagination',
+            install: (api) => {
+              api.registerTransform('pagination', 30, (data, state) => {
+                const start = (state.pagination.page - 1) * state.pagination.pageSize;
+                return data.slice(start, start + state.pagination.pageSize);
+              });
+            },
+          },
+        ],
+      });
+
+      // state.data is paginated (page 1, pageSize 1) → only 1 row
+      const state = instance.api.getState();
+      expect(state.data).toHaveLength(1);
+
+      // getFilteredData returns all filtered+sorted rows (no pagination)
+      const filtered = instance.api.getFilteredData();
+      expect(filtered).toHaveLength(2);
+      expect(filtered.map((r) => r.original.name)).toEqual(['Charlie', 'Alice']);
+    });
+
+    it('returns immutable copies', () => {
+      const first = trellis.api.getFilteredData();
+      const second = trellis.api.getFilteredData();
+      expect(first).not.toBe(second);
+      expect(first).toEqual(second);
+    });
+  });
 });

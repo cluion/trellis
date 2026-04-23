@@ -3,6 +3,7 @@ import { useTrellis, TableInfo } from '@trellisjs/react';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
+import { createExportCSVPlugin } from '@trellisjs/plugin-export-csv';
 import type { ColumnDef } from '@trellisjs/core';
 import type { User } from '../data/mock-data';
 
@@ -35,6 +36,7 @@ export function ThreePluginsTable({ data }: ThreePluginsTableProps) {
       createSortPlugin(),
       createFilterPlugin(),
       createPaginationPlugin(),
+      createExportCSVPlugin(),
     ],
   });
 
@@ -101,6 +103,12 @@ export function ThreePluginsTable({ data }: ThreePluginsTableProps) {
         )}
         <button onClick={handleAddRow} className="btn btn-sm btn-primary">
           + 新增
+        </button>
+        <button
+          onClick={() => api.emit('export:csv', { filename: 'users.csv' })}
+          className="btn btn-sm"
+        >
+          匯出全部 CSV
         </button>
         <div className="page-size-selector">
           每頁

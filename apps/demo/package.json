@@ -15,6 +15,7 @@
     "@trellisjs/plugin-filter": "workspace:*",
     "@trellisjs/plugin-pagination": "workspace:*",
     "@trellisjs/plugin-datasource": "workspace:*",
+    "@trellisjs/plugin-export-csv": "workspace:*",
     "@trellisjs/plugin-selection": "workspace:*",
     "@trellisjs/plugin-column-visibility": "workspace:*",
     "@trellisjs/plugin-column-pinning": "workspace:*",

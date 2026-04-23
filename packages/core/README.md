@@ -99,6 +99,7 @@ const table = new Trellis(options)
 | `addRow` | `(item: T) => void` | `void` | Append a row to sourceData and re-run pipeline. Emits `data:added` |
 | `removeRow` | `(id: DataId) => void` | `void` | Remove a row by ID and re-run pipeline. Emits `data:removed` |
 | `updateRow` | `(id: DataId, partial: Partial<T>) => void` | `void` | Merge-update a row by ID and re-run pipeline. Emits `data:updated` |
+| `getFilteredData` | `() => DataRow<T>[]` | Immutable copy | Filtered + sorted data before pagination |
 
 ## Types
 
