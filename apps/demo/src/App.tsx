@@ -6,6 +6,7 @@ import { PaginatedTable } from './components/PaginatedTable';
 import { ThreePluginsTable } from './components/ThreePluginsTable';
 import { SelectionVisibilityTable } from './components/SelectionVisibilityTable';
 import { ColumnPinningTable } from './components/ColumnPinningTable';
+import { ColumnResizingTable } from './components/ColumnResizingTable';
 import { RowExpansionTable } from './components/RowExpansionTable';
 import { VirtualScrollTable } from './components/VirtualScrollTable';
 import { SlotExample } from './components/SlotExample';
@@ -19,6 +20,7 @@ const tabs = [
   { id: 'three-plugins', label: '基礎三插件' },
   { id: 'selection-visibility', label: '選取 + 可見性' },
   { id: 'column-pinning', label: '欄位釘選' },
+  { id: 'column-resizing', label: '欄寬調整' },
   { id: 'row-expansion', label: '行展開' },
   { id: 'virtual-scroll', label: '虛擬滾動' },
   { id: 'slot', label: 'Slot 自定義' },
@@ -134,6 +136,20 @@ export function App() {
             </p>
             <div className="card">
               <ColumnPinningTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'column-resizing' && (
+          <section>
+            <h2>欄寬調整</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-column-resizing 插件。拖曳表頭右側邊緣調整欄寬，
+              支援最小/最大寬度限制（40-600px）。城市欄設定 resizable: false 不可調整。
+              欄寬狀態可搭配 state-save 持久化。
+            </p>
+            <div className="card">
+              <ColumnResizingTable data={mockUsers} />
             </div>
           </section>
         )}

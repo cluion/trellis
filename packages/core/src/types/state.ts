@@ -2,6 +2,7 @@ import type { ColumnDef } from './column';
 import type { DataRow, DataId } from './data';
 import type { VirtualScrollState } from './virtual-scroll';
 import type { ColumnPinningState } from './column-pinning';
+import type { ColumnResizingState } from './column-resizing';
 
 /** 單一排序條件 */
 export interface SortCriterion {
@@ -66,4 +67,6 @@ export interface TableState<T = Record<string, unknown>> {
     expandIcon?: unknown;
     collapseIcon?: unknown;
   };
+  /** 欄寬調整狀態（僅在啟用插件時有值） */
+  columnResizing?: ColumnResizingState;
 }

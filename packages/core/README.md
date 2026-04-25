@@ -140,6 +140,7 @@ interface ColumnDef<T> {
   maxWidth?: number | string
   align?: 'left' | 'center' | 'right'
   visible?: boolean
+  resizable?: boolean
   // ...see source for full definition
 }
 ```

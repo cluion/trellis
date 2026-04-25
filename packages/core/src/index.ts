@@ -22,6 +22,7 @@ export type {
 export type { VirtualScrollState } from './types/virtual-scroll';
 export type { ColumnPinningState, PinOffset } from './types/column-pinning';
 export { calculatePinOffsets } from './types/column-pinning';
+export type { ColumnResizingState } from './types/column-resizing';
 export type { EventHandler } from './types/event';
 export type { SlotRenderer, SlotContext } from './types/slot';
 export type {

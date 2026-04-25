@@ -40,4 +40,6 @@ export interface ColumnDef<T = Record<string, unknown>> {
   visible?: boolean;
   /** 釘選方向：固定在左側或右側 */
   pin?: 'left' | 'right';
+  /** 此欄位是否可調整寬度（預設：resizing 插件啟用時為 true） */
+  resizable?: boolean;
 }

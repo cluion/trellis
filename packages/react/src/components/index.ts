@@ -10,3 +10,5 @@ export { TableInfo } from './table-info';
 export type { TableInfoProps } from './table-info';
 export { ExpansionToggle } from './expansion-toggle';
 export { ExpansionRow } from './expansion-row';
+export { ResizeHandle } from './resize-handle';
+export type { ResizeHandleProps } from './resize-handle';

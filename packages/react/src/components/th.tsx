@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@trellisjs/core';
 import { calculatePinOffsets } from '@trellisjs/core';
 import { useTrellisState } from '../hooks/use-trellis-state';
+import { ResizeHandle } from './resize-handle';
 
 interface ThProps<T = Record<string, unknown>> {
   column: ColumnDef<T>;
@@ -39,9 +40,24 @@ export function Th<T>({ column, stickyHeader = false }: ThProps<T>) {
     className = 'trellis-pin-shadow--right';
   }
 
+  // Column resizing: show ResizeHandle when plugin is active and column is resizable
+  const resizing = state.columnResizing;
+  const showResizeHandle = resizing && column.resizable !== false;
+
+  if (showResizeHandle) {
+    style.position = 'relative';
+    const resizedWidth = resizing.columnWidths[column.id];
+    if (resizedWidth !== undefined) {
+      style.width = resizedWidth;
+    } else if (!column.width) {
+      style.width = resizing.defaultWidth;
+    }
+  }
+
   return (
     <th style={Object.keys(style).length > 0 ? style : undefined} className={className}>
       {column.header}
+      {showResizeHandle && <ResizeHandle columnId={column.id} />}
     </th>
   );
 }

@@ -20,8 +20,9 @@ export {
   TableInfo,
   ExpansionToggle,
   ExpansionRow,
+  ResizeHandle,
 } from './components';
-export type { TableProps, TableInfoProps } from './components';
+export type { TableProps, TableInfoProps, ResizeHandleProps } from './components';
 
 // 插槽
 export { SlotRenderer } from './slots/slot-renderer';

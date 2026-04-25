@@ -1,7 +1,7 @@
 {
-  "name": "@trellisjs/react",
-  "version": "3.5.0",
-  "description": "Trellis 的 React 適配器 — 無頭式資料表格元件",
+  "name": "@trellisjs/plugin-column-resizing",
+  "version": "0.1.0",
+  "description": "Trellis 欄寬調整插件 — 拖曳把手即時調整欄寬，支援最小/最大寬度限制",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
@@ -25,26 +25,16 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "@trellisjs/core": "workspace:^",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "@trellisjs/core": "workspace:^"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
     "@trellisjs/core": "workspace:*",
-    "@trellisjs/plugin-column-pinning": "workspace:*",
-    "@trellisjs/plugin-column-resizing": "workspace:*",
-    "@trellisjs/plugin-row-expansion": "workspace:*",
-    "@trellisjs/plugin-virtual-scroll": "workspace:*",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "jsdom": "^26.1.0",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "@trellisjs/plugin-sort": "workspace:*",
+    "@trellisjs/plugin-pagination": "workspace:*",
+    "@trellisjs/plugin-column-visibility": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
@@ -52,7 +42,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/cluion/trellis.git",
-    "directory": "packages/react"
+    "directory": "packages/plugin-column-resizing"
   },
   "license": "MIT",
   "sideEffects": false
