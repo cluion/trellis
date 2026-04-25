@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-export-csv",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis CSV 匯出插件 — 瀏覽器下載或取得 CSV 字串",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
