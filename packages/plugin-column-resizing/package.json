@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-column-resizing",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 欄寬調整插件 — 拖曳把手即時調整欄寬，支援最小/最大寬度限制",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
