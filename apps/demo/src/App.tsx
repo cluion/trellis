@@ -7,6 +7,7 @@ import { ThreePluginsTable } from './components/ThreePluginsTable';
 import { SelectionVisibilityTable } from './components/SelectionVisibilityTable';
 import { ColumnPinningTable } from './components/ColumnPinningTable';
 import { ColumnResizingTable } from './components/ColumnResizingTable';
+import { StateSaveTable } from './components/StateSaveTable';
 import { RowExpansionTable } from './components/RowExpansionTable';
 import { VirtualScrollTable } from './components/VirtualScrollTable';
 import { SlotExample } from './components/SlotExample';
@@ -21,6 +22,7 @@ const tabs = [
   { id: 'selection-visibility', label: '選取 + 可見性' },
   { id: 'column-pinning', label: '欄位釘選' },
   { id: 'column-resizing', label: '欄寬調整' },
+  { id: 'state-save', label: '狀態保存' },
   { id: 'row-expansion', label: '行展開' },
   { id: 'virtual-scroll', label: '虛擬滾動' },
   { id: 'slot', label: 'Slot 自定義' },
@@ -150,6 +152,20 @@ export function App() {
             </p>
             <div className="card">
               <ColumnResizingTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'state-save' && (
+          <section>
+            <h2>狀態保存</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-state-save 插件。排序、篩選、分頁狀態自動保存到
+              localStorage，頁面重新整理後自動恢復。支援 localStorage / sessionStorage /
+              自訂 StorageAdapter。
+            </p>
+            <div className="card">
+              <StateSaveTable data={mockUsers} />
             </div>
           </section>
         )}

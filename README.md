@@ -30,6 +30,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 | [`@trellisjs/plugin-column-visibility`](./packages/plugin-column-visibility) | Dynamic column show/hide |
 | [`@trellisjs/plugin-column-pinning`](./packages/plugin-column-pinning) | Pin columns to left/right with CSS sticky |
 | [`@trellisjs/plugin-column-resizing`](./packages/plugin-column-resizing) | Column resizing — drag to resize with min/max constraints |
+| [`@trellisjs/plugin-state-save`](./packages/plugin-state-save) | Persist UI state to browser storage, auto-restore on reload |
 | [`@trellisjs/plugin-row-expansion`](./packages/plugin-row-expansion) | Expand rows to show custom detail content |
 | [`@trellisjs/plugin-export-csv`](./packages/plugin-export-csv) | CSV export — browser download or get string |
 | [`@trellisjs/plugin-virtual-scroll`](./packages/plugin-virtual-scroll) | Virtual scrolling for large datasets |
@@ -167,6 +168,7 @@ app.get('/api/users', async (req, res) => {
   ├── plugin-column-visibility ← Column visibility plugin
   ├── plugin-column-pinning  ← Column pinning plugin
   ├── plugin-column-resizing ← Column resizing plugin
+  ├── plugin-state-save      ← State persistence plugin
   ├── plugin-row-expansion   ← Row expansion plugin
   ├── plugin-export-csv      ← CSV export plugin
   ├── plugin-virtual-scroll  ← Virtual scrolling plugin

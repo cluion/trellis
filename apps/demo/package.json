@@ -21,6 +21,7 @@
     "@trellisjs/plugin-column-pinning": "workspace:*",
     "@trellisjs/plugin-column-resizing": "workspace:*",
     "@trellisjs/plugin-row-expansion": "workspace:*",
+    "@trellisjs/plugin-state-save": "workspace:*",
     "@trellisjs/plugin-virtual-scroll": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
