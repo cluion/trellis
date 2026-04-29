@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-state-save",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Trellis 狀態保存插件 — 自動將表格 UI 狀態持久化到瀏覽器 storage，頁面重載後恢復",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
