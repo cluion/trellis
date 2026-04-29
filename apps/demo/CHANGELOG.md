@@ -1,5 +1,12 @@
 # @trellisjs/demo
 
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [[`015d6c2`](https://github.com/cluion/trellis/commit/015d6c2c19840dae5c7d88c33e196a315d6fa53b)]:
+  - @trellisjs/plugin-state-save@1.0.0
+
 ## 0.1.14
 
 ### Patch Changes
