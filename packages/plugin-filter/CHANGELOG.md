@@ -1,5 +1,16 @@
 # @trellisjs/plugin-filter
 
+## 3.2.0
+
+### Minor Changes
+
+- [`1933f11`](https://github.com/cluion/trellis/commit/1933f116ba777cb4c0647ab98e69a7d676c423a1) Thanks [@cluion](https://github.com/cluion)! - Add independent debounce options for search and column filters
+
+  - New `searchDebounceMs` option — debounce delay for `filter:change` events only
+  - New `columnDebounceMs` option — debounce delay for `filter:column` events only
+  - `debounceMs` remains as shorthand that sets both; specific options take priority
+  - Each event type now has its own independent debounce timer
+
 ## 3.1.0
 
 ### Minor Changes
