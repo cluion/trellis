@@ -2,8 +2,12 @@ import type { TrellisPlugin, TrellisAPI, ColumnDef, DataRow } from '@trellisjs/c
 import { debounce } from './debounce';
 
 export interface FilterPluginOptions {
-  /** Debounce delay in ms for filter:change and filter:column events. Default: 0 (no debounce). */
+  /** Debounce delay in ms for both filter:change and filter:column events. Shorthand for setting both. Default: 0 (no debounce). */
   debounceMs?: number;
+  /** Debounce delay in ms for filter:change (global search) events only. Overrides debounceMs for search. Default: 0 (no debounce). */
+  searchDebounceMs?: number;
+  /** Debounce delay in ms for filter:column (per-column) events only. Overrides debounceMs for column filters. Default: 0 (no debounce). */
+  columnDebounceMs?: number;
 }
 
 /**
@@ -23,14 +27,28 @@ function getCellValue<T>(row: DataRow<T>, column: ColumnDef<T>): unknown {
  */
 export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPlugin {
   const { debounceMs = 0 } = options;
+  const effectiveSearchMs = options.searchDebounceMs ?? debounceMs;
+  const effectiveColumnMs = options.columnDebounceMs ?? debounceMs;
 
-  let activeDebounced: { cancel: () => void } | null = null;
+  let searchDebounced: { cancel: () => void } | null = null;
+  let columnDebounced: { cancel: () => void } | null = null;
 
-  const scheduleRecompute = (doRecompute: () => void) => {
-    if (debounceMs > 0) {
-      activeDebounced?.cancel();
-      const debounced = debounce(doRecompute, debounceMs);
-      activeDebounced = debounced;
+  const scheduleSearch = (doRecompute: () => void) => {
+    if (effectiveSearchMs > 0) {
+      searchDebounced?.cancel();
+      const debounced = debounce(doRecompute, effectiveSearchMs);
+      searchDebounced = debounced;
+      debounced();
+    } else {
+      doRecompute();
+    }
+  };
+
+  const scheduleColumn = (doRecompute: () => void) => {
+    if (effectiveColumnMs > 0) {
+      columnDebounced?.cancel();
+      const debounced = debounce(doRecompute, effectiveColumnMs);
+      columnDebounced = debounced;
       debounced();
     } else {
       doRecompute();
@@ -88,7 +106,7 @@ export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPl
       // 篩選關鍵字變更 → 重跑管線
       api.on('filter:change', (payload) => {
         const { query } = payload as { query: string };
-        scheduleRecompute(() => {
+        scheduleSearch(() => {
           const state = api.getState();
           api.recompute({ filtering: { ...state.filtering, query } });
         });
@@ -100,7 +118,7 @@ export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPl
           columnId: string;
           value: string;
         };
-        scheduleRecompute(() => {
+        scheduleColumn(() => {
           const state = api.getState();
           const { columnFilters } = state.filtering;
           const nextColumnFilters =
@@ -118,7 +136,8 @@ export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPl
     },
 
     destroy() {
-      activeDebounced?.cancel();
+      searchDebounced?.cancel();
+      columnDebounced?.cancel();
     },
   };
 }

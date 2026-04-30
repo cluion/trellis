@@ -105,7 +105,7 @@ describe('FilterPlugin debounce', () => {
     expect(state.data).toHaveLength(4);
   });
 
-  it('mixed filter:change then filter:column resets timer and only last recompute runs', () => {
+  it('mixed filter:change then filter:column runs independently with shared debounceMs', () => {
     const trellis = new Trellis<Item>({
       data,
       columns,
@@ -116,17 +116,20 @@ describe('FilterPlugin debounce', () => {
     vi.advanceTimersByTime(50);
     trellis.api.emit('filter:column', { columnId: 'city', value: 'Taipei' });
 
-    // Timer should have been reset — nothing executed yet
+    // Neither has fired yet
     expect(trellis.api.getState().data).toHaveLength(4);
 
-    vi.advanceTimersByTime(100);
+    // search fires at t=100ms
+    vi.advanceTimersByTime(50);
+    expect(trellis.api.getState().filtering.query).toBe('e');
 
+    // column fires at t=150ms (50ms + 100ms)
+    vi.advanceTimersByTime(50);
     const state = trellis.api.getState();
-    // filter:column was the last event — its recompute should have run
     expect(state.filtering.columnFilters).toEqual({ city: 'Taipei' });
-    // But the filter:change was superseded — query should NOT be updated
-    expect(state.filtering.query).toBe('');
-    expect(state.data).toHaveLength(2); // Alice, Charlie (city=Taipei)
+    expect(state.filtering.query).toBe('e');
+    // Both filters applied: 'e' AND city='Taipei' → Alice, Charlie
+    expect(state.data).toHaveLength(2);
   });
 
   it('destroy after filter:change silences all pending recomputes', () => {

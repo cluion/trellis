@@ -23,7 +23,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 |---------|-------------|
 | [`@trellisjs/core`](./packages/core) | Core engine — state, plugins, slots, events |
 | [`@trellisjs/plugin-sort`](./packages/plugin-sort) | Column sorting (asc/desc) |
-| [`@trellisjs/plugin-filter`](./packages/plugin-filter) | Global text search |
+| [`@trellisjs/plugin-filter`](./packages/plugin-filter) | Global text search and per-column filtering with independent debounce |
 | [`@trellisjs/plugin-pagination`](./packages/plugin-pagination) | Page navigation and page size |
 | [`@trellisjs/plugin-datasource`](./packages/plugin-datasource) | Remote API data fetching |
 | [`@trellisjs/plugin-selection`](./packages/plugin-selection) | Row selection (single, multi, range) |

@@ -51,6 +51,29 @@ const plugin = createFilterPlugin({ debounceMs: 300 });
 plugin.destroy();
 ```
 
+### Independent Debounce
+
+For different debounce delays on global search vs per-column filters, use `searchDebounceMs` and `columnDebounceMs`:
+
+```ts
+createFilterPlugin({
+  searchDebounceMs: 300,  // filter:change debounced by 300ms
+  columnDebounceMs: 100,  // filter:column debounced by 100ms
+})
+```
+
+Each event type has its own independent timer — they don't interfere with each other.
+
+**Priority:** specific options override `debounceMs`:
+
+```ts
+// search uses 500ms (specific), column uses 300ms (from debounceMs)
+createFilterPlugin({ debounceMs: 300, searchDebounceMs: 500 })
+
+// search immediate (0 overrides), column 100ms
+createFilterPlugin({ debounceMs: 300, searchDebounceMs: 0, columnDebounceMs: 100 })
+```
+
 ### Global Search
 
 ```ts
