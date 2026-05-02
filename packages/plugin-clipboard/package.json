@@ -1,0 +1,46 @@
+{
+  "name": "@trellisjs/plugin-clipboard",
+  "version": "0.1.0",
+  "description": "Clipboard plugin for Trellis - copy/paste table data as TSV",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "@trellisjs/core": "workspace:^"
+  },
+  "devDependencies": {
+    "@trellisjs/core": "workspace:*",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cluion/trellis",
+    "directory": "packages/plugin-clipboard"
+  },
+  "homepage": "https://github.com/cluion/trellis#readme"
+}

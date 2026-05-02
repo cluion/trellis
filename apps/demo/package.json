@@ -23,6 +23,7 @@
     "@trellisjs/plugin-row-expansion": "workspace:*",
     "@trellisjs/plugin-state-save": "workspace:*",
     "@trellisjs/plugin-virtual-scroll": "workspace:*",
+    "@trellisjs/plugin-clipboard": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

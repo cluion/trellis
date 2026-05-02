@@ -10,6 +10,7 @@ import { ColumnResizingTable } from './components/ColumnResizingTable';
 import { StateSaveTable } from './components/StateSaveTable';
 import { RowExpansionTable } from './components/RowExpansionTable';
 import { VirtualScrollTable } from './components/VirtualScrollTable';
+import { ClipboardTable } from './components/ClipboardTable';
 import { SlotExample } from './components/SlotExample';
 import { mockUsers } from './data/mock-data';
 
@@ -24,6 +25,7 @@ const tabs = [
   { id: 'column-resizing', label: '欄寬調整' },
   { id: 'state-save', label: '狀態保存' },
   { id: 'row-expansion', label: '行展開' },
+  { id: 'clipboard', label: '剪貼簿' },
   { id: 'virtual-scroll', label: '虛擬滾動' },
   { id: 'slot', label: 'Slot 自定義' },
 ] as const;
@@ -180,6 +182,20 @@ export function App() {
             </p>
             <div className="card">
               <RowExpansionTable data={mockUsers} />
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'clipboard' && (
+          <section>
+            <h2>剪貼簿</h2>
+            <p className="description">
+              使用 @trellisjs/plugin-clipboard 插件。Ctrl/Cmd+C 複製選取行（或全部）到剪貼簿，
+              Ctrl/Cmd+V 貼上 TSV 文字。從 Excel 或 Google Sheets 複製資料後可直接貼上。
+              與 selection 插件整合：有選取時只複製選取行。
+            </p>
+            <div className="card">
+              <ClipboardTable data={mockUsers} />
             </div>
           </section>
         )}
