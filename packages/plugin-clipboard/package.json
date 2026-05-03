@@ -1,6 +1,6 @@
 {
   "name": "@trellisjs/plugin-clipboard",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Clipboard plugin for Trellis - copy/paste table data as TSV",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
