@@ -1,5 +1,13 @@
 # @trellisjs/demo
 
+## 0.1.17
+
+### Patch Changes
+
+- Updated dependencies [[`3508bf3`](https://github.com/cluion/trellis/commit/3508bf324c7d6c38158950bf9de9aaae4d69f5de)]:
+  - @trellisjs/plugin-clipboard@1.0.0
+  - @trellisjs/react@3.6.1
+
 ## 0.1.16
 
 ### Patch Changes
