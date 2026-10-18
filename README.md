@@ -34,6 +34,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 | [`@trellisjs/plugin-row-expansion`](./packages/plugin-row-expansion) | Expand rows to show custom detail content |
 | [`@trellisjs/plugin-export-csv`](./packages/plugin-export-csv) | CSV export — browser download or get string |
 | [`@trellisjs/plugin-clipboard`](./packages/plugin-clipboard) | Clipboard copy/paste as TSV, integrates with Excel and Google Sheets |
+| [`@trellisjs/plugin-inline-edit`](./packages/plugin-inline-edit) | Inline cell editing with validation, keyboard navigation (Tab/Enter/Escape) |
 | [`@trellisjs/plugin-virtual-scroll`](./packages/plugin-virtual-scroll) | Virtual scrolling for large datasets |
 | [`@trellisjs/react`](./packages/react) | React hooks and components |
 | [`@trellisjs/server`](./packages/server) | Backend query parser and SQL builder |
@@ -179,6 +180,7 @@ app.get('/api/users', async (req, res) => {
   ├── plugin-row-expansion   ← Row expansion plugin
   ├── plugin-export-csv      ← CSV export plugin
   ├── plugin-clipboard       ← Clipboard copy/paste plugin
+  ├── plugin-inline-edit     ← Inline cell editing plugin
   ├── plugin-virtual-scroll  ← Virtual scrolling plugin
   └── react                  ← React adapter (useTrellis hook)
 

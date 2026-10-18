@@ -95,6 +95,9 @@ importers:
       '@trellisjs/plugin-filter':
         specifier: workspace:*
         version: link:../../packages/plugin-filter
+      '@trellisjs/plugin-inline-edit':
+        specifier: workspace:*
+        version: link:../../packages/plugin-inline-edit
       '@trellisjs/plugin-pagination':
         specifier: workspace:*
         version: link:../../packages/plugin-pagination
@@ -251,6 +254,21 @@ importers:
         version: 4.1.12(@vitest/coverage-v8@4.1.12)(jsdom@26.1.0)(vite@7.3.7)
 
   packages/plugin-filter:
+    devDependencies:
+      '@trellisjs/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(postcss@8.5.30)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.12(@vitest/coverage-v8@4.1.12)(jsdom@26.1.0)(vite@7.3.7)
+
+  packages/plugin-inline-edit:
     devDependencies:
       '@trellisjs/core':
         specifier: workspace:*
