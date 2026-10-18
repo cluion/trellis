@@ -30,9 +30,10 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      # trusted publishing 需要 npm >= 11.5.1；npm 12 要求 Node ^22.22.2，與上面的 22.14.0 不相容。
       - name: Upgrade npm
         run: |
-          npm install -g npm@latest
+          npm install -g npm@11
           npm --version
 
       - run: pnpm install --frozen-lockfile
