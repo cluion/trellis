@@ -24,3 +24,7 @@ coverage/
 docs/
 openspec/
 CLAUDE.md
+
+# Docker
+.pnpm-store/
+/docker/.env

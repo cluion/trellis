@@ -1,0 +1,7 @@
+.git
+.claude
+.pnpm-store
+docker/.env
+**/node_modules
+**/dist
+**/coverage

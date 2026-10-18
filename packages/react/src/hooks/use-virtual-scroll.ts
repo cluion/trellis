@@ -1,11 +1,11 @@
-import { useRef, useEffect } from 'react';
 import type { VirtualScrollPlugin } from '@trellisjs/plugin-virtual-scroll';
+import { useRef, useEffect } from 'react';
 
 interface UseVirtualScrollReturn {
-  /** 綁定到滾動容器的 ref */
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  /** 滾動容器的樣式 */
-  style: React.CSSProperties;
+    /** 綁定到滾動容器的 ref */
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    /** 滾動容器的樣式 */
+    style: React.CSSProperties;
 }
 
 /**
@@ -13,25 +13,28 @@ interface UseVirtualScrollReturn {
  * 綁定滾動容器到 plugin，處理掛載/卸載生命週期。
  */
 export function useVirtualScroll(
-  plugin: VirtualScrollPlugin,
+    plugin: VirtualScrollPlugin,
 ): UseVirtualScrollReturn {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
+    useEffect(() => {
+        const element = containerRef.current;
 
-    plugin.attachScrollContainer(element);
+        if (!element) {
+            return;
+        }
 
-    return () => {
-      plugin.detachScrollContainer();
+        plugin.attachScrollContainer(element);
+
+        return () => {
+            plugin.detachScrollContainer();
+        };
+    }, [plugin]);
+
+    return {
+        containerRef,
+        style: {
+            overflowY: 'auto',
+        },
     };
-  }, [plugin]);
-
-  return {
-    containerRef,
-    style: {
-      overflowY: 'auto',
-    },
-  };
 }

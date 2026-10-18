@@ -1,152 +1,155 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Trellis } from '@trellisjs/core';
-import { createFilterPlugin } from '../src/filter-plugin';
 import type { ColumnDef } from '@trellisjs/core';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createFilterPlugin } from '../src/filter-plugin';
 
 interface Item {
-  name: string;
-  city: string;
-  category: string;
+    name: string;
+    city: string;
+    category: string;
 }
 
 const data: Item[] = [
-  { name: 'Alice', city: 'Taipei', category: 'fruit' },
-  { name: 'Bob', city: 'Tokyo', category: 'fruit' },
-  { name: 'Charlie', city: 'Taipei', category: 'vegetable' },
-  { name: 'Diana', city: 'Tokyo', category: 'vegetable' },
+    { name: 'Alice', city: 'Taipei', category: 'fruit' },
+    { name: 'Bob', city: 'Tokyo', category: 'fruit' },
+    { name: 'Charlie', city: 'Taipei', category: 'vegetable' },
+    { name: 'Diana', city: 'Tokyo', category: 'vegetable' },
 ];
 
 const columns: ColumnDef<Item>[] = [
-  { id: 'name', accessor: 'name', header: 'Name' },
-  { id: 'city', accessor: 'city', header: 'City' },
-  { id: 'category', accessor: 'category', header: 'Category' },
+    { id: 'name', accessor: 'name', header: 'Name' },
+    { id: 'city', accessor: 'city', header: 'City' },
+    { id: 'category', accessor: 'category', header: 'Category' },
 ];
 
 describe('FilterPlugin debounce', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('debounceMs: 0 triggers recompute immediately', () => {
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [createFilterPlugin({ debounceMs: 0 })],
+    beforeEach(() => {
+        vi.useFakeTimers();
     });
 
-    trellis.api.emit('filter:change', { query: 'Taipei' });
-    // No timer advancement needed — should be immediate
-    const state = trellis.api.getState();
-    expect(state.data).toHaveLength(2);
-    expect(state.filtering.query).toBe('Taipei');
-  });
-
-  it('debounceMs: 100 batches rapid triggers into one recompute', () => {
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [createFilterPlugin({ debounceMs: 100 })],
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
-    trellis.api.emit('filter:change', { query: 'a' });
-    trellis.api.emit('filter:change', { query: 'al' });
-    trellis.api.emit('filter:change', { query: 'ali' });
+    it('debounceMs: 0 triggers recompute immediately', () => {
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [createFilterPlugin({ debounceMs: 0 })],
+        });
 
-    // Not yet executed — query stays at initial ''
-    expect(trellis.api.getState().filtering.query).toBe('');
-
-    vi.advanceTimersByTime(100);
-
-    const state = trellis.api.getState();
-    expect(state.filtering.query).toBe('ali');
-    expect(state.data).toHaveLength(1);
-    expect(state.data[0].original.name).toBe('Alice');
-  });
-
-  it('executes recompute after debounceMs timeout', () => {
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [createFilterPlugin({ debounceMs: 200 })],
+        trellis.api.emit('filter:change', { query: 'Taipei' });
+        // No timer advancement needed — should be immediate
+        const state = trellis.api.getState();
+        expect(state.data).toHaveLength(2);
+        expect(state.filtering.query).toBe('Taipei');
     });
 
-    trellis.api.emit('filter:change', { query: 'Tokyo' });
-    expect(trellis.api.getState().filtering.query).toBe('');
+    it('debounceMs: 100 batches rapid triggers into one recompute', () => {
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [createFilterPlugin({ debounceMs: 100 })],
+        });
 
-    vi.advanceTimersByTime(200);
+        trellis.api.emit('filter:change', { query: 'a' });
+        trellis.api.emit('filter:change', { query: 'al' });
+        trellis.api.emit('filter:change', { query: 'ali' });
 
-    const state = trellis.api.getState();
-    expect(state.filtering.query).toBe('Tokyo');
-    expect(state.data).toHaveLength(2);
-  });
+        // Not yet executed — query stays at initial ''
+        expect(trellis.api.getState().filtering.query).toBe('');
 
-  it('destroy cancels pending timer', () => {
-    const plugin = createFilterPlugin({ debounceMs: 100 });
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [plugin],
+        vi.advanceTimersByTime(100);
+
+        const state = trellis.api.getState();
+        expect(state.filtering.query).toBe('ali');
+        expect(state.data).toHaveLength(1);
+        expect(state.data[0].original.name).toBe('Alice');
     });
 
-    trellis.api.emit('filter:change', { query: 'fruit' });
+    it('executes recompute after debounceMs timeout', () => {
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [createFilterPlugin({ debounceMs: 200 })],
+        });
 
-    // Find and call destroy on the plugin
-    plugin.destroy!();
+        trellis.api.emit('filter:change', { query: 'Tokyo' });
+        expect(trellis.api.getState().filtering.query).toBe('');
 
-    vi.advanceTimersByTime(200);
+        vi.advanceTimersByTime(200);
 
-    const state = trellis.api.getState();
-    // recompute was never called — state unchanged
-    expect(state.filtering.query).toBe('');
-    expect(state.data).toHaveLength(4);
-  });
-
-  it('mixed filter:change then filter:column runs independently with shared debounceMs', () => {
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [createFilterPlugin({ debounceMs: 100 })],
+        const state = trellis.api.getState();
+        expect(state.filtering.query).toBe('Tokyo');
+        expect(state.data).toHaveLength(2);
     });
 
-    trellis.api.emit('filter:change', { query: 'e' });
-    vi.advanceTimersByTime(50);
-    trellis.api.emit('filter:column', { columnId: 'city', value: 'Taipei' });
+    it('destroy cancels pending timer', () => {
+        const plugin = createFilterPlugin({ debounceMs: 100 });
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [plugin],
+        });
 
-    // Neither has fired yet
-    expect(trellis.api.getState().data).toHaveLength(4);
+        trellis.api.emit('filter:change', { query: 'fruit' });
 
-    // search fires at t=100ms
-    vi.advanceTimersByTime(50);
-    expect(trellis.api.getState().filtering.query).toBe('e');
+        // Find and call destroy on the plugin
+        plugin.destroy!();
 
-    // column fires at t=150ms (50ms + 100ms)
-    vi.advanceTimersByTime(50);
-    const state = trellis.api.getState();
-    expect(state.filtering.columnFilters).toEqual({ city: 'Taipei' });
-    expect(state.filtering.query).toBe('e');
-    // Both filters applied: 'e' AND city='Taipei' → Alice, Charlie
-    expect(state.data).toHaveLength(2);
-  });
+        vi.advanceTimersByTime(200);
 
-  it('destroy after filter:change silences all pending recomputes', () => {
-    const plugin = createFilterPlugin({ debounceMs: 100 });
-    const trellis = new Trellis<Item>({
-      data,
-      columns,
-      plugins: [plugin],
+        const state = trellis.api.getState();
+        // recompute was never called — state unchanged
+        expect(state.filtering.query).toBe('');
+        expect(state.data).toHaveLength(4);
     });
 
-    trellis.api.emit('filter:change', { query: 'Alice' });
-    plugin.destroy!();
+    it('mixed filter:change then filter:column runs independently with shared debounceMs', () => {
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [createFilterPlugin({ debounceMs: 100 })],
+        });
 
-    vi.advanceTimersByTime(300);
+        trellis.api.emit('filter:change', { query: 'e' });
+        vi.advanceTimersByTime(50);
+        trellis.api.emit('filter:column', {
+            columnId: 'city',
+            value: 'Taipei',
+        });
 
-    const state = trellis.api.getState();
-    expect(state.filtering.query).toBe('');
-    expect(state.data).toHaveLength(4);
-  });
+        // Neither has fired yet
+        expect(trellis.api.getState().data).toHaveLength(4);
+
+        // search fires at t=100ms
+        vi.advanceTimersByTime(50);
+        expect(trellis.api.getState().filtering.query).toBe('e');
+
+        // column fires at t=150ms (50ms + 100ms)
+        vi.advanceTimersByTime(50);
+        const state = trellis.api.getState();
+        expect(state.filtering.columnFilters).toEqual({ city: 'Taipei' });
+        expect(state.filtering.query).toBe('e');
+        // Both filters applied: 'e' AND city='Taipei' → Alice, Charlie
+        expect(state.data).toHaveLength(2);
+    });
+
+    it('destroy after filter:change silences all pending recomputes', () => {
+        const plugin = createFilterPlugin({ debounceMs: 100 });
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            plugins: [plugin],
+        });
+
+        trellis.api.emit('filter:change', { query: 'Alice' });
+        plugin.destroy!();
+
+        vi.advanceTimersByTime(300);
+
+        const state = trellis.api.getState();
+        expect(state.filtering.query).toBe('');
+        expect(state.data).toHaveLength(4);
+    });
 });

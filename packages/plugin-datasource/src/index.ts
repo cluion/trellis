@@ -1,10 +1,10 @@
 export type {
-  TrellisQuery,
-  TrellisSortQuery,
-  TrellisFilterQuery,
-  TrellisResponse,
-  TrellisDatasource,
-  RemoteDatasourceOptions,
+    TrellisQuery,
+    TrellisSortQuery,
+    TrellisFilterQuery,
+    TrellisResponse,
+    TrellisDatasource,
+    RemoteDatasourceOptions,
 } from './types';
 export { buildQueryFromState } from './types';
 export { createStaticDatasource } from './static-datasource';

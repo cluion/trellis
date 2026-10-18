@@ -81,19 +81,25 @@ function UserTable({ data }: { data: User[] }) {
   });
 
   const state = api.getState();
+  const sort = state.sorting.sortBy[0];
+
+  const toggleSort = (columnId: string) => {
+    const direction = sort?.columnId === columnId && sort.direction === 'asc' ? 'desc' : 'asc';
+    api.emit('sort:change', { columnId, direction });
+  };
 
   return (
     <div>
       <input
         placeholder="Search..."
-        onChange={(e) => api.emit('filter:change', { value: e.target.value })}
+        onChange={(e) => api.emit('filter:change', { query: e.target.value })}
       />
       <table>
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.id} onClick={() => api.emit('sort:toggle', { columnId: col.id })}>
-                {String(col.header)} {state.sort?.columnId === col.id ? (state.sort.direction === 'asc' ? '↑' : '↓') : ''}
+              <th key={col.id} onClick={() => toggleSort(col.id)}>
+                {String(col.header)} {sort?.columnId === col.id ? (sort.direction === 'asc' ? '↑' : '↓') : ''}
               </th>
             ))}
           </tr>
@@ -137,7 +143,7 @@ trellis.api.subscribe((state) => {
 });
 
 // Sort by age descending
-trellis.api.emit('sort:toggle', { columnId: 'age' });
+trellis.api.emit('sort:change', { columnId: 'age', direction: 'desc' });
 ```
 
 ### Backend (Node.js)
@@ -183,13 +189,60 @@ app.get('/api/users', async (req, res) => {
 Each plugin:
 1. Implements `TrellisPlugin` interface (`name`, `install`, optional `destroy`)
 2. Receives `TrellisAPI` during installation
-3. Reads and modifies state via `api.setState()`
+3. Registers data transforms via `api.registerTransform()` and re-runs them via `api.recompute()`
 4. Communicates via `api.emit()` / `api.on()` events
 5. Can register rendering slots via `api.registerSlot()`
 
+## Development
+
+Only Docker is required on the host. Node.js, pnpm, ESLint, Prettier and gitleaks all run inside the toolchain container defined in [`docker/`](docker); do not run `pnpm` on the host, because `node_modules` is installed for Linux by the container.
+
+```bash
+cp docker/.env.example docker/.env   # on macOS/Linux, set PUID/PGID to `id -u` / `id -g`
+make build                           # build the toolchain image
+make setup                           # pnpm install + build all packages
+make up                              # tsup --watch for every package + demo at http://127.0.0.1:5173
+make down
+```
+
+Common commands:
+
+```bash
+make test         # run all package tests
+make lint         # ESLint --fix + Prettier --write
+make ci           # build, lint, format, type check and tests (same gate as CI)
+make audit        # pnpm audit of all dependencies
+make secret-scan  # gitleaks over the git history
+```
+
+Anything else runs through the `app` service, for example creating a changeset:
+
+```bash
+docker compose --env-file docker/.env -f docker/compose.yaml run --rm app pnpm changeset
+```
+
+Rerun `make setup` after the lockfile changes.
+
+`pnpm.auditConfig.ignoreGhsas` in `package.json` lists advisories with no usable fix:
+
+- `GHSA-vfj7-8cjw-p6xm` (braces) and `GHSA-hp3w-g68c-fv3c` (sprintf-js): no patched release; both come from `@changesets/cli` processing repository files.
+- `GHSA-g7r4-m6w7-qqqr` (esbuild): only affects esbuild's development server on Windows, which tsup does not use; the fix needs tsup 9 (Node.js ≥ 22.18).
+
+## CI and Branch Flow
+
+```text
+feat/* · fix/* ──PR squash──▶ main ──▶ changesets release PR ──▶ npm
+```
+
+- Work on a short-lived `feat/*`, `fix/*`, `refactor/*`, `docs/*` or `chore/*` branch, open a PR to `main`, squash-merge it and delete the branch.
+- Commits use Conventional Commits with English (ASCII) subjects. The PR title becomes the squash commit subject, so it follows the same rule.
+- [`ci.yml`](.github/workflows/ci.yml) runs on PRs to `main` and on manual dispatch, not on pushes to `main`. It checks commit subjects and the PR title, then runs `make audit`, `make secret-scan` and `make ci` in the toolchain container.
+- [`dependency-audit.yml`](.github/workflows/dependency-audit.yml) repeats the audit every Monday 09:00 (Asia/Taipei).
+- [`release.yml`](.github/workflows/release.yml) runs on pushes to `main` and publishes through changesets with npm trusted publishing.
+
 ## Status
 
-Trellis is in **alpha** (v0.1.0-alpha). Core architecture is stable, but feature coverage is limited to basic sort/filter/pagination. See the [roadmap](https://github.com/cluion/trellis/issues) for planned features.
+`@trellisjs/core`, the React adapter and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha** (`0.1.0-alpha`). See the [roadmap](https://github.com/cluion/trellis/issues) for planned features.
 
 ## License
 

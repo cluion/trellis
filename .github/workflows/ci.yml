@@ -1,30 +1,73 @@
-name: CI
+name: Verify changes
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  commit-policy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22]
+    timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - name: Check out complete history
+        uses: actions/checkout@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
+          fetch-depth: 0
+          persist-credentials: false
 
-      - run: pnpm install --frozen-lockfile
+      # Squash 合併時 PR 標題會成為 main 上的 commit 標題，所以一併檢查。
+      - name: Verify English commit subjects
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if printf '%s' "$PR_TITLE" | LC_ALL=C grep -q '[^ -~]'; then
+            echo "Pull request titles must use English ASCII text: $PR_TITLE" >&2
+            exit 1
+          fi
+          base_sha="$PR_BASE_SHA"
+          if test -z "$base_sha"; then
+            base_sha="$(git merge-base origin/main "$HEAD_SHA")"
+          fi
+          ./docker/operations/verify-commit-subjects.sh "$base_sha" "$HEAD_SHA"
 
-      - run: pnpm -r build
+  verify:
+    needs: commit-policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
 
-      - run: pnpm -r test
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure Docker environment
+        run: |
+          cp docker/.env.example docker/.env
+          sed -i "s/^PUID=.*/PUID=$(id -u)/" docker/.env
+          sed -i "s/^PGID=.*/PGID=$(id -g)/" docker/.env
+
+      - name: Build the toolchain image
+        run: make build
+
+      - name: Install dependencies
+        run: docker compose --env-file docker/.env -f docker/compose.yaml run --rm app pnpm install --frozen-lockfile
+
+      - name: Run verification gates
+        run: |
+          make audit
+          make secret-scan
+          make ci

@@ -1,46 +1,46 @@
 {
-  "name": "@trellisjs/plugin-filter",
-  "version": "3.2.0",
-  "description": "Trellis 篩選插件 — 全域搜尋與單欄篩選",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "clean": "rm -rf dist"
-  },
-  "peerDependencies": {
-    "@trellisjs/core": "workspace:^"
-  },
-  "devDependencies": {
-    "@trellisjs/core": "workspace:*",
-    "tsup": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/cluion/trellis.git",
-    "directory": "packages/plugin-filter"
-  },
-  "license": "MIT",
-  "sideEffects": false
+    "name": "@trellisjs/plugin-filter",
+    "version": "3.2.0",
+    "description": "Trellis 篩選插件 — 全域搜尋與單欄篩選",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "clean": "rm -rf dist"
+    },
+    "peerDependencies": {
+        "@trellisjs/core": "workspace:^"
+    },
+    "devDependencies": {
+        "@trellisjs/core": "workspace:*",
+        "tsup": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cluion/trellis.git",
+        "directory": "packages/plugin-filter"
+    },
+    "license": "MIT",
+    "sideEffects": false
 }

@@ -1,49 +1,49 @@
 {
-  "name": "@trellisjs/plugin-column-resizing",
-  "version": "1.0.0",
-  "description": "Trellis 欄寬調整插件 — 拖曳把手即時調整欄寬，支援最小/最大寬度限制",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "clean": "rm -rf dist"
-  },
-  "peerDependencies": {
-    "@trellisjs/core": "workspace:^"
-  },
-  "devDependencies": {
-    "@trellisjs/core": "workspace:*",
-    "@trellisjs/plugin-sort": "workspace:*",
-    "@trellisjs/plugin-pagination": "workspace:*",
-    "@trellisjs/plugin-column-visibility": "workspace:*",
-    "tsup": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/cluion/trellis.git",
-    "directory": "packages/plugin-column-resizing"
-  },
-  "license": "MIT",
-  "sideEffects": false
+    "name": "@trellisjs/plugin-column-resizing",
+    "version": "1.0.0",
+    "description": "Trellis 欄寬調整插件 — 拖曳把手即時調整欄寬，支援最小/最大寬度限制",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "clean": "rm -rf dist"
+    },
+    "peerDependencies": {
+        "@trellisjs/core": "workspace:^"
+    },
+    "devDependencies": {
+        "@trellisjs/core": "workspace:*",
+        "@trellisjs/plugin-sort": "workspace:*",
+        "@trellisjs/plugin-pagination": "workspace:*",
+        "@trellisjs/plugin-column-visibility": "workspace:*",
+        "tsup": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cluion/trellis.git",
+        "directory": "packages/plugin-column-resizing"
+    },
+    "license": "MIT",
+    "sideEffects": false
 }

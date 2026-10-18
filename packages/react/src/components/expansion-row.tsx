@@ -2,8 +2,8 @@ import type { DataRow } from '@trellisjs/core';
 import { SlotRenderer } from '../slots/slot-renderer';
 
 interface ExpansionRowProps<T = Record<string, unknown>> {
-  row: DataRow<T>;
-  colSpan: number;
+    row: DataRow<T>;
+    colSpan: number;
 }
 
 /**
@@ -12,18 +12,21 @@ interface ExpansionRowProps<T = Record<string, unknown>> {
  * 使用 stopPropagation 防止點擊冒泡到 Tr 的 selection handler。
  */
 export function ExpansionRow<T>({ row, colSpan }: ExpansionRowProps<T>) {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
 
-  return (
-    <tr className="trellis-expansion-row trellis-expansion--expanded" onClick={handleClick}>
-      <td colSpan={colSpan} className="trellis-expansion-cell">
-        <SlotRenderer
-          name="expansion:default"
-          context={{ row: row.original, rowId: row.id }}
-        />
-      </td>
-    </tr>
-  );
+    return (
+        <tr
+            className="trellis-expansion-row trellis-expansion--expanded"
+            onClick={handleClick}
+        >
+            <td colSpan={colSpan} className="trellis-expansion-cell">
+                <SlotRenderer
+                    name="expansion:default"
+                    context={{ row: row.original, rowId: row.id }}
+                />
+            </td>
+        </tr>
+    );
 }

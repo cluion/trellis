@@ -1,0 +1,32 @@
+name: Dependency audit
+
+# PR 的 CI 才會檢查依賴漏洞；沒有 PR 的期間，新公布的漏洞要靠這個每週排程發現。
+# 排程失敗時 GitHub 會寄通知給最後修改這個 cron 的人。
+on:
+  schedule:
+    - cron: '0 1 * * 1' # 每週一 09:00（台灣時間）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build the toolchain image
+        run: |
+          cp docker/.env.example docker/.env
+          sed -i "s/^PUID=.*/PUID=$(id -u)/" docker/.env
+          sed -i "s/^PGID=.*/PGID=$(id -g)/" docker/.env
+          make build
+
+      - name: Audit pnpm dependencies
+        run: make audit

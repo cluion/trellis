@@ -1,37 +1,37 @@
 {
-  "name": "@trellisjs/demo",
-  "version": "0.1.17",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@trellisjs/core": "workspace:*",
-    "@trellisjs/react": "workspace:*",
-    "@trellisjs/plugin-sort": "workspace:*",
-    "@trellisjs/plugin-filter": "workspace:*",
-    "@trellisjs/plugin-pagination": "workspace:*",
-    "@trellisjs/plugin-datasource": "workspace:*",
-    "@trellisjs/plugin-export-csv": "workspace:*",
-    "@trellisjs/plugin-selection": "workspace:*",
-    "@trellisjs/plugin-column-visibility": "workspace:*",
-    "@trellisjs/plugin-column-pinning": "workspace:*",
-    "@trellisjs/plugin-column-resizing": "workspace:*",
-    "@trellisjs/plugin-row-expansion": "workspace:*",
-    "@trellisjs/plugin-state-save": "workspace:*",
-    "@trellisjs/plugin-virtual-scroll": "workspace:*",
-    "@trellisjs/plugin-clipboard": "workspace:*",
-    "react": "catalog:",
-    "react-dom": "catalog:"
-  },
-  "devDependencies": {
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "^4.4.1",
-    "typescript": "catalog:",
-    "vite": "^6.3.2"
-  }
+    "name": "@trellisjs/demo",
+    "version": "0.1.17",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@trellisjs/core": "workspace:*",
+        "@trellisjs/react": "workspace:*",
+        "@trellisjs/plugin-sort": "workspace:*",
+        "@trellisjs/plugin-filter": "workspace:*",
+        "@trellisjs/plugin-pagination": "workspace:*",
+        "@trellisjs/plugin-datasource": "workspace:*",
+        "@trellisjs/plugin-export-csv": "workspace:*",
+        "@trellisjs/plugin-selection": "workspace:*",
+        "@trellisjs/plugin-column-visibility": "workspace:*",
+        "@trellisjs/plugin-column-pinning": "workspace:*",
+        "@trellisjs/plugin-column-resizing": "workspace:*",
+        "@trellisjs/plugin-row-expansion": "workspace:*",
+        "@trellisjs/plugin-state-save": "workspace:*",
+        "@trellisjs/plugin-virtual-scroll": "workspace:*",
+        "@trellisjs/plugin-clipboard": "workspace:*",
+        "react": "catalog:",
+        "react-dom": "catalog:"
+    },
+    "devDependencies": {
+        "@types/react": "catalog:",
+        "@types/react-dom": "catalog:",
+        "@vitejs/plugin-react": "^4.4.1",
+        "typescript": "catalog:",
+        "vite": "^6.3.2"
+    }
 }

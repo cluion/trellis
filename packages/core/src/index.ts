@@ -13,11 +13,11 @@ export { PluginManager } from './plugin/plugin-manager';
 export type { ColumnDef, ColumnSortFn } from './types/column';
 export type { DataRow, DataId } from './types/data';
 export type {
-  SortCriterion,
-  SortState,
-  FilterState,
-  PaginationState,
-  TableState,
+    SortCriterion,
+    SortState,
+    FilterState,
+    PaginationState,
+    TableState,
 } from './types/state';
 export type { VirtualScrollState } from './types/virtual-scroll';
 export type { ColumnPinningState, PinOffset } from './types/column-pinning';
@@ -25,8 +25,4 @@ export { calculatePinOffsets } from './types/column-pinning';
 export type { ColumnResizingState } from './types/column-resizing';
 export type { EventHandler } from './types/event';
 export type { SlotRenderer, SlotContext } from './types/slot';
-export type {
-  TrellisAPI,
-  TrellisPlugin,
-  TrellisOptions,
-} from './types/plugin';
+export type { TrellisAPI, TrellisPlugin, TrellisOptions } from './types/plugin';
