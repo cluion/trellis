@@ -1,16 +1,27 @@
 # @trellisjs/core
 
+## 1.8.0
+
+### Minor Changes
+
+- [#24](https://github.com/cluion/trellis/pull/24) [`0e89a57`](https://github.com/cluion/trellis/commit/0e89a57d12d97a77f6919e5acbd3aa646209ad93) Thanks [@cluion](https://github.com/cluion)! - 修正 TypeScript 使用者照 README 寫法遇到的型別錯誤。
+
+    - `TrellisOptions.plugins` 接受任意列型別的插件，`useTrellis<User>({ plugins: [createSortPlugin()] })` 不再出現 `TrellisPlugin<Record<string, unknown>>` 無法指派給 `TrellisPlugin<User>` 的錯誤
+    - `Trellis`、`useTrellis`、`createStaticDatasource` 的型別約束由 `Record<string, unknown>` 放寬為 `object`，可以直接使用 `interface` 定義的資料型別
+    - `TrellisContext` 接受任意列型別的 api，`<TrellisContext.Provider value={api}>` 可以傳入 `TrellisAPI<User>`
+    - `TableInfo` 改為無條件讀取 context，符合 rules of hooks；有傳 `pagination` prop 時仍不需要 Provider
+
 ## 1.7.0
 
 ### Minor Changes
 
 - [`3f467d9`](https://github.com/cluion/trellis/commit/3f467d90d12245eed4a66f4285d1be6abf8bd01c) Thanks [@cluion](https://github.com/cluion)! - Add column resizing plugin and ResizeHandle component
 
-  - New package `@trellisjs/plugin-column-resizing` with drag-to-resize support
-  - Core adds `ColumnResizingState` type and `ColumnDef.resizable` field
-  - React adapter adds `ResizeHandle` component and `Th` integration
-  - Supports minWidth/maxWidth constraints and reset
-  - Events: resize:start, resize:column, resize:end, resize:reset
+    - New package `@trellisjs/plugin-column-resizing` with drag-to-resize support
+    - Core adds `ColumnResizingState` type and `ColumnDef.resizable` field
+    - React adapter adds `ResizeHandle` component and `Th` integration
+    - Supports minWidth/maxWidth constraints and reset
+    - Events: resize:start, resize:column, resize:end, resize:reset
 
 ## 1.6.0
 
@@ -18,10 +29,10 @@
 
 - [`b4f8a7e`](https://github.com/cluion/trellis/commit/b4f8a7ee4573f5c416e8c600e10c68a0ccb81bd6) Thanks [@cluion](https://github.com/cluion)! - Add CSV export plugin and `getFilteredData()` API
 
-  - New package `@trellisjs/plugin-export-csv` with browser download and CSV string callback
-  - Core adds `getFilteredData()` to return filtered+sorted data before pagination
-  - Supports custom delimiter, header toggle, column selection, and current-page-only export
-  - UTF-8 BOM prefix for Excel compatibility
+    - New package `@trellisjs/plugin-export-csv` with browser download and CSV string callback
+    - Core adds `getFilteredData()` to return filtered+sorted data before pagination
+    - Supports custom delimiter, header toggle, column selection, and current-page-only export
+    - UTF-8 BOM prefix for Excel compatibility
 
 ## 1.5.0
 
@@ -41,14 +52,14 @@
 
 - [`cdfd747`](https://github.com/cluion/trellis/commit/cdfd74740151369ae7d585b2ae2d9d1e28364e81) Thanks [@cluion](https://github.com/cluion)! - Add virtual scroll plugin for large dataset rendering
 
-  - New package `@trellisjs/plugin-virtual-scroll` — DOM-based row virtualization
-  - Registers transform at priority=35 (after pagination) to slice visible rows
-  - Scroll event handling with requestAnimationFrame throttling
-  - Overscan buffer to prevent blank flashes during fast scrolling
-  - Core pipeline updated to correctly calculate `totalItems` when transforms exist after pagination
-  - `TableState` gains optional `virtualScroll?: VirtualScrollState` field
-  - React adapter adds `VirtualScrollBody` component and `useVirtualScroll` hook
-  - Spacer rows maintain correct scrollbar height for full dataset
+    - New package `@trellisjs/plugin-virtual-scroll` — DOM-based row virtualization
+    - Registers transform at priority=35 (after pagination) to slice visible rows
+    - Scroll event handling with requestAnimationFrame throttling
+    - Overscan buffer to prevent blank flashes during fast scrolling
+    - Core pipeline updated to correctly calculate `totalItems` when transforms exist after pagination
+    - `TableState` gains optional `virtualScroll?: VirtualScrollState` field
+    - React adapter adds `VirtualScrollBody` component and `useVirtualScroll` hook
+    - Spacer rows maintain correct scrollbar height for full dataset
 
 ## 1.2.1
 
@@ -74,11 +85,11 @@
 
 - [`0c8fbb2`](https://github.com/cluion/trellis/commit/0c8fbb2d3328812c2084fa34ae477c801da5d06d) Thanks [@cluion](https://github.com/cluion)! - BREAKING: SortState 改為多欄排序結構 (sortBy: SortCriterion[])
 
-  - `SortState.columnId` + `direction` 移除，改為 `SortState.sortBy: SortCriterion[]`
-  - 新增 `SortCriterion` 介面：`{ columnId: string; direction: 'asc' | 'desc' }`
-  - sort 插件支援 `append` 模式（Shift+Click 追加排序條件）
-  - transform 邏輯依 sortBy 陣列逐一比較，第一個非零結果決定順序
-  - plugin-datasource 的 `buildQueryFromState` 直接傳遞 sortBy 陣列
+    - `SortState.columnId` + `direction` 移除，改為 `SortState.sortBy: SortCriterion[]`
+    - 新增 `SortCriterion` 介面：`{ columnId: string; direction: 'asc' | 'desc' }`
+    - sort 插件支援 `append` 模式（Shift+Click 追加排序條件）
+    - transform 邏輯依 sortBy 陣列逐一比較，第一個非零結果決定順序
+    - plugin-datasource 的 `buildQueryFromState` 直接傳遞 sortBy 陣列
 
 ## 0.1.0
 
@@ -86,8 +97,8 @@
 
 - [`46e9699`](https://github.com/cluion/trellis/commit/46e9699cc70daba5dc6e43349db2d2f1f197d026) Thanks [@cluion](https://github.com/cluion)! - 引入 Transform Pipeline 架構，修復 sort + filter 插件互動問題
 
-  - Core 新增集中式 Transform Pipeline 引擎，持有唯一 sourceData
-  - 插件透過 registerTransform 註冊純轉換函式，移除各自的 originalData 快照
-  - 新增 registerTransform、recompute、updateSourceData 三個 API 方法
-  - 管線依 priority 執行：filter(10) → sort(20) → pagination(30)
-  - 修復：篩選後排序 → 清除排序保留篩選；排序後篩選 → 清除篩選保留排序
+    - Core 新增集中式 Transform Pipeline 引擎，持有唯一 sourceData
+    - 插件透過 registerTransform 註冊純轉換函式，移除各自的 originalData 快照
+    - 新增 registerTransform、recompute、updateSourceData 三個 API 方法
+    - 管線依 priority 執行：filter(10) → sort(20) → pagination(30)
+    - 修復：篩選後排序 → 清除排序保留篩選；排序後篩選 → 清除篩選保留排序
