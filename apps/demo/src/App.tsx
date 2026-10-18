@@ -4,6 +4,7 @@ import { ClipboardTable } from './components/ClipboardTable';
 import { ColumnPinningTable } from './components/ColumnPinningTable';
 import { ColumnResizingTable } from './components/ColumnResizingTable';
 import { FilterableTable } from './components/FilterableTable';
+import { InlineEditTable } from './components/InlineEditTable';
 import { PaginatedTable } from './components/PaginatedTable';
 import { RowExpansionTable } from './components/RowExpansionTable';
 import { SelectionVisibilityTable } from './components/SelectionVisibilityTable';
@@ -26,6 +27,7 @@ const tabs = [
     { id: 'state-save', label: '狀態保存' },
     { id: 'row-expansion', label: '行展開' },
     { id: 'clipboard', label: '剪貼簿' },
+    { id: 'inline-edit', label: '內聯編輯' },
     { id: 'virtual-scroll', label: '虛擬滾動' },
     { id: 'slot', label: 'Slot 自定義' },
 ] as const;
@@ -215,6 +217,22 @@ export function App() {
                     </section>
                 )}
 
+                {activeTab === 'inline-edit' && (
+                    <section>
+                        <h2>內聯編輯</h2>
+                        <p className="description">
+                            使用 @trellisjs/plugin-inline-edit
+                            插件。雙擊儲存格進入編輯模式， Enter 確認、Escape
+                            取消、Tab 跳至下一個可編輯儲存格。
+                            支援欄位層級驗證（姓名必填、年齡範圍檢查），ID
+                            欄不可編輯。
+                        </p>
+                        <div className="card">
+                            <InlineEditTable data={mockUsers.slice(0, 10)} />
+                        </div>
+                    </section>
+                )}
+
                 {activeTab === 'virtual-scroll' && (
                     <section>
                         <h2>虛擬滾動</h2>
@@ -245,7 +263,7 @@ export function App() {
             </main>
 
             <footer className="footer">
-                <span>Trellis | 13 套件 | 254 測試 | TypeScript</span>
+                <span>Trellis | 14 套件 | 277 測試 | TypeScript</span>
             </footer>
         </div>
     );
