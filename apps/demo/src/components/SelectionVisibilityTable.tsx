@@ -94,12 +94,11 @@ export function SelectionVisibilityTable({
     const getSortIndicator = (columnId: string) => {
         const sortBy = sorting?.sortBy ?? [];
         const index = sortBy.findIndex((c) => c.columnId === columnId);
+        const criterion = sortBy[index];
 
-        if (index === -1) {
+        if (!criterion) {
             return ' ⇅';
         }
-
-        const criterion = sortBy[index];
 
         const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
 

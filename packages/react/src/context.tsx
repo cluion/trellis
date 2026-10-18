@@ -4,7 +4,8 @@ import { createContext, useContext } from 'react';
 /**
  * 在元件間共享 Trellis API 的 Context。
  */
-export const TrellisContext = createContext<TrellisAPI | null>(null);
+// 任意列型別的 api 都能放進 Provider；useTrellisContext<T>() 取出時再指定 T。
+export const TrellisContext = createContext<TrellisAPI<any> | null>(null);
 
 /**
  * 從 context 取得 Trellis API 的 hook。

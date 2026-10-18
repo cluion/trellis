@@ -1,5 +1,10 @@
 import type { ColumnDef } from '@trellisjs/core';
 import { createClipboardPlugin } from '@trellisjs/plugin-clipboard';
+import type {
+    ClipboardCopiedPayload,
+    ClipboardErrorPayload,
+    ClipboardPastePayload,
+} from '@trellisjs/plugin-clipboard';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 import { createSelectionPlugin } from '@trellisjs/plugin-selection';
@@ -89,12 +94,11 @@ export function ClipboardTable({ data }: ClipboardTableProps) {
     const getSortIndicator = (columnId: string) => {
         const sortBy = sorting?.sortBy ?? [];
         const index = sortBy.findIndex((c) => c.columnId === columnId);
+        const criterion = sortBy[index];
 
-        if (index === -1) {
+        if (!criterion) {
             return ' ⇅';
         }
-
-        const criterion = sortBy[index];
 
         const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
 
@@ -118,13 +122,16 @@ export function ClipboardTable({ data }: ClipboardTableProps) {
     };
 
     useEffect(() => {
-        const off1 = api.on('clipboard:copied', (payload) => {
+        const off1 = api.on('clipboard:copied', (raw) => {
+            const payload = raw as ClipboardCopiedPayload;
             addLog(`已複製 ${payload.rows.length} 行到剪貼簿`);
         });
-        const off2 = api.on('clipboard:paste', (payload) => {
+        const off2 = api.on('clipboard:paste', (raw) => {
+            const payload = raw as ClipboardPastePayload;
             addLog(`偵測到貼上：${payload.rows.length} 行`);
         });
-        const off3 = api.on('clipboard:error', (payload) => {
+        const off3 = api.on('clipboard:error', (raw) => {
+            const payload = raw as ClipboardErrorPayload;
             addLog(`錯誤 (${payload.action}): ${payload.error.message}`);
         });
 

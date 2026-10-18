@@ -14,7 +14,7 @@
         "lint:check": "eslint .",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "types:check": "pnpm -r --stream --filter \"./packages/*\" exec tsc --noEmit",
+        "types:check": "pnpm -r --stream exec tsc --noEmit",
         "audit:dependencies": "pnpm audit",
         "ci:check": "pnpm build && pnpm lint:check && pnpm format:check && pnpm types:check && pnpm test"
     },

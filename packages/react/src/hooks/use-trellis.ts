@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
  * - 狀態變更時觸發重新渲染。
  * - 相容 React StrictMode。
  */
-export function useTrellis<T extends Record<string, unknown>>(
+export function useTrellis<T extends object>(
     options: TrellisOptions<T>,
 ): { api: TrellisAPI<T> } {
     const trellisRef = useRef<Trellis<T> | null>(null);

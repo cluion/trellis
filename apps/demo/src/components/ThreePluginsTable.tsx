@@ -94,12 +94,11 @@ export function ThreePluginsTable({ data }: ThreePluginsTableProps) {
     const getSortIndicator = (columnId: string) => {
         const sortBy = sorting?.sortBy ?? [];
         const index = sortBy.findIndex((c) => c.columnId === columnId);
+        const criterion = sortBy[index];
 
-        if (index === -1) {
+        if (!criterion) {
             return ' ⇅';
         }
-
-        const criterion = sortBy[index];
 
         const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
 
@@ -118,8 +117,8 @@ export function ThreePluginsTable({ data }: ThreePluginsTableProps) {
             name: `User ${nextUserId}`,
             email: `user${nextUserId}@example.com`,
             age: 20 + Math.floor(Math.random() * 30),
-            role: roles[Math.floor(Math.random() * roles.length)],
-            city: cities[Math.floor(Math.random() * cities.length)],
+            role: roles[Math.floor(Math.random() * roles.length)]!,
+            city: cities[Math.floor(Math.random() * cities.length)]!,
             joinDate: new Date().toISOString().slice(0, 10),
         });
     };

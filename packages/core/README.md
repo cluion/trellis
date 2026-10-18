@@ -109,7 +109,7 @@ const table = new Trellis(options)
 interface TrellisOptions<T> {
   data: T[]
   columns: ColumnDef<T>[]
-  plugins?: TrellisPlugin<T>[]
+  plugins?: TrellisPlugin<any>[]  // plugins are row-type agnostic, so any plugin fits any T
   pageSize?: number        // default: 10
   rowId?: keyof T | ((row: T, index: number) => DataId)
 }
