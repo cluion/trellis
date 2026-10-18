@@ -38,7 +38,7 @@ function generateBigData(count: number): BigItem[] {
     return Array.from({ length: count }, (_, i) => ({
         id: i + 1,
         name: `${firstNames[i % firstNames.length]}-${String(i + 1).padStart(5, '0')}`,
-        category: categories[i % categories.length],
+        category: categories[i % categories.length]!,
         value: Math.round(Math.random() * 10000),
         date: new Date(
             2020 + Math.floor(i / 365),

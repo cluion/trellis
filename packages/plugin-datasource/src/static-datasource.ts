@@ -9,7 +9,7 @@ interface StaticDatasourceOptions<T> {
  * 建立靜態（本地）資料源。
  * 在本地執行排序、篩選、分頁 — 不需要後端。
  */
-export function createStaticDatasource<T extends Record<string, unknown>>(
+export function createStaticDatasource<T extends object>(
     data: T[],
     options?: StaticDatasourceOptions<T>,
 ): TrellisDatasource<T> {
@@ -20,7 +20,7 @@ export function createStaticDatasource<T extends Record<string, unknown>>(
             return columnAccessors[columnId](row);
         }
 
-        return row[columnId];
+        return (row as Record<string, unknown>)[columnId];
     }
 
     function compareValues(a: unknown, b: unknown): number {

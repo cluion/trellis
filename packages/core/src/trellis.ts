@@ -15,9 +15,7 @@ import type { TableState } from './types/state';
  * 管理狀態、事件、插件和插槽。
  * 框架無關：渲染由適配器處理。
  */
-export class Trellis<
-    T extends Record<string, unknown> = Record<string, unknown>,
-> {
+export class Trellis<T extends object = Record<string, unknown>> {
     private store: StateStore<TableState<T>>;
     private eventBus: EventBus;
     private pluginManager: PluginManager<T>;

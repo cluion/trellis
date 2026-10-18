@@ -67,8 +67,13 @@ export interface TrellisOptions<T = Record<string, unknown>> {
     data: T[];
     /** 欄位定義 */
     columns: ColumnDef<T>[];
-    /** 要註冊的插件 */
-    plugins?: TrellisPlugin<T>[];
+    /**
+     * 要註冊的插件。
+     * 插件與資料列型別無關（同一個 createSortPlugin() 可用於任何 T），
+     * 所以接受任意列型別的插件，讓 TrellisPlugin<Record<string, unknown>> 能用在 Trellis<User>。
+     */
+    // ponytail: 失去插件與 T 的對應檢查；需要時改成泛型工廠 createXPlugin<T>()
+    plugins?: TrellisPlugin<any>[];
     /** 每頁筆數（預設：10） */
     pageSize?: number;
     /** 列 ID 存取器 — 屬性鍵或函式（預設：陣列索引） */
