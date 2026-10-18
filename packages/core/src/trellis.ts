@@ -10,6 +10,12 @@ import type { SlotRenderer } from './types/slot';
 import type { TableState } from './types/state';
 
 /**
+ * priority 大於等於此值的 transform 視為切片（pagination 為 30、virtualScroll 為 35），
+ * 只影響畫面上的 state.data，不影響 totalItems 與 getFilteredData()。
+ */
+const SLICE_PRIORITY = 30;
+
+/**
  * Trellis — 無頭式資料表格引擎。
  *
  * 管理狀態、事件、插件和插槽。
@@ -107,100 +113,52 @@ export class Trellis<T extends object = Record<string, unknown>> {
         this.pipelineLock = true;
 
         try {
-            // 合併狀態（直接寫入 store，不觸發通知）
-            if (withState) {
-                this.store.setState(() => withState);
-            }
-
-            const state = this.store.getState() as TableState<T>;
+            // withState 只在最後一次 setState 寫入，subscriber 不會看到資料還沒更新的中間狀態
+            const state = {
+                ...this.store.getState(),
+                ...withState,
+            } as TableState<T>;
             const sorted = [...this.transforms].sort(
                 (a, b) => a.priority - b.priority,
             );
+            const sliceIndex = sorted.findIndex(
+                (t) => t.priority >= SLICE_PRIORITY,
+            );
+            const shaping =
+                sliceIndex === -1 ? sorted : sorted.slice(0, sliceIndex);
+            const slicing = sliceIndex === -1 ? [] : sorted.slice(sliceIndex);
 
-            let data: DataRow<T>[] = [...this.sourceData];
-            let effectiveState = state;
+            // 階段一：篩選、排序 → 完整結果決定 totalItems 與 getFilteredData
+            let data = shaping.reduce(
+                (rows, t) => t.fn(rows, state),
+                [...this.sourceData],
+            );
+            this.filteredData = [...data];
 
-            if (sorted.length > 0) {
-                // 找到 pagination transform 的位置
-                const paginationIndex = sorted.findIndex(
-                    (t) => t.name === 'pagination',
-                );
+            const totalItems = data.length;
 
-                if (paginationIndex !== -1) {
-                    // 階段一：執行 pagination 之前的所有 transform → 取得 totalItems
-                    for (let i = 0; i < paginationIndex; i++) {
-                        data = sorted[i].fn(data, state);
-                    }
+            // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
+            const totalPages = Math.max(
+                1,
+                Math.ceil(totalItems / state.pagination.pageSize),
+            );
+            const page = Math.min(state.pagination.page, totalPages);
+            const effectiveState: TableState<T> = {
+                ...state,
+                pagination: { ...state.pagination, page, totalItems },
+            };
 
-                    // 快取 pagination 前的資料（篩選+排序後的完整結果）
-                    this.filteredData = [...data];
+            // 階段二：分頁、虛擬滾動等切片 transform（用校正後的頁碼）
+            data = slicing.reduce(
+                (rows, t) => t.fn(rows, effectiveState),
+                data,
+            );
 
-                    const totalItems = data.length;
-
-                    // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
-                    const totalPages = Math.max(
-                        1,
-                        Math.ceil(totalItems / state.pagination.pageSize),
-                    );
-                    const clampedPage = Math.min(
-                        state.pagination.page,
-                        totalPages,
-                    );
-
-                    if (clampedPage !== state.pagination.page) {
-                        effectiveState = {
-                            ...state,
-                            pagination: {
-                                ...state.pagination,
-                                page: clampedPage,
-                            },
-                        };
-                    }
-
-                    // 階段二：執行 pagination transform（用校正後的頁碼）
-                    data = sorted[paginationIndex].fn(data, effectiveState);
-
-                    // 階段三：執行 pagination 之後的所有 transform（如 virtualScroll）
-                    for (let i = paginationIndex + 1; i < sorted.length; i++) {
-                        data = sorted[i].fn(data, effectiveState);
-                    }
-
-                    // 一次 setState 寫入結果
-                    this.store.setState(() => ({
-                        data,
-                        pagination: {
-                            ...effectiveState.pagination,
-                            totalItems,
-                            page: clampedPage,
-                        },
-                    }));
-                } else {
-                    // 沒有 pagination transform，依序執行所有 transform
-                    for (const transform of sorted) {
-                        data = transform.fn(data, state);
-                    }
-
-                    this.filteredData = [...data];
-
-                    this.store.setState(() => ({
-                        data,
-                        pagination: {
-                            ...state.pagination,
-                            totalItems: this.sourceData.length,
-                        },
-                    }));
-                }
-            } else {
-                this.filteredData = [...data];
-
-                this.store.setState(() => ({
-                    data,
-                    pagination: {
-                        ...state.pagination,
-                        totalItems: data.length,
-                    },
-                }));
-            }
+            this.store.setState(() => ({
+                ...withState,
+                data,
+                pagination: effectiveState.pagination,
+            }));
         } finally {
             this.pipelineLock = false;
         }
