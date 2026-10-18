@@ -212,3 +212,78 @@ describe('Transform Pipeline', () => {
         expect(state.data.length).toBeGreaterThan(0);
     });
 });
+
+describe('Transform Pipeline — 沒有 pagination 插件', () => {
+    const ageFilter: TrellisPlugin = {
+        name: 'filter',
+        install(api: TrellisAPI) {
+            api.registerTransform('filter', 10, (data) =>
+                data.filter(
+                    (row) => (row.original as { age: number }).age > 26,
+                ),
+            );
+        },
+    };
+
+    // 模擬 virtualScroll（priority 35）：只留可視範圍的第一筆
+    const firstRowWindow: TrellisPlugin = {
+        name: 'window',
+        install(api: TrellisAPI) {
+            api.registerTransform('virtualScroll', 35, (data) =>
+                data.slice(0, 1),
+            );
+        },
+    };
+
+    it('totalItems 為篩選後的筆數', () => {
+        const trellis = new Trellis({
+            data: sampleData,
+            columns,
+            plugins: [ageFilter],
+        });
+
+        expect(trellis.api.getState().pagination.totalItems).toBe(2);
+    });
+
+    it('切片 transform 不影響 totalItems 與 getFilteredData', () => {
+        const trellis = new Trellis({
+            data: sampleData,
+            columns,
+            plugins: [ageFilter, firstRowWindow],
+        });
+
+        expect(trellis.api.getState().data).toHaveLength(1);
+        expect(trellis.api.getState().pagination.totalItems).toBe(2);
+        expect(trellis.api.getFilteredData()).toHaveLength(2);
+    });
+});
+
+describe('Transform Pipeline — 通知次數', () => {
+    it('recompute 只通知一次，且通知時資料已更新', () => {
+        const reverse: TrellisPlugin = {
+            name: 'reverse',
+            install(api: TrellisAPI) {
+                api.registerTransform('sort', 20, (data, state) =>
+                    state.sorting.sortBy.length > 0
+                        ? [...data].reverse()
+                        : data,
+                );
+            },
+        };
+        const trellis = new Trellis({
+            data: sampleData,
+            columns,
+            plugins: [reverse],
+        });
+        const seen: string[] = [];
+
+        trellis.api.subscribe((state) => {
+            seen.push(String(state.data[0]?.original.name));
+        });
+        trellis.api.recompute({
+            sorting: { sortBy: [{ columnId: 'name', direction: 'desc' }] },
+        });
+
+        expect(seen).toEqual(['Charlie']);
+    });
+});
