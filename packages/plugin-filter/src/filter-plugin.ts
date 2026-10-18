@@ -1,143 +1,187 @@
-import type { TrellisPlugin, TrellisAPI, ColumnDef, DataRow } from '@trellisjs/core';
+import type {
+    TrellisPlugin,
+    TrellisAPI,
+    ColumnDef,
+    DataRow,
+} from '@trellisjs/core';
 import { debounce } from './debounce';
 
 export interface FilterPluginOptions {
-  /** Debounce delay in ms for both filter:change and filter:column events. Shorthand for setting both. Default: 0 (no debounce). */
-  debounceMs?: number;
-  /** Debounce delay in ms for filter:change (global search) events only. Overrides debounceMs for search. Default: 0 (no debounce). */
-  searchDebounceMs?: number;
-  /** Debounce delay in ms for filter:column (per-column) events only. Overrides debounceMs for column filters. Default: 0 (no debounce). */
-  columnDebounceMs?: number;
+    /** Debounce delay in ms for both filter:change and filter:column events. Shorthand for setting both. Default: 0 (no debounce). */
+    debounceMs?: number;
+    /** Debounce delay in ms for filter:change (global search) events only. Overrides debounceMs for search. Default: 0 (no debounce). */
+    searchDebounceMs?: number;
+    /** Debounce delay in ms for filter:column (per-column) events only. Overrides debounceMs for column filters. Default: 0 (no debounce). */
+    columnDebounceMs?: number;
 }
 
 /**
  * 從列和欄位解析儲存格的值。
  */
 function getCellValue<T>(row: DataRow<T>, column: ColumnDef<T>): unknown {
-  const { accessor } = column;
-  if (typeof accessor === 'function') {
-    return accessor(row.original);
-  }
-  return row.original[accessor];
+    const { accessor } = column;
+
+    if (typeof accessor === 'function') {
+        return accessor(row.original);
+    }
+
+    return row.original[accessor];
 }
 
 /**
  * 建立篩選插件實例。
  * 支援跨所有欄位的全域搜尋與單欄篩選。
  */
-export function createFilterPlugin(options: FilterPluginOptions = {}): TrellisPlugin {
-  const { debounceMs = 0 } = options;
-  const effectiveSearchMs = options.searchDebounceMs ?? debounceMs;
-  const effectiveColumnMs = options.columnDebounceMs ?? debounceMs;
+export function createFilterPlugin(
+    options: FilterPluginOptions = {},
+): TrellisPlugin {
+    const { debounceMs = 0 } = options;
+    const effectiveSearchMs = options.searchDebounceMs ?? debounceMs;
+    const effectiveColumnMs = options.columnDebounceMs ?? debounceMs;
 
-  let searchDebounced: { cancel: () => void } | null = null;
-  let columnDebounced: { cancel: () => void } | null = null;
+    let searchDebounced: { cancel: () => void } | null = null;
+    let columnDebounced: { cancel: () => void } | null = null;
 
-  const scheduleSearch = (doRecompute: () => void) => {
-    if (effectiveSearchMs > 0) {
-      searchDebounced?.cancel();
-      const debounced = debounce(doRecompute, effectiveSearchMs);
-      searchDebounced = debounced;
-      debounced();
-    } else {
-      doRecompute();
-    }
-  };
+    const scheduleSearch = (doRecompute: () => void) => {
+        if (effectiveSearchMs > 0) {
+            searchDebounced?.cancel();
+            const debounced = debounce(doRecompute, effectiveSearchMs);
+            searchDebounced = debounced;
+            debounced();
+        } else {
+            doRecompute();
+        }
+    };
 
-  const scheduleColumn = (doRecompute: () => void) => {
-    if (effectiveColumnMs > 0) {
-      columnDebounced?.cancel();
-      const debounced = debounce(doRecompute, effectiveColumnMs);
-      columnDebounced = debounced;
-      debounced();
-    } else {
-      doRecompute();
-    }
-  };
+    const scheduleColumn = (doRecompute: () => void) => {
+        if (effectiveColumnMs > 0) {
+            columnDebounced?.cancel();
+            const debounced = debounce(doRecompute, effectiveColumnMs);
+            columnDebounced = debounced;
+            debounced();
+        } else {
+            doRecompute();
+        }
+    };
 
-  return {
-    name: 'filter',
+    return {
+        name: 'filter',
 
-    install(api: TrellisAPI) {
-      // 註冊管線轉換函式 (priority=10)
-      api.registerTransform('filter', 10, (data, state) => {
-        const query = state.filtering.query;
-        const columnFilters = state.filtering.columnFilters;
-        const hasGlobalQuery = !!query;
-        const hasColumnFilters =
-          columnFilters && Object.keys(columnFilters).length > 0;
+        install(api: TrellisAPI) {
+            // 註冊管線轉換函式 (priority=10)
+            api.registerTransform('filter', 10, (data, state) => {
+                const query = state.filtering.query;
+                const columnFilters = state.filtering.columnFilters;
+                const hasGlobalQuery = !!query;
+                const hasColumnFilters =
+                    columnFilters && Object.keys(columnFilters).length > 0;
 
-        if (!hasGlobalQuery && !hasColumnFilters) return data;
+                if (!hasGlobalQuery && !hasColumnFilters) {
+                    return data;
+                }
 
-        const lowerQuery = hasGlobalQuery ? query!.toLowerCase() : '';
+                const lowerQuery = hasGlobalQuery ? query!.toLowerCase() : '';
 
-        // 建立欄位 ID → ColumnDef 映射，供單欄篩選查詢
-        const colMap = new Map(state.columns.map((col) => [col.id, col]));
+                // 建立欄位 ID → ColumnDef 映射，供單欄篩選查詢
+                const colMap = new Map(
+                    state.columns.map((col) => [col.id, col]),
+                );
 
-        return data.filter((row) => {
-          // 全域搜尋：任何欄位包含關鍵字
-          if (hasGlobalQuery) {
-            const globalMatch = state.columns.some((column) => {
-              const value = getCellValue(row, column);
-              if (value == null) return false;
-              return String(value).toLowerCase().includes(lowerQuery);
+                return data.filter((row) => {
+                    // 全域搜尋：任何欄位包含關鍵字
+                    if (hasGlobalQuery) {
+                        const globalMatch = state.columns.some((column) => {
+                            const value = getCellValue(row, column);
+
+                            if (value == null) {
+                                return false;
+                            }
+
+                            return String(value)
+                                .toLowerCase()
+                                .includes(lowerQuery);
+                        });
+
+                        if (!globalMatch) {
+                            return false;
+                        }
+                    }
+
+                    // 單欄篩選：每個設定值都必須匹配
+                    if (hasColumnFilters) {
+                        for (const [columnId, filterValue] of Object.entries(
+                            columnFilters,
+                        )) {
+                            if (!filterValue) {
+                                continue;
+                            } // 空值跳過
+
+                            const column = colMap.get(columnId);
+
+                            if (!column) {
+                                continue;
+                            }
+
+                            const cellValue = getCellValue(row, column);
+
+                            if (cellValue == null) {
+                                return false;
+                            }
+
+                            const lowerCell = String(cellValue).toLowerCase();
+                            const lowerFilter =
+                                String(filterValue).toLowerCase();
+
+                            if (!lowerCell.includes(lowerFilter)) {
+                                return false;
+                            }
+                        }
+                    }
+
+                    return true;
+                });
             });
-            if (!globalMatch) return false;
-          }
 
-          // 單欄篩選：每個設定值都必須匹配
-          if (hasColumnFilters) {
-            for (const [columnId, filterValue] of Object.entries(columnFilters)) {
-              if (!filterValue) continue; // 空值跳過
-              const column = colMap.get(columnId);
-              if (!column) continue;
-              const cellValue = getCellValue(row, column);
-              if (cellValue == null) return false;
-              const lowerCell = String(cellValue).toLowerCase();
-              const lowerFilter = String(filterValue).toLowerCase();
-              if (!lowerCell.includes(lowerFilter)) return false;
-            }
-          }
+            // 篩選關鍵字變更 → 重跑管線
+            api.on('filter:change', (payload) => {
+                const { query } = payload as { query: string };
+                scheduleSearch(() => {
+                    const state = api.getState();
+                    api.recompute({ filtering: { ...state.filtering, query } });
+                });
+            });
 
-          return true;
-        });
-      });
+            // 單欄篩選變更 → 重跑管線
+            api.on('filter:column', (payload) => {
+                const { columnId, value } = payload as {
+                    columnId: string;
+                    value: string;
+                };
+                scheduleColumn(() => {
+                    const state = api.getState();
+                    const { columnFilters } = state.filtering;
+                    const nextColumnFilters =
+                        value !== ''
+                            ? { ...columnFilters, [columnId]: value }
+                            : (() => {
+                                  const { [columnId]: _, ...rest } =
+                                      columnFilters;
 
-      // 篩選關鍵字變更 → 重跑管線
-      api.on('filter:change', (payload) => {
-        const { query } = payload as { query: string };
-        scheduleSearch(() => {
-          const state = api.getState();
-          api.recompute({ filtering: { ...state.filtering, query } });
-        });
-      });
+                                  return rest;
+                              })();
+                    api.recompute({
+                        filtering: {
+                            ...state.filtering,
+                            columnFilters: nextColumnFilters,
+                        },
+                    });
+                });
+            });
+        },
 
-      // 單欄篩選變更 → 重跑管線
-      api.on('filter:column', (payload) => {
-        const { columnId, value } = payload as {
-          columnId: string;
-          value: string;
-        };
-        scheduleColumn(() => {
-          const state = api.getState();
-          const { columnFilters } = state.filtering;
-          const nextColumnFilters =
-            value !== ''
-              ? { ...columnFilters, [columnId]: value }
-              : (() => {
-                  const { [columnId]: _, ...rest } = columnFilters;
-                  return rest;
-                })();
-          api.recompute({
-            filtering: { ...state.filtering, columnFilters: nextColumnFilters },
-          });
-        });
-      });
-    },
-
-    destroy() {
-      searchDebounced?.cancel();
-      columnDebounced?.cancel();
-    },
-  };
+        destroy() {
+            searchDebounced?.cancel();
+            columnDebounced?.cancel();
+        },
+    };
 }

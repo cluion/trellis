@@ -10,19 +10,23 @@ export { useVirtualScroll } from './hooks/use-virtual-scroll';
 
 // 元件
 export {
-  Table,
-  TableHead,
-  TableBody,
-  VirtualScrollBody,
-  Tr,
-  Th,
-  Td,
-  TableInfo,
-  ExpansionToggle,
-  ExpansionRow,
-  ResizeHandle,
+    Table,
+    TableHead,
+    TableBody,
+    VirtualScrollBody,
+    Tr,
+    Th,
+    Td,
+    TableInfo,
+    ExpansionToggle,
+    ExpansionRow,
+    ResizeHandle,
 } from './components';
-export type { TableProps, TableInfoProps, ResizeHandleProps } from './components';
+export type {
+    TableProps,
+    TableInfoProps,
+    ResizeHandleProps,
+} from './components';
 
 // 插槽
 export { SlotRenderer } from './slots/slot-renderer';

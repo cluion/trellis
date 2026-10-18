@@ -1,1 +1,0 @@
-pnpm -r --stream run test 2>/dev/null || true

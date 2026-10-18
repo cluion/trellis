@@ -1,49 +1,49 @@
 {
-  "name": "@trellisjs/core",
-  "version": "1.7.0",
-  "description": "無頭式資料表格引擎 — 狀態、插件、插槽、事件",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "clean": "rm -rf dist *.tsbuildinfo"
-  },
-  "devDependencies": {
-    "tsup": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/cluion/trellis.git",
-    "directory": "packages/core"
-  },
-  "license": "MIT",
-  "keywords": [
-    "table",
-    "datagrid",
-    "datatable",
-    "headless",
-    "plugin"
-  ],
-  "sideEffects": false
+    "name": "@trellisjs/core",
+    "version": "1.7.0",
+    "description": "無頭式資料表格引擎 — 狀態、插件、插槽、事件",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.mts",
+                "default": "./dist/index.mjs"
+            },
+            "require": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "clean": "rm -rf dist *.tsbuildinfo"
+    },
+    "devDependencies": {
+        "tsup": "catalog:",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cluion/trellis.git",
+        "directory": "packages/core"
+    },
+    "license": "MIT",
+    "keywords": [
+        "table",
+        "datagrid",
+        "datatable",
+        "headless",
+        "plugin"
+    ],
+    "sideEffects": false
 }

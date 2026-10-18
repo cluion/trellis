@@ -1,0 +1,42 @@
+name: trellis
+
+x-app: &app
+    image: trellis:app
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+        args:
+            NODE_IMAGE: node:${NODE_VERSION:-24.19.0}-bookworm-slim
+            PNPM_VERSION: ${PNPM_VERSION:-9.15.4}
+            GITLEAKS_VERSION: ${GITLEAKS_VERSION:-8.30.1}
+    init: true
+    user: '${PUID:-1000}:${PGID:-1000}'
+    working_dir: /workspace
+    volumes:
+        - ../:/workspace
+    environment:
+        # PUID 不一定有 /etc/passwd 項目，HOME 指到可寫入的位置給 pnpm cache 使用。
+        HOME: /tmp
+        # store 與 node_modules 放在同一個檔案系統，pnpm 才能用 hard link。
+        npm_config_store_dir: /workspace/.pnpm-store
+
+services:
+    app:
+        <<: *app
+
+    setup:
+        <<: *app
+        profiles: [setup]
+        command: >-
+            sh -c "pnpm install --frozen-lockfile --config.confirm-modules-purge=false
+            && pnpm build"
+
+    watch:
+        <<: *app
+        command: pnpm --parallel --filter "./packages/*" run dev
+
+    demo:
+        <<: *app
+        ports:
+            - '127.0.0.1:${DEMO_PORT:-5173}:5173'
+        command: pnpm --filter @trellisjs/demo exec vite --host 0.0.0.0 --port 5173 --strictPort
