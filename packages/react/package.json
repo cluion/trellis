@@ -42,7 +42,7 @@
         "@trellisjs/plugin-virtual-scroll": "workspace:*",
         "@types/react": "catalog:",
         "@types/react-dom": "catalog:",
-        "jsdom": "^26.1.0",
+        "jsdom": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
         "tsup": "catalog:",
