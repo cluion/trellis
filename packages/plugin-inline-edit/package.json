@@ -1,6 +1,6 @@
 {
     "name": "@trellisjs/plugin-inline-edit",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Inline editing plugin for Trellis - edit table cells in-place",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
