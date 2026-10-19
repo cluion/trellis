@@ -281,3 +281,28 @@ describe('plugin destroy', () => {
         }).not.toThrow();
     });
 });
+
+describe('getPinOffsets 與調整欄寬', () => {
+    it('使用調整後的欄寬計算位移', () => {
+        const plugin = createColumnPinningPlugin();
+        const trellis = new Trellis<Item>({
+            data,
+            columns,
+            rowId: 'id',
+            plugins: [plugin],
+        });
+
+        trellis.api.setState(() => ({
+            columnResizing: {
+                columnWidths: { id: 99 },
+                resizingColumn: null,
+                minWidth: 50,
+                defaultWidth: 150,
+            },
+        }));
+
+        expect(
+            plugin.getPinOffsets(trellis.api.getState()).get('name')?.offset,
+        ).toBe(99);
+    });
+});

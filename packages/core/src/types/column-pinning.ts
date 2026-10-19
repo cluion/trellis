@@ -1,4 +1,5 @@
 import type { ColumnDef } from './column';
+import type { ColumnResizingState } from './column-resizing';
 
 /** 欄釘選狀態 */
 export interface ColumnPinningState {
@@ -17,14 +18,45 @@ export interface PinOffset {
 }
 
 /**
+ * 欄位實際渲染的寬度（px），規則與表頭儲存格套用的寬度一致：
+ * 可調整欄寬時優先用調整後的寬度，沒有 width 時用 defaultWidth；
+ * 其餘情況用數字 width，非數字（如 '20%'）無法換算時視為 0。
+ */
+function resolveColumnWidth<T>(
+    column: ColumnDef<T> | undefined,
+    columnResizing?: ColumnResizingState,
+): number {
+    if (!column) {
+        return 0;
+    }
+
+    if (columnResizing && column.resizable !== false) {
+        const resized = columnResizing.columnWidths[column.id];
+
+        if (resized !== undefined) {
+            return resized;
+        }
+
+        if (!column.width) {
+            return columnResizing.defaultWidth;
+        }
+    }
+
+    return typeof column.width === 'number' ? column.width : 0;
+}
+
+/**
  * 計算釘選欄位的 CSS offset。
- * left offset = 同側前面所有可見釘選欄位的 width 總和
- * right offset = 同側後面所有可見釘選欄位的 width 總和
+ * left offset = 同側前面所有可見釘選欄位的寬度總和
+ * right offset = 同側後面所有可見釘選欄位的寬度總和
+ *
+ * 有傳 columnResizing 時，會改用調整後的欄寬。
  */
 export function calculatePinOffsets<T>(
     columns: ColumnDef<T>[],
     columnPinning: { left: string[]; right: string[] },
     columnVisibility: Record<string, boolean>,
+    columnResizing?: ColumnResizingState,
 ): Map<string, PinOffset> {
     const offsets = new Map<string, PinOffset>();
     const isHidden = (id: string) => columnVisibility[id] === false;
@@ -44,8 +76,10 @@ export function calculatePinOffsets<T>(
         });
 
         if (!isHidden(colId)) {
-            const col = columns.find((c) => c.id === colId);
-            leftAccum += typeof col?.width === 'number' ? col.width : 0;
+            leftAccum += resolveColumnWidth(
+                columns.find((c) => c.id === colId),
+                columnResizing,
+            );
         }
     }
 
@@ -64,8 +98,10 @@ export function calculatePinOffsets<T>(
         });
 
         if (!isHidden(colId)) {
-            const col = columns.find((c) => c.id === colId);
-            rightAccum += typeof col?.width === 'number' ? col.width : 0;
+            rightAccum += resolveColumnWidth(
+                columns.find((c) => c.id === colId),
+                columnResizing,
+            );
         }
     }
 

@@ -9,6 +9,13 @@ export interface TableProps {
     stickyHeader?: boolean;
     /** 啟用虛擬滾動，使用 VirtualScrollBody 取代 TableBody */
     virtualScroll?: boolean;
+    /** 外層元素的 class */
+    className?: string;
+    /**
+     * 外層元素的樣式，會覆蓋內建的 overflow 設定。
+     * 有釘選欄時外層本身就是捲動容器，max-height 要設在這裡固定表頭才會生效。
+     */
+    style?: React.CSSProperties;
 }
 
 /**
@@ -18,6 +25,8 @@ export interface TableProps {
 export function Table({
     stickyHeader = false,
     virtualScroll = false,
+    className,
+    style,
 }: TableProps) {
     const api = useTrellisContext();
     const state = useTrellisState();
@@ -38,10 +47,13 @@ export function Table({
         wrapperStyle.overflowX = 'auto';
     }
 
+    const mergedStyle = { ...wrapperStyle, ...style };
+
     return (
         <div
+            className={className}
             style={
-                Object.keys(wrapperStyle).length > 0 ? wrapperStyle : undefined
+                Object.keys(mergedStyle).length > 0 ? mergedStyle : undefined
             }
         >
             <table>

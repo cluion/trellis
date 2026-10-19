@@ -31,7 +31,7 @@ function getPinOffset<T>(
     columnId: string,
     state: LayoutState<T>,
 ): PinOffset | null {
-    const { columnPinning, columnVisibility, columns } = state;
+    const { columnPinning, columnVisibility, columns, columnResizing } = state;
 
     if (
         !columnPinning ||
@@ -41,9 +41,12 @@ function getPinOffset<T>(
     }
 
     return (
-        calculatePinOffsets(columns, columnPinning, columnVisibility).get(
-            columnId,
-        ) ?? null
+        calculatePinOffsets(
+            columns,
+            columnPinning,
+            columnVisibility,
+            columnResizing,
+        ).get(columnId) ?? null
     );
 }
 

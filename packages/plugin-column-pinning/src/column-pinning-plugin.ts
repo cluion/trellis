@@ -127,6 +127,7 @@ export function createColumnPinningPlugin(): ColumnPinningPlugin {
                 state.columns,
                 state.columnPinning,
                 state.columnVisibility,
+                state.columnResizing,
             );
         },
     };

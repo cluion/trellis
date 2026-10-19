@@ -65,10 +65,27 @@ Props:
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `stickyHeader` | `boolean` | `false` | Enables sticky header — `<th>` elements get `position: sticky; top: 0` so the header stays visible during vertical scroll. Requires the container to have `max-height` and `overflow: auto`. |
+| `stickyHeader` | `boolean` | `false` | Enables sticky header — `<th>` elements get `position: sticky; top: 0` so the header stays visible during vertical scroll. Requires a scroll container with `max-height` and `overflow: auto`; see [Styling notes](#styling-notes) when columns are pinned. |
 | `virtualScroll` | `boolean` | `false` | Enables virtual scrolling — uses `VirtualScrollBody` instead of `TableBody` to render only visible rows. |
+| `className` | `string` | — | Class for the outer element. |
+| `style` | `CSSProperties` | — | Style for the outer element, merged over the built-in `overflow` styles. |
 
 The `Table` component automatically applies `overflowX: 'auto'` when pinned columns are detected, enabling CSS sticky positioning.
+
+#### Styling notes
+
+Trellis ships no CSS, so two things are up to your stylesheet:
+
+- **Opaque cell backgrounds.** Sticky header cells and pinned cells stay in place while the rest scrolls underneath them. Give them a background, otherwise the scrolled content shows through:
+
+  ```css
+  .my-table th,
+  .my-table td {
+    background: #fff;
+  }
+  ```
+
+- **Put the height limit on the table component itself.** When columns are pinned, the component's outer element gets `overflow-x: auto`, which makes it the scroll container in both directions. Use the `style` prop: `<Table stickyHeader style={{ maxHeight: 400 }} />`. A `max-height` on an outer wrapper scrolls the whole table instead, and the sticky header scrolls away with it.
 
 ### `useVirtualScroll(plugin)`
 
