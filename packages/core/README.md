@@ -107,6 +107,18 @@ Transforms run in ascending `priority`. Built-in plugins use filter `10`, sort `
 
 Transforms with priority `>= 30` are treated as slicing: they only narrow what is rendered in `state.data`. `pagination.totalItems` and `getFilteredData()` always use the result of the transforms below `30`, whether or not the pagination plugin is installed.
 
+### Adapter helpers
+
+Framework-agnostic helpers that the React and Vue adapters share. Use them when building your own cells or another framework adapter.
+
+| Function | Returns | Description |
+|----------|---------|-------------|
+| `getCellValue(row, column)` | `unknown` | Value of a cell, read through the column `accessor` (key or function) |
+| `getHeaderCellLayout(column, state, stickyHeader?)` | `{ style?, className?, resizable }` | Inline style and class for a `<th>`: width, alignment, sticky header, column pinning and column resizing |
+| `getBodyCellLayout(column, state)` | `{ style?, className? }` | Inline style and class for a `<td>`: alignment and column pinning |
+
+Lengths in `style` are always strings with units (`'60px'`), so the object works as both a React and a Vue style binding.
+
 ### Typed events
 
 `api.on()` and `api.emit()` look up payload types in `TrellisEventMap`. Core registers `data:added`, `data:removed` and `data:updated` (payload: `DataId`). Each plugin registers its own events, so importing the plugin is enough:

@@ -15,7 +15,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 - **Full-Stack Protocol** — `TrellisQuery / TrellisResponse` unifies frontend and backend interfaces.
 - **Server Helpers** — Query parsing, SQL construction, and ORM adapters.
 - **Tree-Shakeable** — Install only the plugins you need.
-- **React Adapter** — First-class React support via `@trellisjs/react`, including sticky header.
+- **React & Vue Adapters** — Components and hooks for React (`@trellisjs/react`) and Vue 3 (`@trellisjs/vue`), including sticky header.
 
 ## Packages
 
@@ -37,6 +37,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 | [`@trellisjs/plugin-inline-edit`](./packages/plugin-inline-edit) | Inline cell editing with validation, keyboard navigation (Tab/Enter/Escape) |
 | [`@trellisjs/plugin-virtual-scroll`](./packages/plugin-virtual-scroll) | Virtual scrolling for large datasets |
 | [`@trellisjs/react`](./packages/react) | React hooks and components |
+| [`@trellisjs/vue`](./packages/vue) | Vue 3 composables and components |
 | [`@trellisjs/server`](./packages/server) | Backend query parser and SQL builder |
 | [`@trellisjs/server-prisma`](./packages/server-prisma) | Prisma ORM adapter |
 
@@ -120,6 +121,34 @@ function UserTable({ data }: { data: User[] }) {
 }
 ```
 
+### Vue Example
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useTrellis, TlTable } from '@trellisjs/vue';
+import { createSortPlugin } from '@trellisjs/plugin-sort';
+import { createFilterPlugin } from '@trellisjs/plugin-filter';
+import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
+
+const users = ref<User[]>([]); // reassigning or pushing rows updates the table
+
+const { api } = useTrellis({
+  data: users,
+  columns,
+  plugins: [createSortPlugin(), createFilterPlugin(), createPaginationPlugin()],
+});
+</script>
+
+<template>
+  <input
+    placeholder="Search..."
+    @input="api.emit('filter:change', { query: ($event.target as HTMLInputElement).value })"
+  />
+  <TlTable sticky-header />
+</template>
+```
+
 ### Core-Only (No UI Framework)
 
 ```typescript
@@ -182,7 +211,8 @@ app.get('/api/users', async (req, res) => {
   ├── plugin-clipboard       ← Clipboard copy/paste plugin
   ├── plugin-inline-edit     ← Inline cell editing plugin
   ├── plugin-virtual-scroll  ← Virtual scrolling plugin
-  └── react                  ← React adapter (useTrellis hook)
+  ├── react                  ← React adapter (useTrellis hook)
+  └── vue                    ← Vue 3 adapter (useTrellis composable)
 
 @trellisjs/server            ← Backend query parser
   └── server-prisma          ← Prisma ORM adapter
@@ -244,7 +274,7 @@ feat/* · fix/* ──PR squash──▶ main ──▶ changesets release PR �
 
 ## Status
 
-`@trellisjs/core`, the React adapter and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha** (`0.1.0-alpha`). See the [roadmap](https://github.com/cluion/trellis/issues) for planned features.
+`@trellisjs/core`, the React and Vue adapters and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha** (`0.1.0-alpha`). See [GitHub issues](https://github.com/cluion/trellis/issues) for planned features.
 
 ## License
 

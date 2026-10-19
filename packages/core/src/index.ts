@@ -22,6 +22,13 @@ export type {
 export type { VirtualScrollState } from './types/virtual-scroll';
 export type { ColumnPinningState, PinOffset } from './types/column-pinning';
 export { calculatePinOffsets } from './types/column-pinning';
+export { getBodyCellLayout, getHeaderCellLayout } from './layout/cell-layout';
+export { getCellValue } from './layout/cell-value';
+export type {
+    CellLayout,
+    CellStyle,
+    HeaderCellLayout,
+} from './layout/cell-layout';
 export type { ColumnResizingState } from './types/column-resizing';
 export type {
     EventHandler,
