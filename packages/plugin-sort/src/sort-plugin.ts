@@ -5,6 +5,20 @@ import type {
     DataRow,
 } from '@trellisjs/core';
 
+export interface SortChangePayload {
+    columnId: string;
+    /** null 表示清除排序 */
+    direction: 'asc' | 'desc' | null;
+    /** true 時追加為次要排序，否則取代現有排序 */
+    append?: boolean;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'sort:change': SortChangePayload;
+    }
+}
+
 /**
  * 自動偵測型別並比較兩個值。
  * 支援：字串、數字、布林值、類日期字串。
@@ -104,11 +118,7 @@ export function createSortPlugin(): TrellisPlugin {
 
             // 排序變更 → 重跑管線
             api.on('sort:change', (payload) => {
-                const { columnId, direction, append } = payload as {
-                    columnId: string;
-                    direction: 'asc' | 'desc' | null;
-                    append?: boolean;
-                };
+                const { columnId, direction, append } = payload;
 
                 const state = api.getState();
                 const column = state.columns.find((col) => col.id === columnId);

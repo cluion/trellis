@@ -89,8 +89,8 @@ const table = new Trellis(options)
 | `getState` | `() => TableState<T>` | Immutable snapshot | Current table state |
 | `setState` | `(updater: (prev) => Partial<TableState<T>>) => void` | `void` | Produce next state immutably |
 | `subscribe` | `(listener: (state) => void) => () => void` | Unsubscribe fn | React to state changes |
-| `on` | `(event: string, handler: EventHandler) => () => void` | Unsubscribe fn | Listen for events |
-| `emit` | `(event: string, payload: unknown) => void` | `void` | Dispatch an event |
+| `on` | `(event, handler: (payload: TrellisEventMap[event]) => void) => () => void` | Unsubscribe fn | Listen for events; see [Typed events](#typed-events) |
+| `emit` | `(event, payload: TrellisEventMap[event]) => void` | `void` | Dispatch an event; see [Typed events](#typed-events) |
 | `registerSlot` | `(name: string, renderer: SlotRenderer) => () => void` | Unregister fn | Register a named render slot |
 | `getSlot` | `(name: string) => SlotRenderer \| undefined` | Renderer or undefined | Retrieve a registered slot |
 | `registerTransform` | `(name: string, priority: number, fn: TransformFn<T>) => void` | `void` | Register a pipeline transform |
@@ -106,6 +106,27 @@ const table = new Trellis(options)
 Transforms run in ascending `priority`. Built-in plugins use filter `10`, sort `20`, pagination `30` and virtualScroll `35`.
 
 Transforms with priority `>= 30` are treated as slicing: they only narrow what is rendered in `state.data`. `pagination.totalItems` and `getFilteredData()` always use the result of the transforms below `30`, whether or not the pagination plugin is installed.
+
+### Typed events
+
+`api.on()` and `api.emit()` look up payload types in `TrellisEventMap`. Core registers `data:added`, `data:removed` and `data:updated` (payload: `DataId`). Each plugin registers its own events, so importing the plugin is enough:
+
+```typescript
+api.on('sort:change', ({ columnId, direction }) => {}); // SortChangePayload
+api.emit('sort:change', { columnId: 'age', direction: 'up' }); // type error
+```
+
+- Commands without a payload, such as `pagination:next`, can be emitted without a second argument. Any value is still accepted, so existing `null` or `{}` calls keep compiling.
+- Events that are not in the map keep the previous behaviour: the payload is `unknown`.
+- Your own plugins can register events the same way:
+
+```typescript
+declare module '@trellisjs/core' {
+  interface TrellisEventMap {
+    'my-plugin:refresh': { force: boolean };
+  }
+}
+```
 
 ## Types
 

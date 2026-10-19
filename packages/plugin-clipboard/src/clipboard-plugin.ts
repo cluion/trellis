@@ -5,6 +5,15 @@ import type {
     DataRow,
 } from '@trellisjs/core';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'clipboard:copy': void;
+        'clipboard:paste': ClipboardPastePayload | undefined;
+        'clipboard:copied': ClipboardCopiedPayload;
+        'clipboard:error': ClipboardErrorPayload;
+    }
+}
+
 export interface ClipboardPluginOptions {
     copyHeaders?: boolean;
     delimiter?: '\t' | ',';
@@ -194,13 +203,13 @@ export function createClipboardPlugin(
                     api.emit('clipboard:copied', {
                         rows,
                         text,
-                    } as ClipboardCopiedPayload);
+                    });
                 } catch (err) {
                     api.emit('clipboard:error', {
                         action: 'copy',
                         error:
                             err instanceof Error ? err : new Error(String(err)),
-                    } as ClipboardErrorPayload);
+                    });
                 }
             };
 
@@ -222,22 +231,21 @@ export function createClipboardPlugin(
                     api.emit('clipboard:paste', {
                         rows,
                         raw,
-                    } as ClipboardPastePayload);
+                    });
                 } catch (err) {
                     api.emit('clipboard:error', {
                         action: 'paste',
                         error:
                             err instanceof Error ? err : new Error(String(err)),
-                    } as ClipboardErrorPayload);
+                    });
                 }
             };
 
             api.on('clipboard:copy', (payload) => {
-                if (
-                    payload &&
-                    typeof payload === 'object' &&
-                    'text' in payload
-                ) {
+                // 無型別的呼叫端可能帶 { text }，這種情況維持原本的略過行為
+                const raw: unknown = payload;
+
+                if (raw && typeof raw === 'object' && 'text' in raw) {
                     return;
                 }
 
@@ -272,14 +280,14 @@ export function createClipboardPlugin(
                     api.emit('clipboard:copied', {
                         rows,
                         text,
-                    } as ClipboardCopiedPayload);
+                    });
                 } else {
                     navigator.clipboard.writeText(text).then(
                         () =>
                             api.emit('clipboard:copied', {
                                 rows,
                                 text,
-                            } as ClipboardCopiedPayload),
+                            }),
                         (err) =>
                             api.emit('clipboard:error', {
                                 action: 'copy',
@@ -287,7 +295,7 @@ export function createClipboardPlugin(
                                     err instanceof Error
                                         ? err
                                         : new Error(String(err)),
-                            } as ClipboardErrorPayload),
+                            }),
                     );
                 }
             };
@@ -315,7 +323,7 @@ export function createClipboardPlugin(
                 api.emit('clipboard:paste', {
                     rows,
                     raw,
-                } as ClipboardPastePayload);
+                });
             };
 
             document.addEventListener('copy', handleCopy);

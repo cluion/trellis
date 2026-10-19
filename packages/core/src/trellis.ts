@@ -180,7 +180,7 @@ export class Trellis<T extends object = Record<string, unknown>> {
                 ),
             on: (event: string, handler: EventHandler) =>
                 this.eventBus.on(event, handler),
-            emit: (event: string, payload: unknown) =>
+            emit: (event: string, payload?: unknown) =>
                 this.eventBus.emit(event, payload),
             registerSlot: (name: string, renderer: SlotRenderer) =>
                 this.slotRegistry.register(name, renderer),

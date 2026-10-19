@@ -5,6 +5,13 @@ import type {
     DataRow,
 } from '@trellisjs/core';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'export:csv': ExportCSVOptions | undefined;
+        'export:csv-string': ExportCSVStringPayload;
+    }
+}
+
 export interface ExportCSVOptions {
     /** 自訂檔名（預設：'export.csv'） */
     filename?: string;
@@ -113,7 +120,7 @@ export function createExportCSVPlugin(): TrellisPlugin {
 
         install(api: TrellisAPI) {
             api.on('export:csv', (payload) => {
-                const opts = (payload as ExportCSVOptions | undefined) ?? {};
+                const opts = payload ?? {};
                 const {
                     filename = 'export.csv',
                     currentPageOnly = false,
@@ -129,8 +136,7 @@ export function createExportCSVPlugin(): TrellisPlugin {
             });
 
             api.on('export:csv-string', (payload) => {
-                const { callback, options = {} } =
-                    payload as ExportCSVStringPayload;
+                const { callback, options = {} } = payload;
                 const { currentPageOnly = false, ...csvOptions } = options;
                 const state = api.getState();
                 const rows = currentPageOnly

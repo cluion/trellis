@@ -1,5 +1,22 @@
 import type { TrellisPlugin, TrellisAPI } from '@trellisjs/core';
 
+export interface PaginationGotoPayload {
+    page: number;
+}
+
+export interface PaginationPageSizePayload {
+    pageSize: number;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'pagination:next': void;
+        'pagination:prev': void;
+        'pagination:goto': PaginationGotoPayload;
+        'pagination:pageSize': PaginationPageSizePayload;
+    }
+}
+
 /**
  * 建立分頁插件實例。
  * 管理資料的頁碼導航。
@@ -49,7 +66,7 @@ export function createPaginationPlugin(): TrellisPlugin {
             });
 
             api.on('pagination:goto', (payload) => {
-                const { page } = payload as { page: number };
+                const { page } = payload;
                 const state = api.getState();
                 const totalPages = getTotalPages(
                     state.pagination.totalItems,
@@ -62,7 +79,7 @@ export function createPaginationPlugin(): TrellisPlugin {
             });
 
             api.on('pagination:pageSize', (payload) => {
-                const { pageSize } = payload as { pageSize: number };
+                const { pageSize } = payload;
                 const state = api.getState();
                 api.recompute({
                     pagination: { ...state.pagination, page: 1, pageSize },

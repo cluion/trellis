@@ -1,10 +1,5 @@
 import type { ColumnDef } from '@trellisjs/core';
 import { createClipboardPlugin } from '@trellisjs/plugin-clipboard';
-import type {
-    ClipboardCopiedPayload,
-    ClipboardErrorPayload,
-    ClipboardPastePayload,
-} from '@trellisjs/plugin-clipboard';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 import { createSelectionPlugin } from '@trellisjs/plugin-selection';
@@ -122,16 +117,18 @@ export function ClipboardTable({ data }: ClipboardTableProps) {
     };
 
     useEffect(() => {
-        const off1 = api.on('clipboard:copied', (raw) => {
-            const payload = raw as ClipboardCopiedPayload;
+        const off1 = api.on('clipboard:copied', (payload) => {
             addLog(`已複製 ${payload.rows.length} 行到剪貼簿`);
         });
-        const off2 = api.on('clipboard:paste', (raw) => {
-            const payload = raw as ClipboardPastePayload;
+        const off2 = api.on('clipboard:paste', (payload) => {
+            // 不帶 payload 的 clipboard:paste 是觸發貼上的指令，不是貼上結果
+            if (!payload) {
+                return;
+            }
+
             addLog(`偵測到貼上：${payload.rows.length} 行`);
         });
-        const off3 = api.on('clipboard:error', (raw) => {
-            const payload = raw as ClipboardErrorPayload;
+        const off3 = api.on('clipboard:error', (payload) => {
             addLog(`錯誤 (${payload.action}): ${payload.error.message}`);
         });
 

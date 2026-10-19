@@ -3,3 +3,4 @@ export type {
     RowExpansionOptions,
     RowExpansionPlugin,
 } from './row-expansion-plugin';
+export type { ExpansionTogglePayload } from './row-expansion-plugin';

@@ -6,6 +6,28 @@ import type {
     DataId,
 } from '@trellisjs/core';
 
+export interface InlineEditKeydownPayload {
+    key: string;
+    shiftKey?: boolean;
+}
+
+export interface InlineEditUpdatePayload {
+    value: unknown;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'inline-edit:start': InlineEditStartPayload;
+        'inline-edit:save': InlineEditSavePayload;
+        'inline-edit:stop': InlineEditStopPayload;
+        'inline-edit:error': InlineEditErrorPayload;
+        'inline-edit:commit': void;
+        'inline-edit:cancel': void;
+        'inline-edit:keydown': InlineEditKeydownPayload;
+        'inline-edit:update': InlineEditUpdatePayload;
+    }
+}
+
 export interface InlineEditPluginOptions {
     editable?: (columnId: string, row: DataRow) => boolean;
     trigger?: 'click' | 'dblclick';
@@ -127,7 +149,7 @@ export function createInlineEditPlugin(
                     columnId: editingCell.columnId,
                     value: editingCell.value,
                     error,
-                } as InlineEditErrorPayload);
+                });
 
                 return false;
             }
@@ -138,14 +160,14 @@ export function createInlineEditPlugin(
             columnId: editingCell.columnId,
             value: editingCell.value,
             oldValue,
-        } as InlineEditSavePayload);
+        });
 
         const prev = editingCell;
         editingCell = null;
         apiRef.emit('inline-edit:stop', {
             rowId: prev.rowId,
             columnId: prev.columnId,
-        } as InlineEditStopPayload);
+        });
 
         return true;
     }
@@ -160,7 +182,7 @@ export function createInlineEditPlugin(
         apiRef.emit('inline-edit:stop', {
             rowId: prev.rowId,
             columnId: prev.columnId,
-        } as InlineEditStopPayload);
+        });
     }
 
     function handleSwitchCell(
@@ -281,8 +303,7 @@ export function createInlineEditPlugin(
                     return;
                 }
 
-                const { rowId, columnId, value } =
-                    payload as InlineEditStartPayload;
+                const { rowId, columnId, value } = payload;
 
                 if (
                     editingCell &&
@@ -320,10 +341,7 @@ export function createInlineEditPlugin(
                     return;
                 }
 
-                const { key, shiftKey } = payload as {
-                    key: string;
-                    shiftKey?: boolean;
-                };
+                const { key, shiftKey } = payload;
 
                 if (key === 'Enter') {
                     commitCurrentEdit();
@@ -340,10 +358,7 @@ export function createInlineEditPlugin(
 
                     if (committed && next) {
                         startEditing(next.rowId, next.columnId, next.value);
-                        api.emit(
-                            'inline-edit:start',
-                            next as InlineEditStartPayload,
-                        );
+                        api.emit('inline-edit:start', next);
                     }
                 }
             });
@@ -358,7 +373,7 @@ export function createInlineEditPlugin(
                     return;
                 }
 
-                const { value } = payload as { value: unknown };
+                const { value } = payload;
                 editingCell = { ...editingCell, value };
             });
         },

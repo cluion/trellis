@@ -51,6 +51,8 @@ createStateSavePlugin({
 
 ### 手動事件
 
+這些事件沒有 payload，可以直接 `api.emit('state:save')`；為了相容，傳 `undefined` 也可以。
+
 ```typescript
 // 立即保存（取消 debounce，直接寫入）
 api.emit('state:save', undefined);

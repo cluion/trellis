@@ -10,6 +10,8 @@ npm install @trellisjs/plugin-pagination
 
 ## Events
 
+Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.on()` and `api.emit()` infer them. Exported payload types: `PaginationGotoPayload`, `PaginationPageSizePayload`.
+
 ### Listens
 
 | Event | Payload | Description |

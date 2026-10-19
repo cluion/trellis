@@ -9,3 +9,7 @@ export type {
     InlineEditStopPayload,
     InlineEditErrorPayload,
 } from './inline-edit-plugin';
+export type {
+    InlineEditKeydownPayload,
+    InlineEditUpdatePayload,
+} from './inline-edit-plugin';

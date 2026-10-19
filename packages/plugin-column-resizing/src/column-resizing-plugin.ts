@@ -1,6 +1,15 @@
 import type { TrellisAPI, TrellisPlugin } from '@trellisjs/core';
 import type { ColumnResizingState } from '@trellisjs/core';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'resize:start': ResizeStartPayload;
+        'resize:column': ResizeColumnPayload;
+        'resize:end': void;
+        'resize:reset': void;
+    }
+}
+
 export interface ColumnResizingOptions {
     minWidth?: number;
     maxWidth?: number;
@@ -55,7 +64,7 @@ export function createColumnResizingPlugin(
 
             // 監聽 resize:start
             api.on('resize:start', (payload) => {
-                const { columnId } = payload as ResizeStartPayload;
+                const { columnId } = payload;
                 api.setState((prev) => ({
                     ...prev,
                     columnResizing: prev.columnResizing
@@ -66,7 +75,7 @@ export function createColumnResizingPlugin(
 
             // 監聽 resize:column
             api.on('resize:column', (payload) => {
-                const { columnId, width } = payload as ResizeColumnPayload;
+                const { columnId, width } = payload;
                 const clamped = clampWidth(width, minWidth, maxWidth);
                 api.setState((prev) => ({
                     ...prev,

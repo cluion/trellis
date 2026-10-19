@@ -1,5 +1,25 @@
 import type { TrellisPlugin, TrellisAPI, DataId } from '@trellisjs/core';
 
+export interface SelectionTogglePayload {
+    rowId: DataId;
+}
+
+export interface SelectionAllPayload {
+    select: boolean;
+}
+
+export interface SelectionRangePayload {
+    toIndex: number;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'selection:toggle': SelectionTogglePayload;
+        'selection:all': SelectionAllPayload;
+        'selection:range': SelectionRangePayload;
+    }
+}
+
 /**
  * 建立 selection 插件實例。
  * 支援單選切換、全選/取消全選、Shift 範圍選。
@@ -13,7 +33,7 @@ export function createSelectionPlugin(): TrellisPlugin {
 
             // 切換單列選取
             api.on('selection:toggle', (payload) => {
-                const { rowId } = payload as { rowId: DataId };
+                const { rowId } = payload;
                 const state = api.getState();
                 const next = new Set(state.selection);
 
@@ -32,7 +52,7 @@ export function createSelectionPlugin(): TrellisPlugin {
 
             // 全選 / 取消全選（針對當前 state.data）
             api.on('selection:all', (payload) => {
-                const { select } = payload as { select: boolean };
+                const { select } = payload;
                 const state = api.getState();
 
                 if (select) {
@@ -49,7 +69,7 @@ export function createSelectionPlugin(): TrellisPlugin {
 
             // Shift 範圍選（從 anchor 到 toIndex 之間的所有列）
             api.on('selection:range', (payload) => {
-                const { toIndex } = payload as { toIndex: number };
+                const { toIndex } = payload;
                 const state = api.getState();
 
                 if (anchorIndex === null) {

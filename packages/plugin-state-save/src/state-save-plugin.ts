@@ -2,6 +2,14 @@ import type { TableState, TrellisAPI, TrellisPlugin } from '@trellisjs/core';
 import type { StorageAdapter, SavedState } from './storage';
 import { createStorageAdapter, loadSavedState, saveToStorage } from './storage';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'state:save': void;
+        'state:restore': void;
+        'state:clear': void;
+    }
+}
+
 export interface StateSaveOptions {
     storage?: 'localStorage' | 'sessionStorage' | StorageAdapter;
     key?: string;

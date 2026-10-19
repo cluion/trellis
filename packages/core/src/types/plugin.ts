@@ -1,6 +1,11 @@
 import type { ColumnDef } from './column';
 import type { DataRow, DataId } from './data';
-import type { EventHandler } from './event';
+import type {
+    EventHandler,
+    EventPayloadArgs,
+    TrellisEventMap,
+    UnknownEvent,
+} from './event';
 import type { TransformFn } from './pipeline';
 import type { SlotRenderer } from './slot';
 import type { TableState } from './state';
@@ -19,9 +24,22 @@ export interface TrellisAPI<T = Record<string, unknown>> {
     /** 訂閱狀態變更。回傳取消訂閱函式。 */
     subscribe: (listener: (state: TableState<T>) => void) => () => void;
     /** 訂閱事件。回傳取消訂閱函式。 */
-    on: (event: string, handler: EventHandler) => () => void;
+    on<K extends keyof TrellisEventMap>(
+        event: K,
+        handler: (payload: TrellisEventMap[K]) => void,
+    ): () => void;
+    /** 訂閱未登記在 TrellisEventMap 的事件，payload 為 unknown。 */
+    on<E extends string>(
+        event: UnknownEvent<E>,
+        handler: EventHandler,
+    ): () => void;
     /** 發送事件並附帶 payload */
-    emit: (event: string, payload: unknown) => void;
+    emit<K extends keyof TrellisEventMap>(
+        event: K,
+        ...args: EventPayloadArgs<TrellisEventMap[K]>
+    ): void;
+    /** 發送未登記在 TrellisEventMap 的事件。 */
+    emit<E extends string>(event: UnknownEvent<E>, payload?: unknown): void;
     /** 註冊插槽渲染器。回傳取消註冊函式。 */
     registerSlot: (name: string, renderer: SlotRenderer) => () => void;
     /** 依名稱取得已註冊的插槽渲染器 */

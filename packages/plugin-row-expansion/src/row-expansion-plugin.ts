@@ -5,6 +5,16 @@ import type {
     TableState,
 } from '@trellisjs/core';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'expansion:toggle': ExpansionTogglePayload;
+        'expansion:expand': ExpansionTogglePayload;
+        'expansion:collapse': ExpansionTogglePayload;
+        'expansion:expandAll': void;
+        'expansion:collapseAll': void;
+    }
+}
+
 export interface RowExpansionOptions {
     /** 展開模式：'single'（accordion，一次只展開一行）或 'multi'（可同時展開多行） */
     mode?: 'single' | 'multi';
@@ -19,7 +29,7 @@ export interface RowExpansionPlugin extends TrellisPlugin {
     getMode(): 'single' | 'multi';
 }
 
-interface TogglePayload {
+export interface ExpansionTogglePayload {
     rowId: DataId;
 }
 
@@ -45,7 +55,7 @@ export function createRowExpansionPlugin(
 
             // expansion:toggle — 切換展開/收合
             const unsubToggle = api.on('expansion:toggle', (payload) => {
-                const { rowId } = payload as TogglePayload;
+                const { rowId } = payload;
                 const current = api.getState().expandedRows;
                 const isExpanded = current.has(rowId);
 
@@ -73,7 +83,7 @@ export function createRowExpansionPlugin(
 
             // expansion:expand — 展開指定行
             const unsubExpand = api.on('expansion:expand', (payload) => {
-                const { rowId } = payload as TogglePayload;
+                const { rowId } = payload;
 
                 if (mode === 'single') {
                     api.setState(() => ({ expandedRows: new Set([rowId]) }));
@@ -87,7 +97,7 @@ export function createRowExpansionPlugin(
 
             // expansion:collapse — 收合指定行
             const unsubCollapse = api.on('expansion:collapse', (payload) => {
-                const { rowId } = payload as TogglePayload;
+                const { rowId } = payload;
                 const next = new Set(api.getState().expandedRows);
                 next.delete(rowId);
                 api.setState(() => ({ expandedRows: next }));

@@ -6,6 +6,23 @@ import type {
 } from '@trellisjs/core';
 import { debounce } from './debounce';
 
+export interface FilterChangePayload {
+    query: string;
+}
+
+export interface FilterColumnPayload {
+    columnId: string;
+    /** 空字串表示清除該欄篩選 */
+    value: string;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'filter:change': FilterChangePayload;
+        'filter:column': FilterColumnPayload;
+    }
+}
+
 export interface FilterPluginOptions {
     /** Debounce delay in ms for both filter:change and filter:column events. Shorthand for setting both. Default: 0 (no debounce). */
     debounceMs?: number;
@@ -144,7 +161,7 @@ export function createFilterPlugin(
 
             // 篩選關鍵字變更 → 重跑管線
             api.on('filter:change', (payload) => {
-                const { query } = payload as { query: string };
+                const { query } = payload;
                 scheduleSearch(() => {
                     const state = api.getState();
                     api.recompute({ filtering: { ...state.filtering, query } });
@@ -153,10 +170,7 @@ export function createFilterPlugin(
 
             // 單欄篩選變更 → 重跑管線
             api.on('filter:column', (payload) => {
-                const { columnId, value } = payload as {
-                    columnId: string;
-                    value: string;
-                };
+                const { columnId, value } = payload;
                 scheduleColumn(() => {
                     const state = api.getState();
                     const { columnFilters } = state.filtering;
