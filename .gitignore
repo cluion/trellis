@@ -22,7 +22,6 @@ coverage/
 # Non-project folders
 .claude/
 docs/
-openspec/
 CLAUDE.md
 
 # Docker

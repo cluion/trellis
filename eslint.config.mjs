@@ -100,7 +100,6 @@ export default defineConfig(
             '.pnpm-store/**',
             '.claude/**',
             'docs/**',
-            'openspec/**',
         ],
     },
     prettier,
