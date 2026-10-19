@@ -210,7 +210,7 @@ make down
 Common commands:
 
 ```bash
-make test         # run all package tests
+make test         # run the root integration tests (tests/) and all package tests
 make lint         # ESLint --fix + Prettier --write
 make ci           # build, lint, format, type check and tests (same gate as CI)
 make audit        # pnpm audit of all dependencies
