@@ -1,5 +1,17 @@
 import type { TrellisPlugin, TrellisAPI } from '@trellisjs/core';
 
+export interface ColumnVisibilityPayload {
+    columnId: string;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'column:toggle': ColumnVisibilityPayload;
+        'column:show': ColumnVisibilityPayload;
+        'column:hide': ColumnVisibilityPayload;
+    }
+}
+
 /**
  * 建立欄可見性插件實例。
  * 支援動態顯示/隱藏欄位，透過 state.columnVisibility 管理。
@@ -11,7 +23,7 @@ export function createColumnVisibilityPlugin(): TrellisPlugin {
         install(api: TrellisAPI) {
             // column:toggle — 切換欄位可見性
             api.on('column:toggle', (payload) => {
-                const { columnId } = payload as { columnId: string };
+                const { columnId } = payload;
                 const state = api.getState();
                 const current = state.columnVisibility[columnId];
                 const next = current === false ? true : false;
@@ -26,7 +38,7 @@ export function createColumnVisibilityPlugin(): TrellisPlugin {
 
             // column:show — 顯示欄位
             api.on('column:show', (payload) => {
-                const { columnId } = payload as { columnId: string };
+                const { columnId } = payload;
                 const state = api.getState();
 
                 if (state.columnVisibility[columnId] !== false) {
@@ -44,7 +56,7 @@ export function createColumnVisibilityPlugin(): TrellisPlugin {
 
             // column:hide — 隱藏欄位
             api.on('column:hide', (payload) => {
-                const { columnId } = payload as { columnId: string };
+                const { columnId } = payload;
                 const state = api.getState();
 
                 if (state.columnVisibility[columnId] === false) {

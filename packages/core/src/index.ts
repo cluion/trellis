@@ -23,6 +23,11 @@ export type { VirtualScrollState } from './types/virtual-scroll';
 export type { ColumnPinningState, PinOffset } from './types/column-pinning';
 export { calculatePinOffsets } from './types/column-pinning';
 export type { ColumnResizingState } from './types/column-resizing';
-export type { EventHandler } from './types/event';
+export type {
+    EventHandler,
+    EventPayloadArgs,
+    TrellisEventMap,
+    UnknownEvent,
+} from './types/event';
 export type { SlotRenderer, SlotContext } from './types/slot';
 export type { TrellisAPI, TrellisPlugin, TrellisOptions } from './types/plugin';

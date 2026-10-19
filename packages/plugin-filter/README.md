@@ -10,6 +10,8 @@ npm install @trellisjs/plugin-filter
 
 ## Events
 
+Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.on()` and `api.emit()` infer them. Exported payload types: `FilterChangePayload`, `FilterColumnPayload`.
+
 ### Listens
 
 | Event | Payload | Description |

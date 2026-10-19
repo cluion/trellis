@@ -10,6 +10,8 @@ npm install @trellisjs/plugin-selection
 
 ## Events
 
+Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.on()` and `api.emit()` infer them. Exported payload types: `SelectionTogglePayload`, `SelectionAllPayload`, `SelectionRangePayload`.
+
 ### Listens
 
 | Event | Payload | Description |

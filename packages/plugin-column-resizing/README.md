@@ -58,6 +58,8 @@ const columns = [
 
 ## Events
 
+Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.on()` and `api.emit()` infer them. Exported payload types: `ResizeStartPayload`, `ResizeColumnPayload`.
+
 ### Listens
 
 | Event | Payload | Description |

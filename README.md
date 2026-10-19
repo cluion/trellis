@@ -8,7 +8,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 
 - **Headless** — No UI, no CSS, no opinions. Bring your own components.
 - **Plugin Architecture** — Sort, filter, paginate, fetch remote data — each is an independent plugin.
-- **TypeScript Native** — Full generic support `Trellis<T>`, type-safe throughout.
+- **TypeScript Native** — Full generic support `Trellis<T>`, type-safe throughout, including event payloads.
 - **Immutable State** — Every state change produces a new frozen snapshot.
 - **EventBus** — Isolated event listeners; one error won't crash others.
 - **Slot System** — Named rendering slots for complete UI customization.

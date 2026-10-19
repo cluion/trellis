@@ -53,6 +53,8 @@ interface ClipboardPluginOptions {
 
 ## Events
 
+Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.on()` and `api.emit()` infer them. Exported payload types: `ClipboardCopiedPayload`, `ClipboardPastePayload`, `ClipboardErrorPayload`. `clipboard:paste` is both the paste command (no payload) and the paste result, so its payload type is `ClipboardPastePayload | undefined`; check it before reading `rows`.
+
 ### Emitted by the plugin
 
 | Event | Payload | Description |

@@ -50,6 +50,8 @@ trellis.api.on('inline-edit:stop', ({ rowId, columnId }) => {
 
 ## 事件一覽
 
+Payload 透過 `TrellisEventMap` 自動帶型別：import 這個插件後，`api.on()` 與 `api.emit()` 就會推斷出型別。可 import 的 payload 型別：`InlineEditStartPayload`、`InlineEditSavePayload`、`InlineEditStopPayload`、`InlineEditErrorPayload`、`InlineEditKeydownPayload`、`InlineEditUpdatePayload`。
+
 | 事件 | Payload | 說明 |
 |------|---------|------|
 | `inline-edit:start` | `{ rowId, columnId, value }` | 進入編輯模式 |

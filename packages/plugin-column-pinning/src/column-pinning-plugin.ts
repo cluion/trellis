@@ -7,6 +7,14 @@ import type {
 } from '@trellisjs/core';
 import type { PinOffset } from '@trellisjs/core';
 
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'column-pin:toggle': PinTogglePayload;
+        'column-pin:set': PinSetPayload;
+        'column-pin:clear': void;
+    }
+}
+
 export type { PinOffset } from '@trellisjs/core';
 export { calculatePinOffsets } from '@trellisjs/core';
 
@@ -69,7 +77,7 @@ export function createColumnPinningPlugin(): ColumnPinningPlugin {
 
             // column-pin:toggle — 切換釘選狀態
             const unsubToggle = api.on('column-pin:toggle', (payload) => {
-                const { columnId, side } = payload as PinTogglePayload;
+                const { columnId, side } = payload;
                 const current = api.getState().columnPinning;
                 const list = current[side];
 
@@ -93,7 +101,7 @@ export function createColumnPinningPlugin(): ColumnPinningPlugin {
 
             // column-pin:set — 直接設定釘選列表
             const unsubSet = api.on('column-pin:set', (payload) => {
-                const { left, right } = payload as PinSetPayload;
+                const { left, right } = payload;
                 api.setState(() => ({
                     columnPinning: { left, right },
                 }));

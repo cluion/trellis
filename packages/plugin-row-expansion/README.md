@@ -56,6 +56,8 @@ createRowExpansionPlugin({
 
 ## 事件
 
+Payload 透過 `TrellisEventMap` 自動帶型別：import 這個插件後，`api.on()` 與 `api.emit()` 就會推斷出型別。可 import 的 payload 型別：`ExpansionTogglePayload`。
+
 | 事件 | Payload | 說明 |
 |------|---------|------|
 | `expansion:toggle` | `{ rowId: string }` | 切換指定行的展開/收合 |

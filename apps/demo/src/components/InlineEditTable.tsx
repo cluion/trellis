@@ -1,10 +1,5 @@
 import type { ColumnDef } from '@trellisjs/core';
 import { createInlineEditPlugin } from '@trellisjs/plugin-inline-edit';
-import type {
-    InlineEditErrorPayload,
-    InlineEditSavePayload,
-    InlineEditStartPayload,
-} from '@trellisjs/plugin-inline-edit';
 import { useTrellis } from '@trellisjs/react';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { User } from '../data/mock-data';
@@ -69,16 +64,14 @@ export function InlineEditTable({ data }: InlineEditTableProps) {
     });
 
     useEffect(() => {
-        const off1 = api.on('inline-edit:start', (raw) => {
-            const payload = raw as InlineEditStartPayload;
+        const off1 = api.on('inline-edit:start', (payload) => {
             setEditing({ rowId: payload.rowId, columnId: payload.columnId });
             setEditValue(String(payload.value ?? ''));
             setError(null);
             setTimeout(() => inputRef.current?.focus(), 0);
         });
 
-        const off2 = api.on('inline-edit:save', (raw) => {
-            const payload = raw as InlineEditSavePayload;
+        const off2 = api.on('inline-edit:save', (payload) => {
             setTableData((prev) =>
                 prev.map((row) =>
                     row.id === payload.rowId
@@ -98,8 +91,7 @@ export function InlineEditTable({ data }: InlineEditTableProps) {
             setError(null);
         });
 
-        const off4 = api.on('inline-edit:error', (raw) => {
-            const payload = raw as InlineEditErrorPayload;
+        const off4 = api.on('inline-edit:error', (payload) => {
             setError(payload.error);
             addLog(`驗證失敗：${payload.error}`);
         });
