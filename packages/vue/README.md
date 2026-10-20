@@ -113,12 +113,45 @@ Every component has the same structure, CSS classes and behaviour as its `@trell
 | `TlResizeHandle` | `columnId` | Drag handle that emits `resize:start`, `resize:column` and `resize:end` |
 | `TlSlotRenderer` | `name`, `context`, `fallback` | Renders a slot from the Trellis slot registry |
 
+### Custom cells and headers
+
+Use scoped slots on `TlTable`, or `renderCell` / `renderHeader` on the column. For each cell the first match wins:
+
+1. `#cell-{columnId}` slot
+2. `#cell` slot (every column)
+3. `column.renderCell`
+4. the value as a string
+
+Headers follow the same order with `#header-{columnId}`, `#header`, `column.renderHeader` and `column.header`.
+
+```vue
+<TlTable>
+  <template #cell-role="{ value }">
+    <span class="badge">{{ value }}</span>
+  </template>
+  <template #cell-actions="{ row, api }">
+    <button type="button" @click="api.removeRow(row.id)">Delete</button>
+  </template>
+  <template #header-name="{ column, api }">
+    <button type="button" @click="api.emit('sort:change', { columnId: column.id, direction: 'asc' })">
+      {{ column.header }}
+    </button>
+  </template>
+</TlTable>
+```
+
+Slot props are the same contexts `renderCell` / `renderHeader` receive: `{ row, value, column, api }` for cells and `{ column, api }` for headers. Use `v-slot:[`cell-${id}`]` for column ids that are not valid slot shorthand. `renderCell` / `renderHeader` return VNodes and also work when `TlTd` / `TlTh` are used without `TlTable`:
+
+```ts
+{ id: 'role', accessor: 'role', header: 'Role', renderCell: ({ value }) => h('span', { class: 'badge' }, String(value)) }
+```
+
 ### `TlTableInfo`
 
 `format` is a template string with `{start}`, `{end}` and `{total}` placeholders, or a function that returns a VNode:
 
 ```vue
-<TlTableInfo format="第 {start} 到 {end} 筆，共 {total} 筆" />
+<TlTableInfo format="Rows {start}–{end} of {total}" />
 <TlTableInfo :format="({ start, end, total }) => h('b', `${start}-${end} / ${total}`)" />
 ```
 

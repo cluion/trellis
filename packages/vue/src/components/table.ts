@@ -1,20 +1,30 @@
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, provide } from 'vue';
+import type { SlotsType } from 'vue';
 import { useTrellisState } from '../context';
+import { TlTableSlotsKey } from './table-slots';
+import type { TlTableSlots } from './table-slots';
 import { TlTableBody } from './tbody';
 import { TlTableHead } from './thead';
 import { TlVirtualScrollBody } from './virtual-scroll-body';
 
-/** 完整表格：表頭加上一般或虛擬滾動的內容。 */
+/**
+ * Full table: header plus a regular or virtual-scroll body.
+ * Scoped slots `#cell-{columnId}`, `#cell`, `#header-{columnId}` and `#header`
+ * customize cell and header content.
+ */
 export const TlTable = defineComponent({
     name: 'TlTable',
     props: {
-        /** 捲動時固定表頭 */
+        /** Keep the header visible while scrolling */
         stickyHeader: { type: Boolean, default: false },
-        /** 使用虛擬滾動渲染內容（需安裝 virtual-scroll 插件） */
+        /** Render the body with virtual scrolling (requires the virtual-scroll plugin) */
         virtualScroll: { type: Boolean, default: false },
     },
-    setup(props) {
+    slots: Object as SlotsType<TlTableSlots>,
+    setup(props, { slots }) {
         const state = useTrellisState();
+
+        provide(TlTableSlotsKey, slots);
 
         return () => {
             const { columns, data, columnPinning } = state.value;

@@ -170,7 +170,9 @@ interface TrellisPlugin<T> {
 interface ColumnDef<T> {
   id: string
   accessor: keyof T | ((row: T) => unknown)
-  header: string
+  header: string            // also used by CSV export and clipboard
+  renderCell?: (context: CellContext<T>) => unknown
+  renderHeader?: (context: HeaderContext<T>) => unknown
   sortFn?: ColumnSortFn
   sortable?: boolean
   filterable?: boolean
@@ -182,7 +184,21 @@ interface ColumnDef<T> {
   resizable?: boolean
   // ...see source for full definition
 }
+
+interface CellContext<T> {
+  row: DataRow<T>
+  value: unknown        // read through the column accessor
+  column: ColumnDef<T>
+  api: TrellisAPI<T>
+}
+
+interface HeaderContext<T> {
+  column: ColumnDef<T>
+  api: TrellisAPI<T>
+}
 ```
+
+`renderCell` and `renderHeader` customize what the React and Vue table components render: return a React node with `@trellisjs/react`, a VNode with `@trellisjs/vue`. Core never calls them. The `api` in the context lets columns defined outside a component act on the table, for example `api.emit('sort:change', ...)` from a header or `api.removeRow(row.id)` from a cell.
 
 ### `DataRow<T>`
 

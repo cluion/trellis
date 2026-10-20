@@ -1,36 +1,63 @@
-import type { ColumnDef } from '@trellisjs/core';
+import type { ColumnDef, HeaderContext, TrellisAPI } from '@trellisjs/core';
 import { createSortPlugin } from '@trellisjs/plugin-sort';
-import { useTrellis } from '@trellisjs/react';
+import { Table, TrellisContext, useTrellis } from '@trellisjs/react';
 import type { User } from '../data/mock-data';
 
-const columns: ColumnDef<User>[] = [
-    {
-        id: 'id',
-        accessor: 'id',
-        header: 'ID',
-        sortable: true,
-        width: 60,
-        align: 'center',
-    },
-    { id: 'name', accessor: 'name', header: '姓名', sortable: true },
+function toggleSort(api: TrellisAPI<User>, columnId: string, append: boolean) {
+    const { sortBy } = api.getState().sorting;
+    const current = sortBy.find((c) => c.columnId === columnId)?.direction;
+    const next = current === 'asc' ? 'desc' : current === 'desc' ? null : 'asc';
+
+    if (next === null && !append) {
+        api.emit('sort:change', { columnId: '', direction: null });
+    } else {
+        api.emit('sort:change', { columnId, direction: next, append });
+    }
+}
+
+function sortIndicator(api: TrellisAPI<User>, columnId: string) {
+    const { sortBy } = api.getState().sorting;
+    const index = sortBy.findIndex((c) => c.columnId === columnId);
+    const criterion = sortBy[index];
+
+    if (!criterion) {
+        return ' ⇅';
+    }
+
+    const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
+
+    return sortBy.length > 1 ? `${arrow}${index + 1}` : arrow;
+}
+
+// 用 renderHeader 讓表頭可以點擊排序，Shift+Click 追加為多欄排序
+function renderSortHeader({ column, api }: HeaderContext<User>) {
+    return (
+        <button
+            type="button"
+            className="sort-header"
+            onClick={(e) => toggleSort(api, column.id, e.shiftKey)}
+        >
+            {column.header}
+            <span className="sort-indicator">
+                {sortIndicator(api, column.id)}
+            </span>
+        </button>
+    );
+}
+
+const baseColumns: ColumnDef<User>[] = [
+    { id: 'id', accessor: 'id', header: 'ID', width: 60, align: 'center' },
+    { id: 'name', accessor: 'name', header: '姓名' },
     { id: 'email', accessor: 'email', header: 'Email' },
-    {
-        id: 'age',
-        accessor: 'age',
-        header: '年齡',
-        sortable: true,
-        width: 80,
-        align: 'center',
-    },
-    { id: 'role', accessor: 'role', header: '職位', sortable: true },
+    { id: 'age', accessor: 'age', header: '年齡', width: 80, align: 'center' },
+    { id: 'role', accessor: 'role', header: '職位' },
     { id: 'city', accessor: 'city', header: '城市', sortable: false },
-    {
-        id: 'joinDate',
-        accessor: 'joinDate',
-        header: '入職日期',
-        sortable: true,
-    },
+    { id: 'joinDate', accessor: 'joinDate', header: '入職日期' },
 ];
+
+const columns = baseColumns.map((col) =>
+    col.sortable === false ? col : { ...col, renderHeader: renderSortHeader },
+);
 
 interface SortableTableProps {
     data: User[];
@@ -43,97 +70,18 @@ export function SortableTable({ data }: SortableTableProps) {
         plugins: [createSortPlugin()],
     });
 
-    const state = api.getState();
-    const sorting = state.sorting;
-
-    const handleSort = (columnId: string, shiftKey: boolean) => {
-        const sortBy = sorting?.sortBy ?? [];
-        const existing = sortBy.find((c) => c.columnId === columnId);
-        const current = existing?.direction ?? null;
-        const next =
-            current === 'asc' ? 'desc' : current === 'desc' ? null : 'asc';
-
-        if (next === null && !shiftKey) {
-            api.emit('sort:change', { columnId: '', direction: null });
-        } else {
-            api.emit('sort:change', {
-                columnId,
-                direction: next,
-                append: shiftKey,
-            });
-        }
-    };
-
-    const getSortIndicator = (columnId: string) => {
-        const sortBy = sorting?.sortBy ?? [];
-        const index = sortBy.findIndex((c) => c.columnId === columnId);
-        const criterion = sortBy[index];
-
-        if (!criterion) {
-            return ' ⇅';
-        }
-
-        const arrow = criterion.direction === 'asc' ? ' ▲' : ' ▼';
-
-        return sortBy.length > 1 ? `${arrow}${index + 1}` : arrow;
-    };
+    const { sortBy } = api.getState().sorting;
 
     return (
         <div>
             <p className="info">
-                {(sorting?.sortBy?.length ?? 0) > 0
-                    ? `排序：${sorting.sortBy.map((c) => `${c.columnId} (${c.direction === 'asc' ? '升序' : '降序'})`).join(', ')}`
+                {sortBy.length > 0
+                    ? `排序：${sortBy.map((c) => `${c.columnId} (${c.direction === 'asc' ? '升序' : '降序'})`).join(', ')}`
                     : '點擊表頭排序，Shift+Click 多欄排序（城市欄不可排序）'}
             </p>
-            <table className="trellis-table">
-                <thead>
-                    <tr>
-                        {columns.map((col) => (
-                            <th
-                                key={col.id}
-                                style={{
-                                    width: col.width,
-                                    textAlign: col.align,
-                                    cursor:
-                                        col.sortable !== false
-                                            ? 'pointer'
-                                            : 'default',
-                                    userSelect: 'none',
-                                }}
-                                onClick={(e) =>
-                                    col.sortable !== false &&
-                                    handleSort(col.id, e.shiftKey)
-                                }
-                            >
-                                {String(col.header)}
-                                {col.sortable !== false && (
-                                    <span className="sort-indicator">
-                                        {getSortIndicator(col.id)}
-                                    </span>
-                                )}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {state.data.map((row) => (
-                        <tr key={row.id}>
-                            {columns.map((col) => (
-                                <td
-                                    key={col.id}
-                                    style={{ textAlign: col.align }}
-                                >
-                                    {String(
-                                        row.original[
-                                            col.accessor as keyof User
-                                        ] ?? '',
-                                    )}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <TrellisContext.Provider value={api}>
+                <Table className="trellis-table" />
+            </TrellisContext.Provider>
         </div>
     );
 }
