@@ -167,6 +167,22 @@ describe('getHeaderCellLayout', () => {
     });
 });
 
+describe('釘選欄調整寬度後的位移', () => {
+    it('th 與 td 都跟著前面釘選欄的新寬度移動', () => {
+        const state = stateWith({
+            columnPinning: { left: ['id', 'name'], right: [] },
+            columnResizing: { ...resizing, columnWidths: { id: 99 } },
+        });
+
+        expect(getHeaderCellLayout(columns[1], state).style).toMatchObject({
+            left: '99px',
+        });
+        expect(getBodyCellLayout(columns[1], state).style).toMatchObject({
+            left: '99px',
+        });
+    });
+});
+
 describe('getBodyCellLayout', () => {
     it('只套用對齊，不套用寬度', () => {
         const layout = getBodyCellLayout(

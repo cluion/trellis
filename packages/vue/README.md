@@ -96,7 +96,7 @@ const { containerRef, style } = useVirtualScroll(vs);
 
 ### Components
 
-Every component has the same structure, CSS classes and behaviour as its `@trellisjs/react` counterpart, with a `Tl` prefix. They can be used as `<TlTable>` or `<tl-table>`.
+Every component has the same structure, CSS classes and behaviour as its `@trellisjs/react` counterpart, with a `Tl` prefix. They can be used as `<TlTable>` or `<tl-table>`. `class` and `style` on `TlTable` are applied to its outer element and merged with the built-in `overflow` styles.
 
 | Component | Props | Description |
 |-----------|-------|-------------|
@@ -123,6 +123,21 @@ Every component has the same structure, CSS classes and behaviour as its `@trell
 ```
 
 Pass `pagination` to use it without `useTrellis()` or `provideTrellis()`.
+
+### Styling notes
+
+Trellis ships no CSS, so two things are up to your stylesheet:
+
+- **Opaque cell backgrounds.** Sticky header cells and pinned cells stay in place while the rest scrolls underneath them. Give them a background, otherwise the scrolled content shows through:
+
+  ```css
+  .my-table th,
+  .my-table td {
+    background: #fff;
+  }
+  ```
+
+- **Put the height limit on the table component itself.** When columns are pinned, the component's outer element gets `overflow-x: auto`, which makes it the scroll container in both directions. Set it on `TlTable`: `<TlTable sticky-header style="max-height: 400px" />`. A `max-height` on an outer wrapper scrolls the whole table instead, and the sticky header scrolls away with it.
 
 ### Slots
 

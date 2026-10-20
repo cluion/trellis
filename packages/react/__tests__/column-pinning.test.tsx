@@ -147,3 +147,16 @@ describe('Column Pinning - z-index with stickyHeader', () => {
         expect(tdElements[1]).toHaveStyle({ zIndex: '1' });
     });
 });
+
+describe('Table className / style', () => {
+    it('套用到外層元素，並與釘選需要的 overflowX 合併', () => {
+        const { container } = render(
+            <Table className="my-table" style={{ maxHeight: 300 }} />,
+            { wrapper: Wrapper },
+        );
+        const outer = container.firstElementChild as HTMLElement;
+
+        expect(outer.className).toBe('my-table');
+        expect(outer).toHaveStyle({ maxHeight: '300px', overflowX: 'auto' });
+    });
+});
