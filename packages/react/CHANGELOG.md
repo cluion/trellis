@@ -1,5 +1,15 @@
 # @trellisjs/react
 
+## 3.9.0
+
+### Minor Changes
+
+- [#37](https://github.com/cluion/trellis/pull/37) [`8521e38`](https://github.com/cluion/trellis/commit/8521e382d872312e347a199b38be63b1b647f973) Thanks [@cluion](https://github.com/cluion)! - Custom cell and header content.
+
+    - core: `ColumnDef` gains `renderCell(context)` and `renderHeader(context)`, with new `CellContext` (`row`, `value`, `column`, `api`) and `HeaderContext` (`column`, `api`) types. `header` stays a string, so CSV export and clipboard keep using it.
+    - react: `Td` and `Th` render the returned React node; without these functions cells show the value as a string and headers show `header`, as before.
+    - vue: `TlTd` and `TlTh` render the returned VNode, and `TlTable` accepts `#cell-{columnId}`, `#cell`, `#header-{columnId}` and `#header` scoped slots, which take priority over the column functions.
+
 ## 3.8.0
 
 ### Minor Changes
