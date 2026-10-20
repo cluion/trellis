@@ -47,6 +47,45 @@ outside a provider.
 | `VirtualScrollBody` | Virtual-scrolled body — only renders visible rows with spacer rows for scrollbar accuracy. |
 | `Tr` / `Th` / `Td` | Primitive row and cell components. |
 
+### Custom cells and headers
+
+Add `renderCell` / `renderHeader` to a column. The return value is rendered inside the `<td>` / `<th>`; without them the cell shows the value as a string and the header shows `header`.
+
+```tsx
+import type { CellContext, ColumnDef, HeaderContext } from '@trellisjs/core';
+
+function RoleBadge({ value }: CellContext<User>) {
+  return <span className="badge">{String(value)}</span>;
+}
+
+function SortHeader({ column, api }: HeaderContext<User>) {
+  const current = api.getState().sorting.sortBy[0];
+  const direction =
+    current?.columnId === column.id && current.direction === 'asc' ? 'desc' : 'asc';
+
+  return (
+    <button type="button" onClick={() => api.emit('sort:change', { columnId: column.id, direction })}>
+      {column.header}
+    </button>
+  );
+}
+
+const columns: ColumnDef<User>[] = [
+  { id: 'name', accessor: 'name', header: 'Name', renderHeader: SortHeader },
+  { id: 'role', accessor: 'role', header: 'Role', renderCell: RoleBadge },
+  {
+    id: 'actions',
+    accessor: 'id',
+    header: 'Actions',
+    renderCell: ({ row, api }) => (
+      <button type="button" onClick={() => api.removeRow(row.id)}>Delete</button>
+    ),
+  },
+];
+```
+
+The context carries `row`, `value`, `column` and `api` for cells, and `column` and `api` for headers. Headers re-render on every state change, so reading `api.getState()` inside `renderHeader` (for example for a sort arrow) always shows the current state.
+
 ### `SlotRenderer`
 
 Renders a named slot from the Trellis slot registry.
@@ -138,7 +177,7 @@ Props:
 
 ```tsx
 // String template
-<TableInfo format="第 {start} 到 {end} 筆，共 {total} 筆" />
+<TableInfo format="Rows {start}–{end} of {total}" />
 
 // Render function
 <TableInfo format={({ start, end, total }) => `${start}-${end} / ${total}`} />

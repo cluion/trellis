@@ -29,7 +29,7 @@ const tabs = [
     { id: 'clipboard', label: '剪貼簿' },
     { id: 'inline-edit', label: '內聯編輯' },
     { id: 'virtual-scroll', label: '虛擬滾動' },
-    { id: 'slot', label: 'Slot 自定義' },
+    { id: 'slot', label: '自訂儲存格' },
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -249,11 +249,10 @@ export function App() {
 
                 {activeTab === 'slot' && (
                     <section>
-                        <h2>Slot 自定義渲染</h2>
+                        <h2>自訂儲存格</h2>
                         <p className="description">
-                            使用 Slot
-                            系統自定義儲存格渲染。職位欄顯示為彩色徽章，年齡欄顯示為進度條。
-                            展示 @trellisjs/react 的 SlotRenderer 元件用法。
+                            在欄位定義加上 renderCell，用 Table
+                            元件自訂儲存格內容。職位欄顯示為彩色徽章，年齡欄顯示為進度條。
                         </p>
                         <div className="card">
                             <SlotExample data={mockUsers.slice(0, 10)} />

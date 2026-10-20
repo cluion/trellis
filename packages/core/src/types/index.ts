@@ -1,4 +1,9 @@
-export type { ColumnDef, ColumnSortFn } from './column';
+export type {
+    CellContext,
+    ColumnDef,
+    ColumnSortFn,
+    HeaderContext,
+} from './column';
 export type { DataRow, DataId } from './data';
 export type {
     SortState,

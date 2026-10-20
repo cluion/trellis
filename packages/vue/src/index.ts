@@ -1,4 +1,4 @@
-// Trellis Vue 3 適配器
+// Trellis Vue 3 adapter
 
 // provide / inject
 export {
@@ -19,7 +19,7 @@ export type {
 export { useVirtualScroll } from './composables/use-virtual-scroll';
 export type { UseVirtualScrollReturn } from './composables/use-virtual-scroll';
 
-// 元件
+// Components
 export {
     TlTable,
     TlTableHead,
@@ -34,4 +34,4 @@ export {
     TlResizeHandle,
     TlSlotRenderer,
 } from './components';
-export type { TableInfoFormat } from './components';
+export type { TableInfoFormat, TlTableSlots } from './components';

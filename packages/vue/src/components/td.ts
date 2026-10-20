@@ -1,10 +1,15 @@
 import type { ColumnDef, DataRow } from '@trellisjs/core';
 import { getBodyCellLayout, getCellValue } from '@trellisjs/core';
 import { defineComponent, h } from 'vue';
-import type { PropType } from 'vue';
-import { useTrellisState } from '../context';
+import type { PropType, VNodeChild } from 'vue';
+import { useTrellisContext, useTrellisState } from '../context';
+import { useTableSlot } from './table-slots';
 
-/** 資料儲存格：依 accessor 顯示值，並處理對齊與欄釘選。 */
+/**
+ * Data cell: alignment and column pinning.
+ * Content comes from the `#cell-{id}` / `#cell` slot, then `column.renderCell`,
+ * then the value as a string.
+ */
 export const TlTd = defineComponent({
     name: 'TlTd',
     props: {
@@ -12,20 +17,24 @@ export const TlTd = defineComponent({
         column: { type: Object as PropType<ColumnDef>, required: true },
     },
     setup(props) {
+        const api = useTrellisContext();
         const state = useTrellisState();
+        const renderSlot = useTableSlot();
 
         return () => {
-            const value = getCellValue(props.row, props.column);
-            const { style, className } = getBodyCellLayout(
-                props.column,
-                state.value,
+            const { row, column } = props;
+            const value = getCellValue(row, column);
+            const { style, className } = getBodyCellLayout(column, state.value);
+            const context = { row, value, column, api };
+            const content = renderSlot('cell', column.id, context, () =>
+                column.renderCell
+                    ? (column.renderCell(context) as VNodeChild)
+                    : value != null
+                      ? String(value)
+                      : '',
             );
 
-            return h(
-                'td',
-                { style, class: className },
-                value != null ? String(value) : '',
-            );
+            return h('td', { style, class: className }, [content]);
         };
     },
 });

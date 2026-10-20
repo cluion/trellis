@@ -1,4 +1,5 @@
 export { TlTable } from './table';
+export type { TlTableSlots } from './table-slots';
 export { TlTableHead } from './thead';
 export { TlTableBody } from './tbody';
 export { TlVirtualScrollBody } from './virtual-scroll-body';

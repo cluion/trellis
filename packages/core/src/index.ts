@@ -1,16 +1,21 @@
-// Trellis Core — 無頭式資料表格引擎
+// Trellis Core — headless data table engine
 
-// 主類別
+// Main class
 export { Trellis } from './trellis';
 
-// 子系統（供進階使用）
+// Subsystems (advanced use)
 export { EventBus } from './event/event-bus';
 export { StateStore } from './state/store';
 export { SlotRegistry } from './slot/slot-registry';
 export { PluginManager } from './plugin/plugin-manager';
 
-// 型別
-export type { ColumnDef, ColumnSortFn } from './types/column';
+// Types
+export type {
+    CellContext,
+    ColumnDef,
+    ColumnSortFn,
+    HeaderContext,
+} from './types/column';
 export type { DataRow, DataId } from './types/data';
 export type {
     SortCriterion,

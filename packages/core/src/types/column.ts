@@ -1,42 +1,76 @@
+import type { DataRow } from './data';
+import type { TrellisAPI } from './plugin';
+
 /**
- * 自訂排序函式。
- * 回傳負數表示 a < b，正數表示 a > b，零表示相等。
+ * Custom sort comparator.
+ * Returns a negative number when a < b, a positive number when a > b, and zero when equal.
  */
 export type ColumnSortFn<T = unknown> = (a: T, b: T) => number;
 
+/** Argument passed to `ColumnDef.renderCell`. */
+export interface CellContext<T = Record<string, unknown>> {
+    /** The row being rendered */
+    row: DataRow<T>;
+    /** The cell value, read through the column accessor */
+    value: unknown;
+    /** The column being rendered */
+    column: ColumnDef<T>;
+    /** The table API, e.g. to emit events or update the row */
+    api: TrellisAPI<T>;
+}
+
+/** Argument passed to `ColumnDef.renderHeader`. */
+export interface HeaderContext<T = Record<string, unknown>> {
+    /** The column being rendered */
+    column: ColumnDef<T>;
+    /** The table API, e.g. to emit `sort:change` */
+    api: TrellisAPI<T>;
+}
+
 /**
- * 單一欄位定義。
- * 泛型 T 為每筆資料列的形狀。
+ * A single column definition.
+ * The generic `T` is the shape of a data row.
  */
 export interface ColumnDef<T = Record<string, unknown>> {
-    /** 欄位唯一識別碼 */
+    /** Unique column id */
     id: string;
-    /** T 的屬性鍵，或用來提取值的函式 */
+    /** A key of T, or a function that extracts the value */
     accessor: keyof T | ((row: T) => unknown);
-    /** 欄位標題的顯示文字 */
+    /** Header text; also used by plugins such as CSV export and clipboard */
     header: string;
-    /** 自訂排序函式（覆蓋預設） */
+    /**
+     * Custom cell content. The return value is rendered by the framework adapter:
+     * a React node with `@trellisjs/react`, a VNode with `@trellisjs/vue`.
+     * Without it the cell shows the value as a string.
+     */
+    renderCell?: (context: CellContext<T>) => unknown;
+    /**
+     * Custom header content, rendered by the framework adapter like `renderCell`.
+     * Without it the header shows `header`.
+     */
+    renderHeader?: (context: HeaderContext<T>) => unknown;
+    /** Custom sort comparator (overrides the default) */
     sortFn?: ColumnSortFn;
-    /** 此欄位是否可排序（預設：排序插件啟用時為 true） */
+    /** Whether the column can be sorted (default: true when the sort plugin is installed) */
     sortable?: boolean;
-    /** 此欄位是否可篩選 */
+    /** Whether the column can be filtered */
     filterable?: boolean;
-    /** 欄位寬度（CSS 值） */
+    /** Column width (CSS value; numbers are pixels) */
     width?: number | string;
-    /** 最小欄位寬度（CSS 值） */
+    /** Minimum column width (CSS value; numbers are pixels) */
     minWidth?: number | string;
-    /** 最大欄位寬度（CSS 值） */
+    /** Maximum column width (CSS value; numbers are pixels) */
     maxWidth?: number | string;
-    /** 儲存格內容對齊方式 */
+    /** Cell content alignment */
     align?: 'left' | 'center' | 'right';
-    /** 此欄位儲存格的額外 HTML 屬性 */
+    /** Extra HTML attributes for the column's cells */
     attrs?: Record<string, string>;
-    /** 自訂儲存格 class 名稱或函式 */
+    /** Custom cell class name, or a function returning one */
     className?: string | ((row: T, value: unknown) => string);
-    /** 此欄位是否可見 */
+    /** Whether the column is visible */
     visible?: boolean;
-    /** 釘選方向：固定在左側或右側 */
+    /** Pin the column to the left or right edge */
     pin?: 'left' | 'right';
-    /** 此欄位是否可調整寬度（預設：resizing 插件啟用時為 true） */
+    /** Whether the column can be resized (default: true when the resizing plugin is installed) */
     resizable?: boolean;
 }
