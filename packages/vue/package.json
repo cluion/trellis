@@ -1,6 +1,6 @@
 {
     "name": "@trellisjs/vue",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Trellis 的 Vue 3 適配器 — 無頭式資料表格元件",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
