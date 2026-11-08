@@ -1,11 +1,17 @@
 import type { DataRow } from './data';
 import type { TableState } from './state';
 
+/** Slicing transforms may return viewport metadata with their rows. */
+export interface TransformResult<T> {
+    data: DataRow<T>[];
+    state?: Pick<TableState<T>, 'virtualScroll'>;
+}
+
 /** 純轉換函式 — 接收資料與當前狀態，回傳轉換後的新陣列 */
 export type TransformFn<T> = (
     data: DataRow<T>[],
     state: Readonly<TableState<T>>,
-) => DataRow<T>[];
+) => DataRow<T>[] | TransformResult<T>;
 
 /** 管線中的轉換條目 */
 export interface TransformEntry<T> {

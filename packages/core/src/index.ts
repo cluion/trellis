@@ -17,6 +17,7 @@ export type {
     HeaderContext,
 } from './types/column';
 export type { DataRow, DataId } from './types/data';
+export type { TransformFn, TransformResult } from './types/pipeline';
 export type {
     SortCriterion,
     SortState,

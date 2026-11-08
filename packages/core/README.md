@@ -71,6 +71,17 @@ table.api.on('data:removed', (id) => console.log('Removed:', id))
 table.api.on('data:updated', (id) => console.log('Updated:', id))
 ```
 
+Automatically generated row IDs are monotonically increasing strings within a
+table instance and are not reused after removal or source replacement. Explicit
+IDs must be unique; ambiguous numeric/string duplicates such as `1` and `'1'`
+are rejected before changing data. Property-based `rowId` values become strings;
+callback IDs retain their string/number type. Pass the actual `row.id` to row
+operations. Use a stable backend `rowId` for remote data and persistent selection.
+
+Slicing transforms may return `{ data, state: { virtualScroll } }` to publish
+viewport metadata atomically with their rows. Returning a row array remains
+supported. `TransformFn` and `TransformResult` are exported for plugin authors.
+
 ## API Reference
 
 ### `Trellis<T>`

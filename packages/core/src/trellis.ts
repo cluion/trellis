@@ -32,6 +32,7 @@ export class Trellis<T extends object = Record<string, unknown>> {
     private transforms: TransformEntry<T>[];
     private pipelineLock: boolean;
     private filteredData: DataRow<T>[];
+    private nextAutoId = 0;
     private started = false;
     private destroyed = false;
 
@@ -81,8 +82,17 @@ export class Trellis<T extends object = Record<string, unknown>> {
      * 將原始資料陣列處理為 DataRow 物件。
      */
     private processData(data: T[]): DataRow<T>[] {
+        const ids = data.map((row, index) => this.resolveRowId(row, index));
+        const reserved = new Set<string>();
+
+        for (const id of ids) {
+            if (id !== undefined) {
+                this.reserveRowId(id, reserved);
+            }
+        }
+
         return data.map((original, index) => ({
-            id: this.resolveRowId(original, index),
+            id: ids[index] ?? this.allocateRowId(reserved),
             original,
             index,
         }));
@@ -91,20 +101,52 @@ export class Trellis<T extends object = Record<string, unknown>> {
     /**
      * 根據 options.rowId 解析列的 ID。
      */
-    private resolveRowId(row: T, index: number): DataId {
+    private resolveRowId(row: T, index: number): DataId | undefined {
         const { rowId } = this.options;
 
-        if (!rowId) {
-            return String(index);
+        if (rowId == null) {
+            return undefined;
         }
 
-        if (typeof rowId === 'function') {
-            return rowId(row, index);
+        const value =
+            typeof rowId === 'function' ? rowId(row, index) : row[rowId];
+
+        if (value == null && typeof rowId !== 'function') {
+            return undefined;
         }
 
-        const value = row[rowId];
+        if (
+            (typeof value !== 'string' && typeof value !== 'number') ||
+            (typeof value === 'number' && !Number.isFinite(value))
+        ) {
+            throw new TypeError('Row IDs must be strings or finite numbers.');
+        }
 
-        return value != null ? String(value) : String(index);
+        return typeof rowId === 'function' ? value : String(value);
+    }
+
+    private reserveRowId(id: DataId, reserved: Set<string>): void {
+        if (reserved.has(String(id))) {
+            throw new TypeError('Duplicate row ID.');
+        }
+
+        reserved.add(String(id));
+    }
+
+    private allocateRowId(reserved: Set<string>): string {
+        let id: string;
+
+        do {
+            if (!Number.isSafeInteger(this.nextAutoId)) {
+                throw new RangeError('Automatic row ID range exhausted.');
+            }
+
+            id = String(this.nextAutoId++);
+        } while (reserved.has(id));
+
+        reserved.add(id);
+
+        return id;
     }
 
     /**
@@ -136,10 +178,17 @@ export class Trellis<T extends object = Record<string, unknown>> {
             const slicing = sliceIndex === -1 ? [] : sorted.slice(sliceIndex);
 
             // 階段一：篩選、排序 → 完整結果決定 totalItems 與 getFilteredData
-            let data = shaping.reduce(
-                (rows, t) => t.fn(rows, state),
-                [...this.sourceData],
-            );
+            let data = [...this.sourceData];
+
+            for (const transform of shaping) {
+                const result = transform.fn(data, state);
+                data = Array.isArray(result) ? result : result.data;
+
+                if (!Array.isArray(result)) {
+                    Object.assign(state, result.state);
+                }
+            }
+
             this.filteredData = [...data];
 
             const remote = state.dataMode === 'server';
@@ -161,15 +210,22 @@ export class Trellis<T extends object = Record<string, unknown>> {
             };
 
             // 階段二：分頁、虛擬滾動等切片 transform（用校正後的頁碼）
-            data = slicing.reduce(
-                (rows, t) => t.fn(rows, effectiveState),
-                data,
-            );
+            for (const transform of slicing) {
+                const result = transform.fn(data, effectiveState);
+
+                if (Array.isArray(result)) {
+                    data = result;
+                } else {
+                    data = result.data;
+                    Object.assign(effectiveState, result.state);
+                }
+            }
 
             this.store.setState(() => ({
                 ...withState,
                 data,
                 pagination: effectiveState.pagination,
+                virtualScroll: effectiveState.virtualScroll,
             }));
         } finally {
             this.pipelineLock = false;
@@ -242,8 +298,17 @@ export class Trellis<T extends object = Record<string, unknown>> {
             },
             addRow: (item) => {
                 const index = this.sourceData.length;
+                const reserved = new Set(
+                    this.sourceData.map((row) => String(row.id)),
+                );
+                const explicitId = this.resolveRowId(item, index);
+
+                if (explicitId !== undefined) {
+                    this.reserveRowId(explicitId, reserved);
+                }
+
                 const row: DataRow<T> = {
-                    id: this.resolveRowId(item, index),
+                    id: explicitId ?? this.allocateRowId(reserved),
                     original: item,
                     index,
                 };

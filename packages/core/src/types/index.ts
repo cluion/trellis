@@ -12,7 +12,7 @@ export type {
     DatasourceState,
     TableState,
 } from './state';
-export type { TransformFn, TransformEntry } from './pipeline';
+export type { TransformFn, TransformEntry, TransformResult } from './pipeline';
 export type { VirtualScrollState } from './virtual-scroll';
 export type { ColumnPinningState, PinOffset } from './column-pinning';
 export { calculatePinOffsets } from './column-pinning';

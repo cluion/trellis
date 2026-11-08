@@ -21,6 +21,28 @@ function generateData(count: number): Item[] {
     }));
 }
 
+function scrollContainer() {
+    let listener: (() => void) | undefined;
+
+    return {
+        scrollTop: 0,
+        clientHeight: 400,
+        addEventListener(_event: string, callback: () => void) {
+            listener = callback;
+        },
+        removeEventListener() {
+            listener = undefined;
+        },
+        scroll(top: number) {
+            this.scrollTop = top;
+            listener?.();
+            const pending = [...rafCallbacks.values()];
+            rafCallbacks.clear();
+            pending.forEach((callback) => callback(0));
+        },
+    };
+}
+
 // Mock rAF
 const rafCallbacks: Map<number, FrameRequestCallback> = new Map();
 let rafCounter = 0;
@@ -43,6 +65,97 @@ afterEach(() => {
 });
 
 describe('pagination + virtualScroll 整合', () => {
+    it.each([false, true])(
+        '實際捲動只使用當頁列數，插件反向註冊=%s',
+        (reverse) => {
+            const vs = createVirtualScrollPlugin({
+                rowHeight: 40,
+                overscan: 0,
+            });
+            const plugins = [createPaginationPlugin(), vs];
+            const table = new Trellis({
+                data: generateData(1000),
+                columns,
+                pageSize: 100,
+                plugins: reverse ? plugins.reverse() : plugins,
+            });
+            const viewport = scrollContainer();
+            vs.attachScrollContainer(viewport as unknown as HTMLElement);
+            expect(table.api.getState().virtualScroll?.totalHeight).toBe(4000);
+            viewport.scroll(4000);
+            expect(viewport.scrollTop).toBe(3600);
+            expect(
+                table.api.getState().data.map((row) => row.original.value),
+            ).toEqual([91, 92, 93, 94, 95, 96, 97, 98, 99, 100]);
+            expect(table.api.getState().virtualScroll?.endIndex).toBe(100);
+            expect(table.api.getState().pagination.totalItems).toBe(1000);
+            table.api.emit('pagination:next');
+            expect(viewport.scrollTop).toBe(0);
+            expect(table.api.getState().data[0].original.value).toBe(101);
+            table.destroy();
+        },
+    );
+
+    it('最後一頁、資料縮減及零筆會同步校正視窗', () => {
+        const vs = createVirtualScrollPlugin({ rowHeight: 40, overscan: 0 });
+        const table = new Trellis({
+            data: generateData(225),
+            columns,
+            pageSize: 100,
+            plugins: [createPaginationPlugin(), vs],
+        });
+        const viewport = scrollContainer();
+        vs.attachScrollContainer(viewport as unknown as HTMLElement);
+        table.api.emit('pagination:goto', { page: 3 });
+        expect(table.api.getState().virtualScroll?.totalHeight).toBe(1000);
+        viewport.scroll(10000);
+        expect(table.api.getState().data[0].original.value).toBe(216);
+        table.api.updateSourceData(generateData(3));
+        expect(viewport.scrollTop).toBe(0);
+        expect(table.api.getState().virtualScroll).toMatchObject({
+            startIndex: 0,
+            endIndex: 3,
+            totalHeight: 120,
+        });
+        expect(table.api.getState().data).toHaveLength(3);
+        table.api.updateSourceData([]);
+        expect(table.api.getState().virtualScroll).toMatchObject({
+            startIndex: 0,
+            endIndex: 0,
+            totalHeight: 0,
+        });
+        table.destroy();
+    });
+
+    it('遠端 filtered 保留於分頁，捲動高度只計算載入頁', () => {
+        const vs = createVirtualScrollPlugin({ rowHeight: 40, overscan: 0 });
+        const table = new Trellis({
+            data: generateData(25),
+            columns,
+            pageSize: 100,
+            plugins: [createPaginationPlugin(), vs],
+        });
+        table.api.recompute({
+            dataMode: 'server',
+            pagination: { page: 4, pageSize: 100, totalItems: 1000 },
+        });
+        const viewport = scrollContainer();
+        vs.attachScrollContainer(viewport as unknown as HTMLElement);
+        viewport.scroll(10000);
+        expect(table.api.getState().virtualScroll).toMatchObject({
+            startIndex: 15,
+            endIndex: 25,
+            totalHeight: 1000,
+        });
+        expect(table.api.getState().pagination).toEqual({
+            page: 4,
+            pageSize: 100,
+            totalItems: 1000,
+        });
+        expect(table.api.getState().data).toHaveLength(10);
+        table.destroy();
+    });
+
     it('pagination 切出分頁資料後 virtualScroll 再切出可視範圍', () => {
         const vsPlugin = createVirtualScrollPlugin({
             rowHeight: 40,

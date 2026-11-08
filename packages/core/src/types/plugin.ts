@@ -98,7 +98,7 @@ export interface TrellisOptions<T = Record<string, unknown>> {
     plugins?: TrellisPlugin<any>[];
     /** 每頁筆數（預設：10） */
     pageSize?: number;
-    /** 列 ID 存取器 — 屬性鍵或函式（預設：陣列索引） */
+    /** 列 ID 存取器 — 屬性鍵或函式（預設：不重複的遞增字串） */
     rowId?: keyof T | ((row: T, index: number) => DataId);
     /** 自動啟動插件資源（預設 true）；adapter 可延後至掛載後呼叫 start() */
     autoStart?: boolean;

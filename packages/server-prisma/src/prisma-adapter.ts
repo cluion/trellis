@@ -1,3 +1,4 @@
+import { parseTrellisQuery } from '@trellisjs/server';
 import type { TrellisServerQuery } from '@trellisjs/server';
 
 interface PrismaModel {
@@ -5,20 +6,42 @@ interface PrismaModel {
     findMany(args?: any): Promise<any[]>;
 }
 
-interface PrismaAdapterOptions {
-    /** 可被全域搜尋的欄位名稱 */
-    searchableColumns?: string[];
-    /** 欄位名稱對應到 Prisma 欄位名稱（如果有差異） */
+export interface PrismaAdapterOptions {
+    /** Explicit scalar fields returned by findMany. */
+    select: Record<string, boolean>;
+    searchableColumns?: readonly string[];
+    filterableColumns?: readonly string[];
+    sortableColumns?: readonly string[];
     columnMap?: Record<string, string>;
+    /** Defaults to database collation; insensitive is opt-in for PostgreSQL/MongoDB. */
+    stringFilterMode?: 'default' | 'insensitive';
 }
 
-/**
- * 一行搞定 Trellis 查詢 → Prisma ORM 操作。
- */
+const FIELD_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const RESERVED_FIELDS = new Set([
+    'AND',
+    'OR',
+    'NOT',
+    '__proto__',
+    'constructor',
+    'prototype',
+]);
+
+function validateField(field: string): void {
+    if (
+        typeof field !== 'string' ||
+        !FIELD_RE.test(field) ||
+        RESERVED_FIELDS.has(field)
+    ) {
+        throw new TypeError('Prisma configuration contains an invalid field.');
+    }
+}
+
+/** Convert a validated query using explicit result and query-field permissions. */
 export async function trellisPrismaQuery<T>(
     model: PrismaModel,
     query: TrellisServerQuery,
-    options?: PrismaAdapterOptions,
+    options: PrismaAdapterOptions,
 ): Promise<{
     data: T[];
     total: number;
@@ -27,69 +50,121 @@ export async function trellisPrismaQuery<T>(
     pageSize: number;
     totalPages: number;
 }> {
-    const { searchableColumns = [], columnMap = {} } = options ?? {};
-
-    const resolveCol = (colId: string) => columnMap[colId] ?? colId;
-
-    // 建構 where 條件
-    const where: Record<string, any> = {};
-
-    if (query.filter?.global && searchableColumns.length > 0) {
-        where.OR = searchableColumns.map((col) => ({
-            [resolveCol(col)]: {
-                contains: query.filter!.global,
-                mode: 'insensitive',
-            },
-        }));
+    if (
+        !options?.select ||
+        typeof options.select !== 'object' ||
+        Array.isArray(options.select)
+    ) {
+        throw new TypeError(
+            'Prisma queries require an explicit select configuration.',
+        );
     }
 
-    if (query.filter?.columns) {
-        for (const [colId, value] of Object.entries(query.filter.columns)) {
-            if (value == null || value === '') {
-                continue;
-            }
+    const selected = Object.entries(options.select);
 
-            const prismaCol = resolveCol(colId);
+    if (!selected.some(([, value]) => value === true)) {
+        throw new TypeError('Prisma select must include at least one field.');
+    }
 
-            if (typeof value === 'string') {
-                where[prismaCol] = { contains: value, mode: 'insensitive' };
-            } else {
-                where[prismaCol] = { equals: value };
-            }
+    for (const [field, value] of selected) {
+        validateField(field);
+
+        if (typeof value !== 'boolean') {
+            throw new TypeError(
+                'Prisma select supports scalar boolean fields only.',
+            );
         }
     }
 
-    // 建構 orderBy
-    const orderBy: Record<string, string> = {};
+    const parsed = parseTrellisQuery({ ...query });
 
-    if (query.sort) {
-        for (const s of query.sort) {
-            orderBy[resolveCol(s.columnId)] = s.direction;
-        }
+    if (parsed.page !== query.page || parsed.pageSize !== query.pageSize) {
+        throw new TypeError(
+            'Prisma pagination requires positive integers and pageSize <= 1000.',
+        );
     }
 
-    // 計算筆數
-    const total = await model.count();
-    const filtered =
-        Object.keys(where).length > 0 ? await model.count({ where }) : total;
+    const {
+        searchableColumns = [],
+        filterableColumns = [],
+        sortableColumns = [],
+        columnMap = {},
+        stringFilterMode = 'default',
+    } = options;
 
-    // 取得資料
-    const skip = (query.page - 1) * query.pageSize;
-    const data = await model.findMany({
-        where: Object.keys(where).length > 0 ? where : undefined,
-        orderBy: Object.keys(orderBy).length > 0 ? orderBy : undefined,
-        skip,
-        take: query.pageSize,
+    if (stringFilterMode !== 'default' && stringFilterMode !== 'insensitive') {
+        throw new TypeError('Invalid Prisma stringFilterMode.');
+    }
+
+    const resolveCol = (id: string): string => {
+        const field = Object.prototype.hasOwnProperty.call(columnMap, id)
+            ? columnMap[id]
+            : id;
+        validateField(field);
+
+        return field;
+    };
+    const allow = (id: string, allowed: readonly string[]): string => {
+        if (!Array.isArray(allowed) || !allowed.includes(id)) {
+            throw new TypeError('Query contains a column that is not allowed.');
+        }
+
+        return resolveCol(id);
+    };
+    const contains = (value: string) => ({
+        contains: value,
+        ...(stringFilterMode === 'insensitive' ? { mode: 'insensitive' } : {}),
     });
+    const conditions: Record<string, unknown>[] = [];
 
-    const totalPages = Math.max(1, Math.ceil(filtered / query.pageSize));
+    if (parsed.filter?.global) {
+        if (
+            !Array.isArray(searchableColumns) ||
+            searchableColumns.length === 0
+        ) {
+            throw new TypeError('Global search requires searchableColumns.');
+        }
+
+        conditions.push({
+            OR: searchableColumns.map((id) => ({
+                [resolveCol(id)]: contains(parsed.filter!.global!),
+            })),
+        });
+    }
+
+    for (const [id, value] of Object.entries(parsed.filter?.columns ?? {})) {
+        const field = allow(id, filterableColumns);
+
+        if (value != null && value !== '') {
+            conditions.push({
+                [field]:
+                    typeof value === 'string'
+                        ? contains(value)
+                        : { equals: value },
+            });
+        }
+    }
+
+    const orderBy = parsed.sort?.map((s) => ({
+        [allow(s.columnId, sortableColumns)]: s.direction,
+    }));
+    const where = conditions.length > 0 ? { AND: conditions } : undefined;
+    const total = await model.count();
+    const filtered = where ? await model.count({ where }) : total;
+    const data = await model.findMany({
+        select: { ...options.select },
+        where,
+        orderBy: orderBy?.length ? orderBy : undefined,
+        skip: (parsed.page - 1) * parsed.pageSize,
+        take: parsed.pageSize,
+    });
 
     return {
         data: data as T[],
         total,
         filtered,
-        page: query.page,
-        pageSize: query.pageSize,
-        totalPages,
+        page: parsed.page,
+        pageSize: parsed.pageSize,
+        totalPages: Math.max(1, Math.ceil(filtered / parsed.pageSize)),
     };
 }
