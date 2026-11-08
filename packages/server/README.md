@@ -6,15 +6,15 @@ parameters into SQL clauses.
 ## Installation
 
 ```bash
-npm install @trellisjs/server
+npm install @trellisjs/server@alpha
 ```
 
-## Pending alpha release
+## Alpha release channel
 
-The API below describes unreleased source changes. The package manifest remains
-`0.1.0-alpha.1`; the published artifact with that version does not contain this
-repair. Backend helpers are excluded from the stable version PR and will be
-versioned/published through a separate approved alpha-only step. See the
+`0.1.0-alpha.2` includes the query validation and column authorization changes
+documented below. Install the `alpha` tag or pin that version; the `latest` tag
+continues to use the earlier API. Backend helpers are versioned together outside
+the stable Changesets version PR. See the
 [release-channel policy](../../.changeset/README.md#backend-alpha-channel).
 
 ## API

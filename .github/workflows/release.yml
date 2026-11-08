@@ -3,6 +3,14 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        type: choice
+        options: [stable, backend-alpha]
+        default: stable
+        required: true
 
 concurrency:
   group: release-${{ github.ref }}
@@ -16,6 +24,7 @@ permissions:
 jobs:
   release:
     name: Release
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,11 +49,22 @@ jobs:
 
       - run: pnpm -r build
 
+      - name: Check backend release isolation
+        id: backend
+        run: node scripts/backend-release.mjs check
+
+      - name: Publish backend alpha packages
+        if: github.event_name == 'workflow_dispatch' && inputs.channel == 'backend-alpha'
+        run: node scripts/backend-release.mjs publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release Pull Request or Publish
+        if: (github.event_name == 'push' || inputs.channel == 'stable') && steps.backend.outputs.backend_pending == 'false'
         id: changeset
         uses: changesets/action@v1
         with:
-          publish: pnpm changeset publish
+          publish: node scripts/backend-release.mjs stable
           version: pnpm changeset version
           title: 'chore: version packages'
           commit: 'chore: version packages'

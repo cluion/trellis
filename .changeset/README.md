@@ -15,15 +15,27 @@ When changesets are merged to `main`, the Release workflow will:
 
 ## Backend alpha channel
 
-`@trellisjs/server` and `@trellisjs/server-prisma` remain alpha packages. The
-current backend safety/API changes are source-only until a separate approved
-alpha release; their manifests stay at `0.1.0-alpha.1` in this repair PR.
-Keep them out of the stable Changesets entries so the version PR does not
-implicitly promote them to `0.1.0`.
+`@trellisjs/server` and `@trellisjs/server-prisma` remain alpha packages. Keep
+them out of stable Changesets entries so the version PR does not implicitly
+promote them to `0.1.0`. Do not enable global Changesets prerelease mode: it also
+affects the stable frontend packages.
 
-Before a backend alpha version bump, prepare an alpha-only publishing path that
-explicitly uses the `alpha` npm dist-tag. Do not merge that bump while the shared
-publisher would send it to `latest`. The installed Changesets CLI defaults to
-`latest` outside global prerelease mode; global prerelease mode would also affect
-the stable frontend release train. Versioning and publishing the backend alpha
-packages require a separate release step and approval.
+For an approved backend alpha release:
+
+1. Update both backend manifests to the same `X.Y.Z-alpha.N` version and update
+   their changelogs and migration instructions. Preserve `publishConfig.tag:
+   "alpha"` and `access: "public"`.
+2. Merge after the PR's CI passes. The normal Release run skips the shared
+   publisher while either backend version is unpublished.
+3. Dispatch `.github/workflows/release.yml` on `main` with
+   `channel=backend-alpha`. This existing workflow identity retains npm trusted
+   publishing support. It packs only the two backend packages and explicitly
+   runs `npm publish --tag alpha --access public --provenance`.
+4. Verify both npm `alpha` tags, consumer installation and the GitHub prereleases.
+   Existing `latest` tags must remain unchanged. The publisher refuses an alpha
+   downgrade, checks both manifests before publishing, and supports retrying a
+   partially completed release without republishing an existing version.
+
+Both `pnpm release` and the stable workflow use the same guard before invoking
+Changesets. Registry errors fail closed. Backend alpha versioning and publishing
+require approval separately from a stable frontend release.

@@ -1,6 +1,10 @@
 {
     "name": "@trellisjs/server-prisma",
-    "version": "0.1.0-alpha.1",
+    "version": "0.1.0-alpha.2",
+    "publishConfig": {
+        "access": "public",
+        "tag": "alpha"
+    },
     "description": "Prisma ORM 轉接器 — 一行搞定 Trellis 查詢",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
