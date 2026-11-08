@@ -22,6 +22,7 @@ export type {
     SortState,
     FilterState,
     PaginationState,
+    DatasourceState,
     TableState,
 } from './types/state';
 export type { VirtualScrollState } from './types/virtual-scroll';

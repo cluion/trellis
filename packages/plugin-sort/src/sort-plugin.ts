@@ -75,6 +75,10 @@ export function createSortPlugin(): TrellisPlugin {
         install(api: TrellisAPI) {
             // 註冊管線轉換函式 (priority=20)
             api.registerTransform('sort', 20, (data, state) => {
+                if (state.dataMode === 'server') {
+                    return data;
+                }
+
                 const { sortBy } = state.sorting;
 
                 if (sortBy.length === 0) {

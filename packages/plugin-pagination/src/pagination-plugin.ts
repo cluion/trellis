@@ -29,6 +29,10 @@ export function createPaginationPlugin(): TrellisPlugin {
         install(api: TrellisAPI) {
             // 註冊管線轉換函式 (priority=30)
             api.registerTransform('pagination', 30, (data, state) => {
+                if (state.dataMode === 'server') {
+                    return data;
+                }
+
                 const { page, pageSize } = state.pagination;
                 const start = (page - 1) * pageSize;
 
@@ -67,6 +71,7 @@ export function createPaginationPlugin(): TrellisPlugin {
 
             api.on('pagination:goto', (payload) => {
                 const { page } = payload;
+
                 const state = api.getState();
                 const totalPages = getTotalPages(
                     state.pagination.totalItems,
@@ -80,6 +85,7 @@ export function createPaginationPlugin(): TrellisPlugin {
 
             api.on('pagination:pageSize', (payload) => {
                 const { pageSize } = payload;
+
                 const state = api.getState();
                 api.recompute({
                     pagination: { ...state.pagination, page: 1, pageSize },

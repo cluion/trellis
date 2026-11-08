@@ -1,4 +1,5 @@
 import type { TrellisAPI } from '@trellisjs/core';
+export type { DatasourceState } from '@trellisjs/core';
 
 /**
  * Trellis 標準查詢協定 — 前端向後端發送的查詢格式。
@@ -47,13 +48,33 @@ export interface TrellisResponse<T = Record<string, unknown>> {
  */
 export interface TrellisDatasource<T = Record<string, unknown>> {
     /** 根據查詢條件取得資料 */
-    fetch(query: TrellisQuery): Promise<TrellisResponse<T>>;
+    fetch(
+        query: TrellisQuery,
+        context?: DatasourceFetchContext,
+    ): Promise<TrellisResponse<T>>;
+}
+
+export interface DatasourceFetchContext {
+    signal?: AbortSignal;
+}
+
+export interface DatasourcePluginOptions<T = Record<string, unknown>> {
+    datasource: TrellisDatasource<T>;
+    initialQuery?: Partial<TrellisQuery>;
+}
+
+declare module '@trellisjs/core' {
+    interface TrellisEventMap {
+        'datasource:reload': void;
+        'datasource:retry': void;
+        'datasource:cancel': void;
+    }
 }
 
 /**
  * 遠端資料源設定
  */
-export interface RemoteDatasourceOptions {
+export interface RemoteDatasourceOptions<T = Record<string, unknown>> {
     /** API 端點 URL */
     url: string;
     /** HTTP 方法（預設 POST） */
@@ -63,13 +84,13 @@ export interface RemoteDatasourceOptions {
     /** 自訂查詢轉換（發送前處理） */
     transformQuery?: (query: TrellisQuery) => unknown;
     /** 自訂回應轉換（接收後處理） */
-    transformResponse?: (response: unknown) => TrellisResponse;
+    transformResponse?: (response: unknown) => TrellisResponse<T>;
 }
 
 /**
  * 從 Trellis 狀態建構查詢物件
  */
-export function buildQueryFromState(api: TrellisAPI): TrellisQuery {
+export function buildQueryFromState<T>(api: TrellisAPI<T>): TrellisQuery {
     const state = api.getState();
     const query: TrellisQuery = {
         page: state.pagination.page,
@@ -77,7 +98,9 @@ export function buildQueryFromState(api: TrellisAPI): TrellisQuery {
     };
 
     if (state.sorting.sortBy.length > 0) {
-        query.sort = state.sorting.sortBy;
+        query.sort = state.sorting.sortBy.map((criterion) => ({
+            ...criterion,
+        }));
     }
 
     if (

@@ -87,6 +87,10 @@ export function createFilterPlugin(
         install(api: TrellisAPI) {
             // 註冊管線轉換函式 (priority=10)
             api.registerTransform('filter', 10, (data, state) => {
+                if (state.dataMode === 'server') {
+                    return data;
+                }
+
                 const query = state.filtering.query;
                 const columnFilters = state.filtering.columnFilters;
                 const hasGlobalQuery = !!query;

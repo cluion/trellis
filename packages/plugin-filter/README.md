@@ -22,10 +22,14 @@ Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.
 ### State Updated
 
 - `state.filtering.query` — the current global search keyword.
-- `state.filtering.columnFilters` — a `Record<string, string>` of per-column filter values.
-- `state.data` — rows matching all active filters, or the full dataset when all are cleared.
+- `state.filtering.columnFilters` — a `Record<string, unknown>` of per-column filter values; the `filter:column` event accepts string values.
+- In client mode, `state.data` contains rows matching all active filters, subject to pagination and other pipeline transforms.
 
 Global search and per-column filters are **AND** relationship: a row must match all conditions to appear.
+
+### Server-Side Mode
+
+With `createDatasourcePlugin()` installed, this plugin only updates `state.filtering`. It does not filter the loaded page; the datasource sends `filter.global` and `filter.columns` to the backend. A changed filter resets the page to 1 and schedules a request after the configured debounce. Matching rules in this mode are determined by your backend. See the [server-side guide and Vue example](../../examples/vue-server-side/README.md).
 
 ## Usage
 
@@ -43,15 +47,9 @@ createFilterPlugin({ debounceMs: 300 })
 createFilterPlugin()
 ```
 
-Both `filter:change` and `filter:column` share the same debounce timer. When a new event fires during the delay, the timer resets and only the last event's recompute executes.
+`debounceMs` sets the default delay for two independent timers: one for `filter:change`, one for `filter:column`. Repeated events reset their own timer; search and column-filter events do not cancel one another.
 
-When `debounceMs > 0`, call `plugin.destroy()` on unmount to cancel any pending timers and prevent memory leaks:
-
-```ts
-const plugin = createFilterPlugin({ debounceMs: 300 });
-// ... later, on unmount
-plugin.destroy();
-```
+`trellis.destroy()` cancels pending filter timers. Vue and React adapters destroy their owned instance on unmount, so no separate plugin cleanup is needed.
 
 ### Independent Debounce
 
@@ -84,8 +82,8 @@ import { createFilterPlugin } from '@trellisjs/plugin-filter';
 
 const trellis = new Trellis({
   columns: [
-    { id: 'name', accessor: 'name' },
-    { id: 'email', accessor: 'email' },
+    { id: 'name', accessor: 'name', header: 'Name' },
+    { id: 'email', accessor: 'email', header: 'Email' },
   ],
   data: [
     { name: 'Alice', email: 'alice@example.com' },
@@ -152,7 +150,7 @@ function MyTable({ data }) {
 
 ### Combination with Other Plugins
 
-For best results, install the filter plugin before the pagination plugin so that pagination operates on the filtered dataset:
+Pipeline priorities place client-side filtering (`10`) before pagination (`30`), regardless of plugin installation order. A typical configuration is:
 
 ```ts
 plugins: [createFilterPlugin(), createPaginationPlugin()]

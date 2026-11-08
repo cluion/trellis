@@ -17,6 +17,8 @@ Requires `@prisma/client` >= 5.
 
 Executes a Trellis query against a Prisma model and returns paginated results.
 
+The returned `total` is unfiltered and `filtered` is counted over the full filtered dataset before `skip` / `take`. The frontend consumes `data`, `total` and `filtered`; extra pagination metadata is optional. See the [server-side integration guide](../../examples/vue-server-side/README.md) for the frontend contract, current/proposed versions and Vue example.
+
 **Parameters:**
 
 - `model` -- a Prisma delegate (e.g. `prisma.user`).

@@ -14,6 +14,7 @@ Trellis is a framework-agnostic data table library with a plugin architecture, i
 - **Slot System** — Named rendering slots for complete UI customization.
 - **Full-Stack Protocol** — `TrellisQuery / TrellisResponse` unifies frontend and backend interfaces.
 - **Server Helpers** — Query parsing, SQL construction, and ORM adapters.
+- **Server-Side Tables** — Automatic datasource requests, remote totals, loading/errors, cancellation and retries. See the [API guide and Vue example](./examples/vue-server-side/README.md).
 - **Tree-Shakeable** — Install only the plugins you need.
 - **React & Vue Adapters** — Components and hooks for React (`@trellisjs/react`) and Vue 3 (`@trellisjs/vue`), including sticky header.
 
@@ -131,6 +132,11 @@ import { createSortPlugin } from '@trellisjs/plugin-sort';
 import { createFilterPlugin } from '@trellisjs/plugin-filter';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 
+interface User { id: number; name: string; email: string }
+const columns = [
+  { id: 'name', accessor: 'name' as const, header: 'Name' },
+  { id: 'email', accessor: 'email' as const, header: 'Email' },
+];
 const users = ref<User[]>([]); // reassigning or pushing rows updates the table
 
 const { api } = useTrellis({
@@ -176,19 +182,27 @@ trellis.api.subscribe((state) => {
 trellis.api.emit('sort:change', { columnId: 'age', direction: 'desc' });
 ```
 
+### Server-Side Tables
+
+Install `createDatasourcePlugin({ datasource, initialQuery })` alongside the existing filter, sort and pagination plugins. They update query state while the backend searches, sorts and paginates. Observe `state.datasource` for loading/errors and remote counts; use `datasource:reload`, `datasource:retry` and `datasource:cancel` commands.
+
+The [integration guide](./examples/vue-server-side/README.md) contains the public API, GET/POST contract, zero/out-of-range behavior, current/proposed versions and validation results. The complete [Vue SFC example](./examples/vue-server-side/UserTable.vue) demonstrates the UI flow. This feature is currently unreleased; the guide distinguishes current package manifests from planned versions.
+
 ### Backend (Node.js)
 
 ```typescript
-import { parseQuery, buildWhere, buildOrderBy } from '@trellisjs/server';
-import { createPrismaAdapter } from '@trellisjs/server-prisma';
+import { parseTrellisQuery } from '@trellisjs/server';
+import { trellisPrismaQuery } from '@trellisjs/server-prisma';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-const adapter = createPrismaAdapter(prisma);
 
 // In your API handler:
 app.get('/api/users', async (req, res) => {
-  const result = await adapter.query('user', req.query);
+  const query = parseTrellisQuery(req.query);
+  const result = await trellisPrismaQuery(prisma.user, query, {
+    searchableColumns: ['name', 'email'],
+  });
   res.json(result);
 });
 ```
@@ -219,7 +233,7 @@ app.get('/api/users', async (req, res) => {
 ```
 
 Each plugin:
-1. Implements `TrellisPlugin` interface (`name`, `install`, optional `destroy`)
+1. Implements `TrellisPlugin` interface (`name`, `install`, optional `start`, `stop`, `destroy`)
 2. Receives `TrellisAPI` during installation
 3. Registers data transforms via `api.registerTransform()` and re-runs them via `api.recompute()`
 4. Communicates via `api.emit()` / `api.on()` events

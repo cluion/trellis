@@ -26,6 +26,18 @@ export class PluginManager<T = Record<string, unknown>> {
         return this.plugins.get(name);
     }
 
+    startAll(): void {
+        for (const plugin of this.plugins.values()) {
+            plugin.start?.();
+        }
+    }
+
+    stopAll(): void {
+        for (const plugin of this.plugins.values()) {
+            plugin.stop?.();
+        }
+    }
+
     /**
      * 依名稱取消註冊插件。
      * 會呼叫插件的 `destroy` 方法（若有定義）。

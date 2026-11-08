@@ -10,6 +10,8 @@ npm install @trellisjs/vue @trellisjs/core vue
 
 Requires Vue >= 3.5.
 
+For server-side tables, see the [API guide and complete Vue example](../../examples/vue-server-side/README.md). `createDatasourcePlugin()` manages requests in the shared datasource layer; the existing `state` ref exposes rows, loading/errors and backend totals.
+
 ## Quick Usage
 
 ```vue
@@ -51,6 +53,14 @@ const { api, state } = useTrellis({
   </button>
 </template>
 ```
+
+## Server-Side Usage
+
+The [complete `UserTable.vue`](../../examples/vue-server-side/UserTable.vue) uses `data: []`, a stable backend `rowId`, `createDatasourcePlugin()` and the existing filter/sort/pagination plugins. The datasource owns row updates; keep a separate reactive `data` source for client-side tables.
+
+Use `state.value.datasource` in setup code and `state.datasource` in templates to bind `loading`, `error`, `total` and `filtered`. Pagination uses `state.pagination.totalItems === state.datasource.filtered`. `TlTableInfo` therefore shows the filtered total; display `state.datasource.total` separately when the unfiltered count is needed.
+
+Emit `datasource:reload`, `datasource:retry` or `datasource:cancel` through `api`. Scope disposal unsubscribes state and cancels outstanding requests. Locally updating a row does not persist it remotely: write through your application API and reload afterwards. The [shared guide](../../examples/vue-server-side/README.md) documents initial queries, page resets, HTTP contracts, current/proposed versions and validation limits. These automatic server-side APIs are not yet published.
 
 ## API
 

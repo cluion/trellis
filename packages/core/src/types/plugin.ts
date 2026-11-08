@@ -52,15 +52,15 @@ export interface TrellisAPI<T = Record<string, unknown>> {
     ) => void;
     /** 重跑管線，可合併狀態更新 */
     recompute: (withState?: Partial<TableState<T>>) => void;
-    /** 替換原始資料並重跑管線 */
-    updateSourceData: (data: T[]) => void;
+    /** 替換原始資料、合併狀態並重跑管線，一次通知訂閱者 */
+    updateSourceData: (data: T[], withState?: Partial<TableState<T>>) => void;
     /** 新增一筆資料到 sourceData 末端，重跑管線 */
     addRow: (item: T) => void;
     /** 依 ID 移除一筆資料，重跑管線 */
     removeRow: (id: DataId) => void;
     /** 依 ID 合併更新一筆資料，重跑管線 */
     updateRow: (id: DataId, partial: Partial<T>) => void;
-    /** 取得篩選排序後但未分頁的完整資料 */
+    /** 取得篩選排序後未切片的資料（server 模式僅當頁） */
     getFilteredData: () => DataRow<T>[];
 }
 
@@ -73,6 +73,10 @@ export interface TrellisPlugin<T = Record<string, unknown>> {
     name: string;
     /** 插件安裝時呼叫。接收完整 API。 */
     install: (api: TrellisAPI<T>) => void;
+    /** 所有插件安裝完成後啟動外部資源 */
+    start?: () => void;
+    /** adapter 暫停或卸載時停止外部資源，可由 start 重新啟動 */
+    stop?: () => void;
     /** 表格銷毀或插件被取消註冊時呼叫 */
     destroy?: () => void;
 }
@@ -96,4 +100,6 @@ export interface TrellisOptions<T = Record<string, unknown>> {
     pageSize?: number;
     /** 列 ID 存取器 — 屬性鍵或函式（預設：陣列索引） */
     rowId?: keyof T | ((row: T, index: number) => DataId);
+    /** 自動啟動插件資源（預設 true）；adapter 可延後至掛載後呼叫 start() */
+    autoStart?: boolean;
 }

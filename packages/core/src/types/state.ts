@@ -36,11 +36,22 @@ export interface PaginationState {
     totalItems: number;
 }
 
+export interface DatasourceState {
+    loading: boolean;
+    error: Error | null;
+    total: number;
+    filtered: number;
+}
+
 /**
  * 完整表格狀態。
  * 不可變快照 — 更新時一律建立新物件。
  */
 export interface TableState<T = Record<string, unknown>> {
+    /** 資料運算模式（預設 client） */
+    dataMode?: 'client' | 'server';
+    /** 遠端資料源的狀態與後端筆數 */
+    datasource?: DatasourceState;
     /** 處理後的資料列 */
     data: DataRow<T>[];
     /** 欄位定義 */
