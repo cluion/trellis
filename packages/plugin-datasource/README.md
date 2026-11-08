@@ -2,7 +2,7 @@
 
 Datasource abstraction for Trellis data tables, with built-in static (local) and remote (HTTP) implementations.
 
-The automatic server-side API below is an unreleased change. Current manifests and proposed release versions are listed in the [release status](../../examples/vue-server-side/README.md#versions-and-release-status); it is not yet available from the current npm versions.
+The automatic server-side API requires datasource 3.2.0 and core 1.13.0 or later, together with the matching plugins listed in the [compatibility table](../../examples/vue-server-side/README.md#versions-and-release-status).
 
 ## Installation
 

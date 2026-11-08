@@ -187,7 +187,7 @@ Props:
 
 ## Server-Side Usage
 
-The automatic datasource API is currently unreleased; see the [version status and shared protocol](../../examples/vue-server-side/README.md). `useTrellis()` subscribes to the same core state as Vue and re-renders on request status or row changes.
+Server-side tables require React adapter 3.9.1, core 1.13.0 and datasource 3.2.0 or later, with the compatible filter/sort/pagination plugins listed in the [shared guide](../../examples/vue-server-side/README.md). `useTrellis()` subscribes to the same core state as Vue and re-renders on request status or row changes.
 
 ```tsx
 import type { ColumnDef } from '@trellisjs/core';

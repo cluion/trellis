@@ -60,7 +60,7 @@ The [complete `UserTable.vue`](../../examples/vue-server-side/UserTable.vue) use
 
 Use `state.value.datasource` in setup code and `state.datasource` in templates to bind `loading`, `error`, `total` and `filtered`. Pagination uses `state.pagination.totalItems === state.datasource.filtered`. `TlTableInfo` therefore shows the filtered total; display `state.datasource.total` separately when the unfiltered count is needed.
 
-Emit `datasource:reload`, `datasource:retry` or `datasource:cancel` through `api`. Scope disposal unsubscribes state and cancels outstanding requests. Locally updating a row does not persist it remotely: write through your application API and reload afterwards. The [shared guide](../../examples/vue-server-side/README.md) documents initial queries, page resets, HTTP contracts, current/proposed versions and validation limits. These automatic server-side APIs are not yet published.
+Emit `datasource:reload`, `datasource:retry` or `datasource:cancel` through `api`. Scope disposal unsubscribes state and cancels outstanding requests. Locally updating a row does not persist it remotely: write through your application API and reload afterwards. Vue adapter 1.1.0 works with core 1.13.0, datasource 3.2.0 and the compatible plugins listed in the [shared guide](../../examples/vue-server-side/README.md), which also documents initial queries, page resets, HTTP contracts and validation limits.
 
 ## API
 
