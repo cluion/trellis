@@ -1,5 +1,27 @@
 # @trellisjs/demo
 
+## 0.1.24
+
+### Patch Changes
+
+- Updated dependencies [[`1f624b7`](https://github.com/cluion/trellis/commit/1f624b700ea8403ed450afdf91e9c55abd91c330)]:
+    - @trellisjs/core@1.13.0
+    - @trellisjs/plugin-datasource@3.2.0
+    - @trellisjs/plugin-filter@3.3.1
+    - @trellisjs/plugin-sort@3.1.1
+    - @trellisjs/plugin-pagination@3.1.1
+    - @trellisjs/react@3.9.1
+    - @trellisjs/plugin-clipboard@1.1.0
+    - @trellisjs/plugin-column-pinning@1.1.1
+    - @trellisjs/plugin-column-resizing@1.1.0
+    - @trellisjs/plugin-column-visibility@1.1.0
+    - @trellisjs/plugin-export-csv@1.1.0
+    - @trellisjs/plugin-inline-edit@1.1.0
+    - @trellisjs/plugin-row-expansion@1.1.0
+    - @trellisjs/plugin-selection@2.1.0
+    - @trellisjs/plugin-state-save@1.1.0
+    - @trellisjs/plugin-virtual-scroll@1.0.0
+
 ## 0.1.23
 
 ### Patch Changes

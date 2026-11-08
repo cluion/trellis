@@ -1,5 +1,11 @@
 # @trellisjs/react
 
+## 3.9.1
+
+### Patch Changes
+
+- [#39](https://github.com/cluion/trellis/pull/39) [`1f624b7`](https://github.com/cluion/trellis/commit/1f624b700ea8403ed450afdf91e9c55abd91c330) Thanks [@cluion](https://github.com/cluion)! - Add automatic server-side queries using the existing TrellisQuery/TrellisResponse protocol, authoritative remote counts, initial queries, abort and stale-response protection, observable loading/errors, reload/retry/cancel events, GET query transformation and response validation. Keep client-side transforms unchanged, add resumable start/stop plugin lifecycle hooks, and stop React requests immediately on unmount with StrictMode support.
+
 ## 3.9.0
 
 ### Minor Changes
