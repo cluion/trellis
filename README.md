@@ -201,11 +201,22 @@ const prisma = new PrismaClient();
 app.get('/api/users', async (req, res) => {
   const query = parseTrellisQuery(req.query);
   const result = await trellisPrismaQuery(prisma.user, query, {
+    select: { id: true, name: true, email: true },
     searchableColumns: ['name', 'email'],
+    filterableColumns: ['name', 'email'],
+    sortableColumns: ['id', 'name', 'email'],
   });
   res.json(result);
 });
 ```
+
+The Prisma helper requires trusted output and query-field allowlists. String
+search follows database collation by default; PostgreSQL callers can opt into
+`stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
+and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha1).
+These backend helper changes are pending a separate alpha release; installing
+`0.1.0-alpha.1` from npm still uses the earlier API. See the
+[backend release-channel policy](./.changeset/README.md#backend-alpha-channel).
 
 ## Architecture
 

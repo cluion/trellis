@@ -5,6 +5,48 @@ const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 1000;
 const SAFE_COLUMN_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function parseInteger(value: unknown, fallback: number, name: string): number {
+    if (value == null || value === '') {
+        return fallback;
+    }
+
+    if (
+        (typeof value !== 'number' && typeof value !== 'string') ||
+        (typeof value === 'string' && value.trim() === '') ||
+        !Number.isSafeInteger(Number(value))
+    ) {
+        throw new TypeError(`${name} must be a safe integer.`);
+    }
+
+    return Number(value) || fallback;
+}
+
+function parseJSON(value: unknown, name: string): unknown {
+    if (typeof value !== 'string') {
+        return value;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch {
+        throw new TypeError(`${name} must contain valid JSON.`);
+    }
+}
+
+function allowedColumn(column: string, columns: readonly string[]): void {
+    if (
+        !Array.isArray(columns) ||
+        !SAFE_COLUMN_RE.test(column) ||
+        !columns.includes(column)
+    ) {
+        throw new TypeError('Query contains a column that is not allowed.');
+    }
+}
+
 /**
  * 從 HTTP 請求參數解析 Trellis 查詢。
  * 支援 JSON body 和 URL query string 兩種格式。
@@ -12,39 +54,88 @@ const SAFE_COLUMN_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 export function parseTrellisQuery(
     raw: Record<string, unknown>,
 ): TrellisServerQuery {
-    const page = Math.max(DEFAULT_PAGE, Number(raw.page) || DEFAULT_PAGE);
+    if (!isRecord(raw)) {
+        throw new TypeError('Query must be an object.');
+    }
+
+    const page = Math.max(
+        DEFAULT_PAGE,
+        parseInteger(raw.page, DEFAULT_PAGE, 'page'),
+    );
     const pageSize = Math.min(
         MAX_PAGE_SIZE,
-        Math.max(1, Number(raw.pageSize) || DEFAULT_PAGE_SIZE),
+        Math.max(1, parseInteger(raw.pageSize, DEFAULT_PAGE_SIZE, 'pageSize')),
     );
+
+    if (!Number.isSafeInteger((page - 1) * pageSize)) {
+        throw new RangeError(
+            'Pagination offset exceeds the safe integer range.',
+        );
+    }
 
     let sort: TrellisServerQuery['sort'];
     let filter: TrellisServerQuery['filter'];
 
     // 解析 sort — 可能是 JSON 字串或物件
-    if (raw.sort) {
-        const parsed =
-            typeof raw.sort === 'string' ? JSON.parse(raw.sort) : raw.sort;
+    if (raw.sort != null) {
+        const parsed = parseJSON(raw.sort, 'sort');
 
-        if (Array.isArray(parsed)) {
-            sort = parsed.filter(
-                (s: any) =>
-                    typeof s.columnId === 'string' &&
-                    (s.direction === 'asc' || s.direction === 'desc'),
-            );
+        if (!Array.isArray(parsed)) {
+            throw new TypeError('sort must be an array.');
         }
+
+        sort = Array.from(parsed, (s: unknown) => {
+            if (
+                !isRecord(s) ||
+                typeof s.columnId !== 'string' ||
+                s.columnId.length === 0 ||
+                (s.direction !== 'asc' && s.direction !== 'desc')
+            ) {
+                throw new TypeError('sort contains an invalid criterion.');
+            }
+
+            return { columnId: s.columnId, direction: s.direction };
+        });
     }
 
     // 解析 filter — 可能是 JSON 字串或物件
-    if (raw.filter) {
-        const parsed =
-            typeof raw.filter === 'string'
-                ? JSON.parse(raw.filter)
-                : raw.filter;
+    if (raw.filter != null) {
+        const parsed = parseJSON(raw.filter, 'filter');
 
-        if (parsed && typeof parsed === 'object') {
-            filter = parsed as TrellisServerQuery['filter'];
+        if (!isRecord(parsed)) {
+            throw new TypeError('filter must be an object.');
         }
+
+        if (parsed.global !== undefined && typeof parsed.global !== 'string') {
+            throw new TypeError('filter.global must be a string.');
+        }
+
+        if (parsed.columns !== undefined && !isRecord(parsed.columns)) {
+            throw new TypeError('filter.columns must be an object.');
+        }
+
+        const entries = Object.entries(parsed.columns ?? {});
+
+        for (const [column, value] of entries) {
+            if (
+                !column ||
+                (value != null &&
+                    typeof value !== 'string' &&
+                    typeof value !== 'boolean' &&
+                    !(typeof value === 'number' && Number.isFinite(value)))
+            ) {
+                throw new TypeError(
+                    'filter.columns contains an invalid value.',
+                );
+            }
+        }
+
+        filter = {
+            ...(parsed.global === undefined ? {} : { global: parsed.global }),
+            ...(parsed.columns === undefined
+                ? {}
+                : { columns: Object.fromEntries(entries) }),
+        };
     }
 
     return { page, pageSize, sort, filter };
@@ -55,9 +146,11 @@ export function parseTrellisQuery(
  * 全域搜尋 → 跨欄 OR；單欄篩選 → AND。
  */
 export function buildWhereClause(
-    columns: string[],
+    columns: readonly string[],
     filter?: TrellisServerQuery['filter'],
 ): WhereClause {
+    filter = parseTrellisQuery({ filter }).filter;
+
     if (!filter) {
         return { sql: '', params: [] };
     }
@@ -67,8 +160,12 @@ export function buildWhereClause(
 
     // 全域搜尋 — 所有欄位 OR
     if (filter.global) {
-        const safeColumns = columns.filter((c) => SAFE_COLUMN_RE.test(c));
-        const orConditions = safeColumns.map((col) => {
+        if (columns.length === 0) {
+            throw new TypeError('Global search requires allowed columns.');
+        }
+
+        const orConditions = columns.map((col) => {
+            allowedColumn(col, columns);
             params.push(`%${filter.global}%`);
 
             return `${col} LIKE ?`;
@@ -82,11 +179,9 @@ export function buildWhereClause(
     // 單欄篩選 — AND
     if (filter.columns) {
         for (const [colId, value] of Object.entries(filter.columns)) {
-            if (value == null || value === '') {
-                continue;
-            }
+            allowedColumn(colId, columns);
 
-            if (!SAFE_COLUMN_RE.test(colId)) {
+            if (value == null || value === '') {
                 continue;
             }
 
@@ -110,14 +205,21 @@ export function buildWhereClause(
  * 建構 SQL ORDER BY 子句。
  * 過濾不安全的欄位名稱防止 SQL injection。
  */
-export function buildOrderByClause(sort?: TrellisServerQuery['sort']): string {
+export function buildOrderByClause(
+    sort: TrellisServerQuery['sort'],
+    columns: readonly string[],
+): string {
+    sort = parseTrellisQuery({ sort }).sort;
+
     if (!sort || sort.length === 0) {
         return '';
     }
 
-    const clauses = sort
-        .filter((s) => SAFE_COLUMN_RE.test(s.columnId))
-        .map((s) => `${s.columnId} ${s.direction === 'desc' ? 'DESC' : 'ASC'}`);
+    const clauses = sort.map((s) => {
+        allowedColumn(s.columnId, columns ?? []);
+
+        return `${s.columnId} ${s.direction === 'desc' ? 'DESC' : 'ASC'}`;
+    });
 
     return clauses.length > 0 ? `ORDER BY ${clauses.join(', ')}` : '';
 }

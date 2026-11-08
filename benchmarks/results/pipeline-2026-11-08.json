@@ -1,0 +1,129 @@
+{
+    "baselineStage": "Local P1 worktree before snapshot protection/cache",
+    "targetStage": "Local P1 + P2 worktree; not yet committed or released",
+    "baseCommit": "a40720b4dd77f4775f71403eef2e916a09801e60",
+    "before": {
+        "node": "v24.19.0",
+        "platform": "linux",
+        "arch": "arm64",
+        "vitest": "4.1.12",
+        "samples": 9,
+        "description": "Core CPU benchmark with a mock scroll container; excludes browser rendering and HTTP. Nine measured samples after two warmups; p95 uses the largest sample.",
+        "results": [
+            {
+                "rows": 10000,
+                "filtering": {
+                    "medianMs": 1.262,
+                    "p95Ms": 1.646
+                },
+                "sorting": {
+                    "medianMs": 1.671,
+                    "p95Ms": 1.808
+                },
+                "combinedRecompute": {
+                    "medianMs": 0.921,
+                    "p95Ms": 0.985
+                },
+                "scrollBatch": {
+                    "events": 20,
+                    "medianMs": 19.079,
+                    "p95Ms": 20.291
+                },
+                "scrollTransformCalls": {
+                    "filter": 220,
+                    "sort": 220
+                },
+                "measuredAndWarmupScrollEvents": 220,
+                "visibleRows": 20
+            },
+            {
+                "rows": 50000,
+                "filtering": {
+                    "medianMs": 4.925,
+                    "p95Ms": 6.23
+                },
+                "sorting": {
+                    "medianMs": 10.728,
+                    "p95Ms": 12.571
+                },
+                "combinedRecompute": {
+                    "medianMs": 6.698,
+                    "p95Ms": 7.745
+                },
+                "scrollBatch": {
+                    "events": 20,
+                    "medianMs": 108.896,
+                    "p95Ms": 118.442
+                },
+                "scrollTransformCalls": {
+                    "filter": 220,
+                    "sort": 220
+                },
+                "measuredAndWarmupScrollEvents": 220,
+                "visibleRows": 20
+            }
+        ]
+    },
+    "after": {
+        "node": "v24.19.0",
+        "platform": "linux",
+        "arch": "arm64",
+        "vitest": "4.1.12",
+        "samples": 9,
+        "description": "Core CPU benchmark with a mock scroll container; excludes browser rendering and HTTP. Nine measured samples after two warmups; p95 uses the largest sample.",
+        "results": [
+            {
+                "rows": 10000,
+                "filtering": {
+                    "medianMs": 1.615,
+                    "p95Ms": 1.728
+                },
+                "sorting": {
+                    "medianMs": 3.036,
+                    "p95Ms": 3.871
+                },
+                "combinedRecompute": {
+                    "medianMs": 1.766,
+                    "p95Ms": 1.938
+                },
+                "scrollBatch": {
+                    "events": 20,
+                    "medianMs": 0.245,
+                    "p95Ms": 0.75
+                },
+                "scrollTransformCalls": {
+                    "filter": 0,
+                    "sort": 0
+                },
+                "measuredAndWarmupScrollEvents": 220,
+                "visibleRows": 20
+            },
+            {
+                "rows": 50000,
+                "filtering": {
+                    "medianMs": 8.171,
+                    "p95Ms": 10.573
+                },
+                "sorting": {
+                    "medianMs": 17.176,
+                    "p95Ms": 21.279
+                },
+                "combinedRecompute": {
+                    "medianMs": 9.531,
+                    "p95Ms": 11.547
+                },
+                "scrollBatch": {
+                    "events": 20,
+                    "medianMs": 0.277,
+                    "p95Ms": 0.357
+                },
+                "scrollTransformCalls": {
+                    "filter": 0,
+                    "sort": 0
+                },
+                "measuredAndWarmupScrollEvents": 220,
+                "visibleRows": 20
+            }
+        ]
+    }
+}

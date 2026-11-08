@@ -18,6 +18,11 @@ export type {
 } from './types/column';
 export type { DataRow, DataId } from './types/data';
 export type {
+    TransformFn,
+    TransformResult,
+    TransformOptions,
+} from './types/pipeline';
+export type {
     SortCriterion,
     SortState,
     FilterState,

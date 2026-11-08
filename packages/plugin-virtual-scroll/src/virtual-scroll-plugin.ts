@@ -1,4 +1,4 @@
-import type { TrellisPlugin, TrellisAPI, TableState } from '@trellisjs/core';
+import type { TrellisPlugin, TrellisAPI } from '@trellisjs/core';
 import type { VirtualScrollOptions, VirtualScrollState } from './types';
 
 /** 預設 overscan 行數 */
@@ -48,11 +48,20 @@ export function createVirtualScrollPlugin(
             ? DEFAULT_ROW_HEIGHT
             : options.rowHeight;
 
+    if (!Number.isFinite(rowHeight) || rowHeight <= 0) {
+        throw new TypeError('rowHeight must be a positive finite number.');
+    }
+
+    if (!Number.isSafeInteger(overscan) || overscan < 0) {
+        throw new TypeError('overscan must be a non-negative safe integer.');
+    }
+
     // 內部狀態
     let scrollElement: HTMLElement | null = null;
     let rafId: number | null = null;
     let dirty = false;
     let apiRef: TrellisAPI | null = null;
+    let lastQuery: string | undefined;
 
     function handleScroll(): void {
         if (!dirty) {
@@ -70,25 +79,7 @@ export function createVirtualScrollPlugin(
             return;
         }
 
-        const state = apiRef.getState();
-        // virtualScroll transform 已經切過一次，需要用 pagination 後的資料長度
-        // 但 state.data 已經被 transform 切過了，需要用 pagination.totalItems / pageSize 來估算
-        // 更好的做法：用 sourceData 數量或 totalItems
-        const totalItems = state.pagination.totalItems;
-
-        const { startIndex, endIndex } = computeVisibleRange(
-            scrollElement.scrollTop,
-            scrollElement.clientHeight,
-            totalItems,
-            rowHeight,
-            overscan,
-        );
-
-        const totalHeight = totalItems * rowHeight;
-
-        apiRef.recompute({
-            virtualScroll: { startIndex, endIndex, totalHeight, rowHeight },
-        } as Partial<TableState>);
+        apiRef.recomputeView();
     }
 
     const plugin: VirtualScrollPlugin = {
@@ -99,7 +90,42 @@ export function createVirtualScrollPlugin(
 
             // 註冊 transform (priority=35)，在 pagination 之後執行
             api.registerTransform('virtualScroll', 35, (data, state) => {
-                const vs = state.virtualScroll;
+                let vs = state.virtualScroll;
+
+                if (scrollElement) {
+                    const query = JSON.stringify([
+                        state.pagination.page,
+                        state.pagination.pageSize,
+                        state.filtering,
+                        state.sorting,
+                    ]);
+
+                    if (lastQuery !== undefined && query !== lastQuery) {
+                        scrollElement.scrollTop = 0;
+                    }
+
+                    lastQuery = query;
+                    const maxScrollTop = Math.max(
+                        0,
+                        data.length * rowHeight - scrollElement.clientHeight,
+                    );
+                    const scrollTop = Math.max(
+                        0,
+                        Math.min(scrollElement.scrollTop, maxScrollTop),
+                    );
+                    scrollElement.scrollTop = scrollTop;
+                    vs = {
+                        ...computeVisibleRange(
+                            scrollTop,
+                            scrollElement.clientHeight,
+                            data.length,
+                            rowHeight,
+                            overscan,
+                        ),
+                        totalHeight: data.length * rowHeight,
+                        rowHeight,
+                    };
+                }
 
                 if (!vs) {
                     return data;
@@ -108,10 +134,23 @@ export function createVirtualScrollPlugin(
                 const { startIndex, endIndex } = vs;
 
                 // Clamp 到有效範圍
-                const clampedStart = Math.max(0, startIndex);
+                const clampedStart = Math.min(
+                    data.length,
+                    Math.max(0, startIndex),
+                );
                 const clampedEnd = Math.min(data.length, endIndex);
 
-                return data.slice(clampedStart, clampedEnd);
+                return {
+                    data: data.slice(clampedStart, clampedEnd),
+                    state: {
+                        virtualScroll: {
+                            ...vs,
+                            startIndex: clampedStart,
+                            endIndex: Math.max(clampedStart, clampedEnd),
+                            totalHeight: data.length * vs.rowHeight,
+                        },
+                    },
+                };
             });
         },
 
@@ -120,6 +159,7 @@ export function createVirtualScrollPlugin(
             this.detachScrollContainer();
 
             scrollElement = element;
+            lastQuery = undefined;
             scrollElement.addEventListener('scroll', handleScroll, {
                 passive: true,
             });

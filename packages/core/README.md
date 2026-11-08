@@ -71,6 +71,17 @@ table.api.on('data:removed', (id) => console.log('Removed:', id))
 table.api.on('data:updated', (id) => console.log('Updated:', id))
 ```
 
+Automatically generated row IDs are monotonically increasing strings within a
+table instance and are not reused after removal or source replacement. Explicit
+IDs must be unique; ambiguous numeric/string duplicates such as `1` and `'1'`
+are rejected before changing data. Property-based `rowId` values become strings;
+callback IDs retain their string/number type. Pass the actual `row.id` to row
+operations. Use a stable backend `rowId` for remote data and persistent selection.
+
+Slicing transforms may return `{ data, state: { virtualScroll } }` to publish
+viewport metadata atomically with their rows. Returning a row array remains
+supported. `TransformFn` and `TransformResult` are exported for plugin authors.
+
 ## API Reference
 
 ### `Trellis<T>`
@@ -97,8 +108,9 @@ const table = new Trellis(options)
 | `emit` | `(event, payload: TrellisEventMap[event]) => void` | `void` | Dispatch an event; see [Typed events](#typed-events) |
 | `registerSlot` | `(name: string, renderer: SlotRenderer) => () => void` | Unregister fn | Register a named render slot |
 | `getSlot` | `(name: string) => SlotRenderer \| undefined` | Renderer or undefined | Retrieve a registered slot |
-| `registerTransform` | `(name: string, priority: number, fn: TransformFn<T>) => void` | `void` | Register a pipeline transform |
+| `registerTransform` | `(name: string, priority: number, fn: TransformFn<T>, options?: TransformOptions<T>) => void` | `void` | Register a pipeline transform; caching requires an explicit dependency declaration |
 | `recompute` | `(withState?: Partial<TableState<T>>) => void` | `void` | Re-run pipeline, optionally merging state. Subscribers are notified once, after the pipeline finishes |
+| `recomputeView` | `() => void` | `void` | Refresh viewport transforms, reusing declared pure transform results when inputs and dependencies are unchanged |
 | `updateSourceData` | `(data: T[], withState?: Partial<TableState<T>>) => void` | `void` | Replace source data, optionally merge state and re-run pipeline with one notification |
 | `addRow` | `(item: T) => void` | `void` | Append a row to sourceData and re-run pipeline. Emits `data:added` |
 | `removeRow` | `(id: DataId) => void` | `void` | Remove a row by ID and re-run pipeline. Emits `data:removed` |
@@ -110,6 +122,52 @@ const table = new Trellis(options)
 Transforms run in ascending `priority`. Built-in plugins use filter `10`, sort `20`, pagination `30` and virtualScroll `35`.
 
 Transforms with priority `>= 30` are treated as slicing: they only narrow what is rendered in `state.data`. In client mode, `pagination.totalItems` and `getFilteredData()` use the result of the transforms below `30`, whether or not the pagination plugin is installed.
+
+### Snapshot ownership
+
+`getState()`, subscriber callbacks and updater callbacks expose protected copies
+of table-owned plain objects, arrays, row metadata and Sets. Mutating nested
+fields or calling `selection.add/delete/clear` is unsupported and rejected at
+runtime. Use table events or return a new container from `setState`, for example
+`{ selection: new Set([...state.selection, id]) }`. Unchanged protected branches
+are shared across snapshots; mutable caller inputs are copied.
+Readonly Sets remain iterable and support `has`/`size`/`forEach`; serialize them
+with `Array.from`. They are proxy-backed snapshots and cannot be passed directly
+to `structuredClone`.
+
+`row.original` keeps the application's original object reference and is not
+cloned or frozen. Framework render values and class instances (including Date,
+Map and Error) also remain opaque application values. Mutating these values
+does not notify subscribers. Prefer `updateRow`/`updateSourceData`; use
+`recompute()` when deliberately refreshing externally changed payloads or
+accessor/comparator behavior. Column definitions are copied: update them through
+the state API rather than mutating the original options object.
+
+### Viewport transform cache
+
+The built-in filter, sort and pagination transforms declare the state fields
+they read. Virtual scrolling calls `recomputeView()` so scrolling does not rerun
+unchanged shaping work. `recompute()` remains a forced refresh and source-data
+mutations also recompute everything.
+
+Custom transforms are uncached by default. Opt in only for a pure transform
+whose complete dependencies are its input rows and the declared top-level state
+fields. Unknown dependencies or mutable external values require leaving the
+transform uncached or explicitly forcing a refresh.
+Transforms receive a mutable array copy while row metadata remains protected.
+Returned arrays are also copied and protected before they enter the cache, so
+captured callback arrays cannot alter a stored result.
+
+```ts
+api.registerTransform('custom-filter', 15, (rows, state) => {
+  return rows.filter(row => row.original.name.includes(state.filtering.query));
+}, { stateKeys: ['filtering'] });
+```
+
+Each opted-in transform retains one result. Input identity or declared state
+reference changes invalidate that result; uncached transforms still run and
+their changed outputs invalidate downstream caches. Viewport metadata and rows
+are published together. See the [CPU benchmark and its limits](../../benchmarks/README.md).
 
 ### Server-side state and operations
 

@@ -259,6 +259,74 @@ describe('Transform Pipeline — 沒有 pagination 插件', () => {
 });
 
 describe('Transform Pipeline — 通知次數', () => {
+    it('allows a transform to clear previously published viewport metadata', () => {
+        let visible = true;
+        const table = new Trellis({
+            data: sampleData,
+            columns,
+            plugins: [
+                {
+                    name: 'viewport',
+                    install(api) {
+                        api.registerTransform('viewport', 35, (data) => ({
+                            data,
+                            state: {
+                                virtualScroll: visible
+                                    ? {
+                                          startIndex: 0,
+                                          endIndex: data.length,
+                                          totalHeight: data.length * 40,
+                                          rowHeight: 40,
+                                      }
+                                    : undefined,
+                            },
+                        }));
+                    },
+                },
+            ],
+        });
+        expect(table.api.getState().virtualScroll).toBeDefined();
+        visible = false;
+        table.api.recompute();
+        expect(table.api.getState().virtualScroll).toBeUndefined();
+    });
+
+    it('publishes rows and viewport metadata in the same notification', () => {
+        const table = new Trellis({
+            data: sampleData,
+            columns,
+            plugins: [
+                {
+                    name: 'viewport',
+                    install(api) {
+                        api.registerTransform('viewport', 35, (data) => ({
+                            data: data.slice(1, 2),
+                            state: {
+                                virtualScroll: {
+                                    startIndex: 1,
+                                    endIndex: 2,
+                                    totalHeight: data.length * 40,
+                                    rowHeight: 40,
+                                },
+                            },
+                        }));
+                    },
+                },
+            ],
+        });
+        const seen: unknown[] = [];
+        table.api.subscribe((state) =>
+            seen.push([
+                state.data[0].id,
+                state.virtualScroll?.startIndex,
+                state.virtualScroll?.totalHeight,
+            ]),
+        );
+        table.api.recompute();
+        expect(seen).toEqual([['1', 1, 120]]);
+        expect(table.api.getState().pagination.totalItems).toBe(3);
+    });
+
     it('recompute 只通知一次，且通知時資料已更新', () => {
         const reverse: TrellisPlugin = {
             name: 'reverse',

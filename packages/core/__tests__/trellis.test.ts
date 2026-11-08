@@ -190,6 +190,148 @@ describe('Trellis', () => {
     });
 
     // --- 動態資料操作 ---
+    describe('snapshot ownership', () => {
+        it('protects row metadata and columns without freezing user data or inputs', () => {
+            const data = [{ id: 1, name: 'Alice' }];
+            const columns = [
+                {
+                    id: 'name',
+                    accessor: 'name' as const,
+                    header: 'Name',
+                    attrs: { title: 'original' },
+                },
+            ];
+            const table = new Trellis({ data, columns, rowId: 'id' });
+            const state = table.api.getState();
+            expect(state.data[0].original).toBe(data[0]);
+            expect(Object.isFrozen(data[0])).toBe(false);
+            expect(() => {
+                state.data[0].id = 'changed';
+            }).toThrow(TypeError);
+            expect(() => {
+                table.api.getFilteredData()[0].index = 99;
+            }).toThrow(TypeError);
+            expect(() => {
+                state.columns[0].attrs!.title = 'changed';
+            }).toThrow(TypeError);
+            columns[0].attrs.title = 'outside';
+            expect(state.columns[0].attrs?.title).toBe('original');
+            data[0].name = 'Bob';
+            table.api.recompute();
+            expect(table.api.getState().data[0].original.name).toBe('Bob');
+            expect(table.api.getState().data[0].original).toBe(data[0]);
+        });
+
+        it('preserves framework render values as opaque application objects', () => {
+            const icon = { type: 'span', el: null as object | null };
+            trellis.api.setState(() => ({
+                rowExpansion: { mode: 'multi', expandIcon: icon },
+            }));
+            expect(trellis.api.getState().rowExpansion?.expandIcon).toBe(icon);
+            icon.el = {};
+            expect(Object.isFrozen(icon)).toBe(false);
+        });
+    });
+
+    describe('row ID uniqueness', () => {
+        it('does not reuse an automatic ID after deletion', () => {
+            trellis.api.removeRow('1');
+            trellis.api.addRow({
+                name: 'Dave',
+                age: 28,
+                email: 'dave@test.com',
+            });
+            expect(trellis.api.getState().data.map((row) => row.id)).toEqual([
+                '0',
+                '2',
+                '3',
+            ]);
+            trellis.api.updateRow('2', { name: 'Changed' });
+            expect(
+                trellis.api.getState().data.map((row) => row.original.name),
+            ).toEqual(['Alice', 'Changed', 'Dave']);
+        });
+
+        it('keeps automatic IDs unique across source replacements', () => {
+            trellis.api.updateSourceData(sampleData);
+            expect(trellis.api.getState().data.map((row) => row.id)).toEqual([
+                '3',
+                '4',
+                '5',
+            ]);
+            trellis.api.updateSourceData([]);
+            trellis.api.addRow(sampleData[0]);
+            expect(trellis.api.getState().data[0].id).toBe('6');
+        });
+
+        it('reserves explicit IDs before generating missing IDs', () => {
+            const table = new Trellis({
+                data: [{ id: undefined }, { id: '0' }, { id: '2' }],
+                columns: [],
+                rowId: 'id',
+            });
+            expect(table.api.getState().data.map((row) => row.id)).toEqual([
+                '1',
+                '0',
+                '2',
+            ]);
+            table.api.addRow({ id: undefined });
+            expect(table.api.getState().data[3].id).toBe('3');
+        });
+
+        it('rejects duplicate IDs before changing rows or notifying subscribers', () => {
+            const table = new Trellis({
+                data: [{ id: 1 }],
+                columns: [],
+                rowId: 'id',
+            });
+            const previous = table.api.getState();
+            const listener = vi.fn();
+            table.api.subscribe(listener);
+            expect(() => table.api.addRow({ id: 1 })).toThrow(
+                /Duplicate row ID/,
+            );
+            expect(() =>
+                table.api.updateSourceData([{ id: 2 }, { id: 2 }]),
+            ).toThrow(/Duplicate row ID/);
+            expect(table.api.getState()).toBe(previous);
+            expect(listener).not.toHaveBeenCalled();
+        });
+
+        it('preserves callback ID types and rejects ambiguous string/number keys', () => {
+            const table = new Trellis({
+                data: [{ id: 1 }],
+                columns: [],
+                rowId: (row) => row.id,
+            });
+            expect(table.api.getState().data[0].id).toBe(1);
+            table.api.removeRow(1);
+            expect(table.api.getState().data).toHaveLength(0);
+            expect(
+                () =>
+                    new Trellis({
+                        data: [{ id: 1 }, { id: '1' }],
+                        columns: [],
+                        rowId: (row) => row.id,
+                    }),
+            ).toThrow(/Duplicate row ID/);
+        });
+
+        it.each([NaN, Infinity, {}, undefined])(
+            'rejects invalid callback IDs %j',
+            (id) => {
+                expect(
+                    () =>
+                        new Trellis({
+                            data: [{}],
+                            columns: [],
+                            rowId: () => id as never,
+                        }),
+                ).toThrow(/Row IDs/);
+            },
+        );
+    });
+
     describe('addRow', () => {
         it('adds a row to sourceData and updates state.data', () => {
             trellis.api.addRow({

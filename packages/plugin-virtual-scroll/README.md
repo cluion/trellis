@@ -50,6 +50,14 @@ return (
 - **Pagination**：決定「總資料中的哪一段」（資料層分頁）
 - **VirtualScroll**：決定「分頁資料中的哪幾行要渲染」（渲染層切片）
 
+高度與索引使用進入虛擬捲動階段的當頁資料量，不使用分頁前的
+`pagination.totalItems`。遠端模式保留後端 `filtered` 作為分頁總數，捲動範圍
+只涵蓋已載入頁。切頁、每頁筆數、搜尋或排序改變時回到捲動頂端；資料縮減時
+會校正捲動位置，零筆資料的高度與索引皆為零。
+
+這項修補需搭配支援 `TransformResult`／`recomputeView()` 的新版 core 一起使用；待 Changesets
+版本流程產生版號後再一起發布，目前工作目錄的版本號尚未調整。
+
 建議配置：
 - 大資料量（10,000+ 筆）：設定 `pageSize` 為資料總量（等同不分頁），讓虛擬滾動管理渲染
 - 中等資料量：保持 pagination 正常 pageSize，虛擬滾動減少每頁的 DOM 節點數
@@ -88,7 +96,7 @@ React hook，管理滾動容器綁定和生命週期。
 interface VirtualScrollState {
   startIndex: number;  // 可視區域起始索引（含 overscan）
   endIndex: number;    // 可視區域結束索引（含 overscan）
-  totalHeight: number; // 全部資料的總高度 (px)
+  totalHeight: number; // 當頁資料的總高度 (px)
   rowHeight: number;   // 單行高度 (px)
 }
 ```
@@ -97,5 +105,13 @@ interface VirtualScrollState {
 
 - **Transform-based**：透過 `registerTransform` 加入 pipeline（priority=35），與 filter/sort/pagination 一致
 - **rAF 節流**：滾動事件使用 `requestAnimationFrame` + dirty flag 合併，每 frame 只重算一次
+- **視窗快取**：以 `recomputeView()` 重用已宣告依賴的 filter／sort／pagination 結果；未宣告依賴的自訂 transform 仍會執行。外部資料變更使用 `updateRow`、`updateSourceData` 或強制 `recompute()`。
 - **佔位撐高**：上下空白 `<tr>` 佔位，確保滾動條正確反映資料總量
 - **固定行高為主**：v1 以固定行高計算，動態行高標記為 experimental
+
+## 驗證範圍
+
+2026-11-08 在實際瀏覽器分別掛載 Vue 與 React adapter，驗證當頁捲動到底、
+跨頁搜尋重設、篩選後排序、最後一頁、最後一頁底部、資料縮減及零筆，共
+14 組操作通過。另有自動回歸測試涵蓋遠端總數保留與反向插件註冊。
+這次未執行跨瀏覽器／行動裝置矩陣或效能基準。
