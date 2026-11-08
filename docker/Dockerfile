@@ -40,8 +40,9 @@ RUN set -eux; \
             ;; \
     esac; \
     gitleaks_archive='/tmp/gitleaks.tar.gz'; \
-    curl -fsSL \
-        "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gitleaks_asset_arch}.tar.gz" \
+    curl -fsSL --retry 4 --retry-delay 5 --retry-max-time 90 \
+        --connect-timeout 15 --max-time 30 -H 'Cache-Control: no-cache' \
+        "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gitleaks_asset_arch}.tar.gz?download=1" \
         -o "${gitleaks_archive}"; \
     echo "${gitleaks_sha256}  ${gitleaks_archive}" | sha256sum --check --strict; \
     tar -xzf "${gitleaks_archive}" -C /usr/local/bin gitleaks; \
