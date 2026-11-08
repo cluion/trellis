@@ -186,7 +186,7 @@ trellis.api.emit('sort:change', { columnId: 'age', direction: 'desc' });
 
 Install `createDatasourcePlugin({ datasource, initialQuery })` alongside the existing filter, sort and pagination plugins. They update query state while the backend searches, sorts and paginates. Observe `state.datasource` for loading/errors and remote counts; use `datasource:reload`, `datasource:retry` and `datasource:cancel` commands.
 
-The [integration guide](./examples/vue-server-side/README.md) contains the public API, GET/POST contract, zero/out-of-range behavior, current/proposed versions and validation results. The complete [Vue SFC example](./examples/vue-server-side/UserTable.vue) demonstrates the UI flow. This feature is currently unreleased; the guide distinguishes current package manifests from planned versions.
+The [integration guide](./examples/vue-server-side/README.md) contains the public API, GET/POST contract, zero/out-of-range behavior, compatible package versions and validation results. The complete [Vue SFC example](./examples/vue-server-side/UserTable.vue) demonstrates the UI flow. Server-side tables require the compatible core, datasource and plugin versions listed in the guide; npm installation depends on completion of the corresponding release workflow.
 
 ### Backend (Node.js)
 

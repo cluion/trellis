@@ -131,21 +131,21 @@ Copy [`UserTable.vue`](./UserTable.vue) into a Vue 3 application and provide `GE
 
 ## Versions and release status
 
-This is an unreleased local change. Package manifests retain their current versions; the changeset proposes the versions below. Do not assume npm already contains these APIs.
+The table below lists the minimum package versions for the server-side APIs and the versions prepared in [version PR #40](https://github.com/cluion/trellis/pull/40). Source manifests and changelogs are versioned together; installation from npm requires the corresponding release workflow to complete. Check [GitHub Releases](https://github.com/cluion/trellis/releases) for publication status.
 
-| Package | Current manifest | Proposed next release |
+| Package | Server-side minimum | Prepared version |
 | --- | --- | --- |
-| `@trellisjs/core` | 1.12.0 | 1.13.0 |
-| `@trellisjs/plugin-datasource` | 3.1.0 | 3.2.0 |
-| `@trellisjs/plugin-filter` | 3.3.0 | 3.3.1 |
-| `@trellisjs/plugin-sort` | 3.1.0 | 3.1.1 |
-| `@trellisjs/plugin-pagination` | 3.1.0 | 3.1.1 |
-| `@trellisjs/react` | 3.9.0 | 3.9.1 |
-| `@trellisjs/vue` | 1.1.0 | unchanged; use with the updated core/plugins |
+| `@trellisjs/core` | 1.13.0 | 1.13.0 |
+| `@trellisjs/plugin-datasource` | 3.2.0 | 3.2.0 |
+| `@trellisjs/plugin-filter` | 3.3.1 | 3.3.1 |
+| `@trellisjs/plugin-sort` | 3.1.1 | 3.1.1 |
+| `@trellisjs/plugin-pagination` | 3.1.1 | 3.1.1 |
+| `@trellisjs/react` | 3.9.1 | 3.9.1 |
+| `@trellisjs/vue` | 1.1.0 | 1.1.0; use with the updated core/plugins |
 
 Release these core and plugin updates together. The existing Vue adapter binds the shared core state without a new API.
 
-The [pending changeset](../../.changeset/server-side-datasource.md) records release intent. Package versions and generated changelogs have not been advanced; the release workflow will generate them when the versioning change is applied. No publish has been performed.
+The changeset from [feature PR #39](https://github.com/cluion/trellis/pull/39) has been consumed by the versioning workflow. Version PR #40 contains the package version and CHANGELOG updates. Merging that PR triggers the separate publication workflow.
 
 ## Validation — 2026-11-08
 

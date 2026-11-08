@@ -1,6 +1,6 @@
 # Server-side 發布準備 — 2026-11-08
 
-本機已完成實作提交、發布前檢查、版本計畫與封裝演練。正式版本仍由 Changesets 工作流程產生；尚未 push、建立 tag、發布 npm 或部署官網。
+本文件保留發布前的本機驗證，以及 [Changesets 版本 PR #40](https://github.com/cluion/trellis/pull/40) 合併前的核對紀錄。[功能 PR #39](https://github.com/cluion/trellis/pull/39) 已 squash 合併至 `main`，提交為 `1f624b700ea8403ed450afdf91e9c55abd91c330`。正式發布狀態以 [GitHub Releases](https://github.com/cluion/trellis/releases) 為準；官網整合需另行驗收。
 
 ## 變更與版本
 
@@ -8,7 +8,7 @@
 
 `pnpm changeset status --output` 確認以下公開套件的發布計畫：
 
-| 套件 | 目前 manifest | 預定發布 |
+| 套件 | 升版前 | 版本 PR 版號 |
 | --- | --- | --- |
 | `@trellisjs/core` | 1.12.0 | 1.13.0 |
 | `@trellisjs/plugin-datasource` | 3.1.0 | 3.2.0 |
@@ -17,7 +17,7 @@
 | `@trellisjs/plugin-pagination` | 3.1.0 | 3.1.1 |
 | `@trellisjs/react` | 3.9.0 | 3.9.1 |
 
-私人 `@trellisjs/demo` 預計由 0.1.23 升為 0.1.24，不會發布 npm。Vue adapter 維持 1.1.0。本次沒有在正式工作區套用 `changeset version`；manifest 與正式 CHANGELOG 將由版本 PR 一併更新。
+私人 `@trellisjs/demo` 由 0.1.23 升為 0.1.24，不會發布 npm。Vue adapter 維持 1.1.0。Changesets 已在版本 PR 中更新這七個套件的 manifest 與 CHANGELOG，並移除已消耗的 changeset；套件 manifest 除版號外沒有其他變更。
 
 ## 驗證證據
 
@@ -55,11 +55,17 @@
 - 全新 consumer 只使用解包後的六個套件，通過 ESM／CJS 載入及嚴格 TypeScript 檢查；React peer 使用本機已安裝版本。
 - consumer 實際驗證初始查詢、跨頁搜尋／排序、遠端總數與 stop／start 流程。
 
+## 遠端與版本 PR 核對
+
+- 功能 PR #39 的遠端 CI 已通過，共 585 項測試，並已合併。
+- 產生版本 PR 的 [Release run](https://github.com/cluion/trellis/actions/runs/42453169612) 已成功完成。
+- 版本 PR 的六個公開版號及私人 demo 版號符合原定 Changesets 計畫，CHANGELOG 正確引用 PR #39 與其 squash 提交。
+- changeset 被移除後，文件改用穩定的 PR／版本相容性連結，避免失效連結與過時的「尚未升版」說明。
+
 ## 後續發布關卡
 
-1. 取得 push／PR 授權，將本機提交送交遠端審查與 CI。
-2. 合併後由既有 Changesets 工作流程建立版本 PR，審查 manifest、CHANGELOG 與版號。
-3. 版本 PR 合併後驗證 npm 發布、各套件 tag 與 GitHub Release。
-4. 官網依[串接指南](./README.md)與 [Vue 範例](./UserTable.vue)接上實際後端，另做真實瀏覽器與後端整合驗收。
+1. 完成版本 PR #40 的 CI 與正式 manifest 封裝驗證。
+2. 審查並授權合併版本 PR；合併將啟動 npm 發布，需另外核對公開套件、tag 與 GitHub Release。
+3. 官網依[串接指南](./README.md)與 [Vue 範例](./UserTable.vue)接上實際後端，另做真實瀏覽器與後端整合驗收。
 
 本機通過檢查不代表遠端 CI、npm 發布或官網整合已完成。

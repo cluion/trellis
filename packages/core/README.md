@@ -2,7 +2,7 @@
 
 Headless datatable engine -- state management, plugin system, slot registry, and event bus. Framework-agnostic; rendering is handled by adapters.
 
-The server-side state and resumable lifecycle APIs described below are pending release; see the [current/proposed versions](../../examples/vue-server-side/README.md#versions-and-release-status).
+The server-side state and resumable lifecycle APIs require core 1.13.0 or later; see the [compatible package versions](../../examples/vue-server-side/README.md#versions-and-release-status).
 
 ## Installation
 
