@@ -1,5 +1,13 @@
 # @trellisjs/plugin-filter
 
+## 3.3.2
+
+### Patch Changes
+
+- [#41](https://github.com/cluion/trellis/pull/41) [`347ec6d`](https://github.com/cluion/trellis/commit/347ec6d0f73fe2e1250ec42387c082e69d0482e3) Thanks [@cluion](https://github.com/cluion)! - Protect table-owned state containers and row metadata with copied immutable snapshots, including readonly Set operations, while preserving original row payload and framework render-value ownership. Cache explicitly declared transform dependencies during recomputeView(), keep legacy transforms uncached, and retain recompute() as a forced refresh.
+
+    Filter/sort/pagination declare their dependencies and virtual scrolling reuses their results. Add a reproducible 10,000/50,000-row core CPU benchmark, including the cold-query cost of snapshot protection.
+
 ## 3.3.1
 
 ### Patch Changes
