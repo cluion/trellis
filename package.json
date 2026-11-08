@@ -10,7 +10,7 @@
         "clean": "pnpm -r run clean && rm -rf node_modules",
         "changeset": "changeset",
         "version": "changeset version",
-        "release": "pnpm -r build && changeset publish",
+        "release": "pnpm -r build && node scripts/backend-release.mjs stable",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "format": "prettier --write .",

@@ -6,17 +6,18 @@ into fully resolved Prisma operations and get back a standard response.
 ## Installation
 
 ```bash
-npm install @trellisjs/server-prisma @trellisjs/server @prisma/client
+npm install @trellisjs/server-prisma@alpha @trellisjs/server@alpha @prisma/client
 ```
 
 Requires `@prisma/client` >= 5.
 
-## Pending alpha release
+## Alpha release channel
 
-The API below describes unreleased source changes. The package manifest remains
-`0.1.0-alpha.1`; the published artifact with that version does not contain this
-repair. Backend helpers are excluded from the stable version PR and will be
-versioned/published through a separate approved alpha-only step. See the
+`0.1.0-alpha.2` includes the required projection, query-field allowlists and
+provider-compatible string filtering documented below. Install both backend
+packages from the `alpha` tag or pin `0.1.0-alpha.2`; the `latest` tags continue
+to use the earlier API. Backend helpers are versioned together outside the stable
+Changesets version PR. See the
 [release-channel policy](../../.changeset/README.md#backend-alpha-channel).
 
 ## API
