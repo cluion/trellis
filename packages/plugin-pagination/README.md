@@ -26,28 +26,35 @@ Payloads are typed through `TrellisEventMap`: once the plugin is imported, `api.
 The plugin writes the following on every navigation:
 
 - `state.pagination` -- `{ page, pageSize, totalItems }`.
-- `state.data` -- the sliced rows for the current page.
+- In client mode, `state.data` contains rows sliced from the local filtered/sorted dataset. In server mode, rows are replaced by the datasource response without another local slice.
+
+### Server-Side Mode
+
+Install `createDatasourcePlugin()` with this plugin. Page changes request backend data, and `state.pagination.totalItems` uses the backend's `filtered`; the unfiltered `total` remains in `state.datasource.total`. Page count is `Math.max(1, Math.ceil(filtered / pageSize))`. Zero results use page 1. If a response shows the requested page is out of range, the datasource corrects the page and refetches it.
+
+Search, column filters, sorting and page-size changes reset to page 1 in server mode. To start on another page before counts are known, use `createDatasourcePlugin({ initialQuery: { page: 3 }, datasource })`. See the [server-side guide and Vue example](../../examples/vue-server-side/README.md).
 
 ## Usage
 
 ```ts
-import { createTrellis } from '@trellisjs/core';
+import { Trellis } from '@trellisjs/core';
 import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
 
-const api = createTrellis({
-  columns: [{ id: 'name', accessor: 'name' }],
-  data: [/* ... 100 rows ... */],
+const trellis = new Trellis({
+  columns: [{ id: 'name', accessor: 'name', header: 'Name' }],
+  data: Array.from({ length: 100 }, (_, index) => ({ name: `User ${index + 1}` })),
   plugins: [createPaginationPlugin()],
 });
+const { api } = trellis;
 
 // Go to page 3
 api.emit('pagination:goto', { page: 3 });
 
 // Next page
-api.emit('pagination:next', {});
+api.emit('pagination:next');
 
 // Previous page
-api.emit('pagination:prev', {});
+api.emit('pagination:prev');
 
 // Change page size to 25 rows per page (resets to page 1)
 api.emit('pagination:pageSize', { pageSize: 25 });
@@ -55,11 +62,11 @@ api.emit('pagination:pageSize', { pageSize: 25 });
 
 ### Upstream Reactivity
 
-The plugin subscribes to state changes from upstream plugins (e.g. sort, filter). When the data array is replaced by another plugin, pagination automatically resets to page 1 and re-slices the new dataset.
+In client mode, each pipeline recompute filters and sorts the source data before pagination slices it. The current page is preserved when valid and clamped to the last available page if the result shrinks. Changing page size explicitly resets to page 1. Server-side query changes use the reset and refetch rules above.
 
 ### Plugin Order
 
-Install the pagination plugin **after** filter and sort plugins so it paginates the already-transformed data:
+Pipeline priority `30` puts pagination after filter (`10`) and sort (`20`), regardless of installation order. A typical configuration is:
 
 ```ts
 plugins: [createSortPlugin(), createFilterPlugin(), createPaginationPlugin()]

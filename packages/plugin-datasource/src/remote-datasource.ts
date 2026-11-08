@@ -3,14 +3,44 @@ import type {
     TrellisQuery,
     TrellisResponse,
     RemoteDatasourceOptions,
+    DatasourceFetchContext,
 } from './types';
+import { validateQuery, validateResponse } from './validation';
+
+function buildGetUrl(url: string, query: unknown): string {
+    if (!query || typeof query !== 'object' || Array.isArray(query)) {
+        throw new TypeError('Trellis GET transformQuery must return an object');
+    }
+
+    const hashIndex = url.indexOf('#');
+    const hash = hashIndex === -1 ? '' : url.slice(hashIndex);
+    const base = hashIndex === -1 ? url : url.slice(0, hashIndex);
+    const queryIndex = base.indexOf('?');
+    const path = queryIndex === -1 ? base : base.slice(0, queryIndex);
+    const params = new URLSearchParams(
+        queryIndex === -1 ? '' : base.slice(queryIndex + 1),
+    );
+
+    for (const [key, value] of Object.entries(query)) {
+        if (value !== undefined) {
+            params.set(
+                key,
+                value !== null && typeof value === 'object'
+                    ? JSON.stringify(value)
+                    : String(value),
+            );
+        }
+    }
+
+    return `${path}?${params.toString()}${hash}`;
+}
 
 /**
  * 建立遠端 API 資料源。
  * 透過 fetch 向後端發送標準化查詢，並解析回應。
  */
 export function createRemoteDatasource<T = Record<string, unknown>>(
-    options: RemoteDatasourceOptions,
+    options: RemoteDatasourceOptions<T>,
 ): TrellisDatasource<T> {
     const {
         url,
@@ -21,27 +51,20 @@ export function createRemoteDatasource<T = Record<string, unknown>>(
     } = options;
 
     return {
-        async fetch(query: TrellisQuery): Promise<TrellisResponse<T>> {
+        async fetch(
+            query: TrellisQuery,
+            context?: DatasourceFetchContext,
+        ): Promise<TrellisResponse<T>> {
+            validateQuery(query);
             const finalQuery = transformQuery ? transformQuery(query) : query;
 
             let response: Response;
 
             if (method === 'GET') {
-                const params = new URLSearchParams();
-                params.set('page', String(query.page));
-                params.set('pageSize', String(query.pageSize));
-
-                if (query.sort) {
-                    params.set('sort', JSON.stringify(query.sort));
-                }
-
-                if (query.filter) {
-                    params.set('filter', JSON.stringify(query.filter));
-                }
-
-                response = await fetch(`${url}?${params.toString()}`, {
+                response = await fetch(buildGetUrl(url, finalQuery), {
                     method: 'GET',
                     headers: { Accept: 'application/json', ...headers },
+                    signal: context?.signal,
                 });
             } else {
                 response = await fetch(url, {
@@ -52,6 +75,7 @@ export function createRemoteDatasource<T = Record<string, unknown>>(
                         ...headers,
                     },
                     body: JSON.stringify(finalQuery),
+                    signal: context?.signal,
                 });
             }
 
@@ -63,9 +87,10 @@ export function createRemoteDatasource<T = Record<string, unknown>>(
 
             const raw = await response.json();
 
-            return transformResponse
-                ? (transformResponse(raw) as TrellisResponse<T>)
-                : (raw as TrellisResponse<T>);
+            const result = transformResponse ? transformResponse(raw) : raw;
+            validateResponse<T>(result, query);
+
+            return result;
         },
     };
 }

@@ -2,6 +2,8 @@
 
 Headless datatable engine -- state management, plugin system, slot registry, and event bus. Framework-agnostic; rendering is handled by adapters.
 
+The server-side state and resumable lifecycle APIs described below are pending release; see the [current/proposed versions](../../examples/vue-server-side/README.md#versions-and-release-status).
+
 ## Installation
 
 ```bash
@@ -80,7 +82,9 @@ const table = new Trellis(options)
 ```
 
 - `table.api` -- the public `TrellisAPI<T>` interface.
-- `table.destroy()` -- unregisters all plugins and clears event listeners.
+- `table.start()` -- starts plugin resources after installation and the initial pipeline. Called automatically unless `autoStart: false`. Repeated calls while started are no-ops.
+- `table.stop()` -- immediately stops resumable plugin resources, preserving state and subscriptions. Call `start()` to resume.
+- `table.destroy()` -- stops resources, unregisters all plugins and clears event listeners. A destroyed instance cannot be restarted. Dispose your own `api.subscribe()` subscriptions with their returned functions.
 
 ### `TrellisAPI<T>`
 
@@ -95,17 +99,23 @@ const table = new Trellis(options)
 | `getSlot` | `(name: string) => SlotRenderer \| undefined` | Renderer or undefined | Retrieve a registered slot |
 | `registerTransform` | `(name: string, priority: number, fn: TransformFn<T>) => void` | `void` | Register a pipeline transform |
 | `recompute` | `(withState?: Partial<TableState<T>>) => void` | `void` | Re-run pipeline, optionally merging state. Subscribers are notified once, after the pipeline finishes |
-| `updateSourceData` | `(data: T[]) => void` | `void` | Replace all source data and re-run pipeline |
+| `updateSourceData` | `(data: T[], withState?: Partial<TableState<T>>) => void` | `void` | Replace source data, optionally merge state and re-run pipeline with one notification |
 | `addRow` | `(item: T) => void` | `void` | Append a row to sourceData and re-run pipeline. Emits `data:added` |
 | `removeRow` | `(id: DataId) => void` | `void` | Remove a row by ID and re-run pipeline. Emits `data:removed` |
 | `updateRow` | `(id: DataId, partial: Partial<T>) => void` | `void` | Merge-update a row by ID and re-run pipeline. Emits `data:updated` |
-| `getFilteredData` | `() => DataRow<T>[]` | Immutable copy | Filtered + sorted data before pagination |
+| `getFilteredData` | `() => DataRow<T>[]` | Array copy | Filtered + sorted data before slicing; server mode contains only the loaded page |
 
 ### Transform priority
 
 Transforms run in ascending `priority`. Built-in plugins use filter `10`, sort `20`, pagination `30` and virtualScroll `35`.
 
-Transforms with priority `>= 30` are treated as slicing: they only narrow what is rendered in `state.data`. `pagination.totalItems` and `getFilteredData()` always use the result of the transforms below `30`, whether or not the pagination plugin is installed.
+Transforms with priority `>= 30` are treated as slicing: they only narrow what is rendered in `state.data`. In client mode, `pagination.totalItems` and `getFilteredData()` use the result of the transforms below `30`, whether or not the pagination plugin is installed.
+
+### Server-side state and operations
+
+Install `createDatasourcePlugin()` from `@trellisjs/plugin-datasource` to select `state.dataMode === 'server'`; otherwise the table uses client-side behavior. The filter, sort and pagination plugins then update query state without processing the loaded page locally. `pagination.totalItems` retains the backend's `filtered` count, while `state.datasource.total` retains the unfiltered count. Search, column filters, sorting and page-size changes reset the page to 1 in this mode.
+
+`getFilteredData()` can only return loaded rows in server mode. `updateSourceData()`, `addRow()`, `removeRow()` and `updateRow()` change local loaded data; they neither write to the backend nor recalculate remote counts. Persist changes through your application API, then emit `datasource:reload` to refresh rows and counts. See the [server-side API, Vue example and release status](../../examples/vue-server-side/README.md).
 
 ### Adapter helpers
 
@@ -151,6 +161,7 @@ interface TrellisOptions<T> {
   plugins?: TrellisPlugin<any>[]  // plugins are row-type agnostic, so any plugin fits any T
   pageSize?: number        // default: 10
   rowId?: keyof T | ((row: T, index: number) => DataId)
+  autoStart?: boolean     // default: true; false defers plugin start hooks
 }
 ```
 
@@ -160,9 +171,13 @@ interface TrellisOptions<T> {
 interface TrellisPlugin<T> {
   name: string
   install: (api: TrellisAPI<T>) => void
+  start?: () => void
+  stop?: () => void
   destroy?: () => void
 }
 ```
+
+`install` runs during construction, including when `autoStart: false`. Put resumable external work in `start` and immediate cancellation in `stop`; `destroy` handles final cleanup. `start` first runs after every plugin is installed and the initial pipeline finishes, then again after any `stop` / `start` cycle. The React adapter uses these hooks to handle StrictMode replay and immediate request cancellation on unmount.
 
 ### `ColumnDef<T>`
 
@@ -214,15 +229,26 @@ interface DataRow<T> {
 
 ```typescript
 interface TableState<T> {
+  dataMode?: 'client' | 'server' // absent means client
+  datasource?: DatasourceState // present when the datasource plugin is installed
   data: DataRow<T>[]
   columns: ColumnDef<T>[]
-  sorting: { columnId: string; direction: 'asc' | 'desc' | null }
+  sorting: { sortBy: { columnId: string; direction: 'asc' | 'desc' }[] }
   filtering: { query: string; columnFilters: Record<string, unknown> }
   pagination: { page: number; pageSize: number; totalItems: number }
   selection: Set<DataId>
   columnVisibility: Record<string, boolean>
   columnPinning: { left: string[]; right: string[] }
+  expandedRows: Set<DataId>
   virtualScroll?: { startIndex: number; endIndex: number; totalHeight: number; rowHeight: number }
+  // Additional optional plugin state is defined in the source.
+}
+
+interface DatasourceState {
+  loading: boolean
+  error: Error | null
+  total: number    // unfiltered backend count
+  filtered: number // filtered backend count; also pagination.totalItems
 }
 ```
 

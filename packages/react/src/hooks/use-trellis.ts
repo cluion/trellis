@@ -13,19 +13,33 @@ export function useTrellis<T extends object>(
     options: TrellisOptions<T>,
 ): { api: TrellisAPI<T> } {
     const trellisRef = useRef<Trellis<T> | null>(null);
+    const lifecycleRef = useRef({ generation: 0 });
 
     if (!trellisRef.current) {
-        trellisRef.current = new Trellis(options);
+        trellisRef.current = new Trellis({ ...options, autoStart: false });
     }
 
     const [, setVersion] = useState(0);
 
     useEffect(() => {
-        const unsubscribe = trellisRef.current!.api.subscribe(() => {
+        const trellis = trellisRef.current!;
+        const lifecycleState = lifecycleRef.current;
+        const lifecycle = ++lifecycleState.generation;
+        const unsubscribe = trellis.api.subscribe(() => {
             setVersion((v) => v + 1);
         });
+        trellis.start();
 
-        return unsubscribe;
+        return () => {
+            unsubscribe();
+            trellis.stop();
+            // StrictMode 會立即重播 effect；真正卸載才釋放資源。
+            queueMicrotask(() => {
+                if (lifecycleState.generation === lifecycle) {
+                    trellis.destroy();
+                }
+            });
+        };
     }, []);
 
     return { api: trellisRef.current.api };

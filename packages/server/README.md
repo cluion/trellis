@@ -59,6 +59,8 @@ const orderBy = buildOrderByClause(query.sort); // "ORDER BY name ASC"
 
 Constructs the standard Trellis response envelope with pagination metadata.
 
+`total` is the count before filtering; `filtered` is the count after applying the same WHERE conditions as the data query, before `LIMIT` / `OFFSET`. Neither count is the length of the current page. Additional `page`, `pageSize` and `totalPages` metadata may be returned; the frontend datasource derives navigation from `filtered` and its own query.
+
 ```ts
 const result = buildResponse(rows, { total, filtered, query });
 ```
@@ -80,8 +82,11 @@ const orderBy = buildOrderByClause(query.sort);
 const rows = await db.all(`SELECT * FROM users ${sql} ${orderBy} LIMIT ? OFFSET ?`,
   [...params, query.pageSize, (query.page - 1) * query.pageSize]);
 const total = await db.get(`SELECT COUNT(*) AS count FROM users`);
-return buildResponse(rows, { total: total.count, filtered: rows.length, query });
+const filtered = await db.get(`SELECT COUNT(*) AS count FROM users ${sql}`, params);
+return buildResponse(rows, { total: total.count, filtered: filtered.count, query });
 ```
+
+This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get` adapter. GET uses `req.query`; POST uses `req.body` after your framework's JSON middleware. `parseTrellisQuery` caps page size at 1000, so keep the frontend's allowed sizes within that limit or reject unsupported sizes before parsing. A server-side response must include exactly the requested page's rows, with empty `data` for out-of-range pages; do not silently substitute another page. See the [frontend protocol and validation rules](../../examples/vue-server-side/README.md#http-and-response-validation).
 
 ## License
 

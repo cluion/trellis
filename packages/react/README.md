@@ -18,12 +18,14 @@ Creates and manages a Trellis instance. Returns `{ api }` where `api` is a
 `TrellisAPI<T>`. The instance is created once and re-renders are triggered
 automatically on state changes. Compatible with React StrictMode double-mount.
 
+External plugin work starts in the mount effect. Requests stop immediately during effect cleanup; final destruction occurs in a microtask after a real unmount, allowing StrictMode effect replay without duplicate requests. Server-side tables use the shared [datasource API](../../examples/vue-server-side/README.md).
+
 ```ts
 const { api } = useTrellis<User>({ columns, data });
 ```
 
 **Parameters** -- `options: TrellisOptions<T>` (column definitions, initial
-data, plugins, etc.) passed directly to the `Trellis` constructor.
+data, plugins, etc.). The hook controls plugin activation with an internally deferred `autoStart`; use `Trellis` directly when implementing your own resource lifecycle.
 
 ### `TrellisContext`
 
@@ -183,14 +185,63 @@ Props:
 <TableInfo format={({ start, end, total }) => `${start}-${end} / ${total}`} />
 ```
 
+## Server-Side Usage
+
+The automatic datasource API is currently unreleased; see the [version status and shared protocol](../../examples/vue-server-side/README.md). `useTrellis()` subscribes to the same core state as Vue and re-renders on request status or row changes.
+
+```tsx
+import type { ColumnDef } from '@trellisjs/core';
+import { createDatasourcePlugin, createRemoteDatasource } from '@trellisjs/plugin-datasource';
+import { createFilterPlugin } from '@trellisjs/plugin-filter';
+import { createPaginationPlugin } from '@trellisjs/plugin-pagination';
+import { createSortPlugin } from '@trellisjs/plugin-sort';
+import { Table, TableInfo, TrellisContext, useTrellis } from '@trellisjs/react';
+
+interface User { id: number; name: string }
+const columns: ColumnDef<User>[] = [{ id: 'name', accessor: 'name', header: 'Name' }];
+
+export function RemoteUsers() {
+  const { api } = useTrellis<User>({
+    data: [], columns, rowId: 'id',
+    plugins: [
+      createDatasourcePlugin({
+        datasource: createRemoteDatasource<User>({ url: '/api/users', method: 'GET' }),
+        initialQuery: { pageSize: 10, sort: [{ columnId: 'name', direction: 'asc' }] },
+      }),
+      createFilterPlugin({ searchDebounceMs: 250 }),
+      createSortPlugin(),
+      createPaginationPlugin(),
+    ],
+  });
+  const request = api.getState().datasource!;
+
+  return (
+    <TrellisContext.Provider value={api}>
+      <input aria-label="Search" onChange={(event) => api.emit('filter:change', { query: event.target.value })} />
+      {request.loading && <p role="status">Loading…</p>}
+      {request.error && <p role="alert">Unable to load data. <button onClick={() => api.emit('datasource:retry')}>Retry</button></p>}
+      <Table />
+      <TableInfo />
+      <p>Unfiltered total: {request.total}</p>
+      <button onClick={() => api.emit('datasource:reload')}>Reload</button>
+    </TrellisContext.Provider>
+  );
+}
+```
+
+`TableInfo` uses the filtered count through `pagination.totalItems`. The [complete Vue example](../../examples/vue-server-side/UserTable.vue) also demonstrates page controls, zero results, page size and cancellation using the same commands. Persist edits through your backend API, then reload; Trellis row mutation methods only update locally loaded rows.
+
 ## Quick Usage
 
 ```tsx
-import { useTrellis, TrellisContext, Table, SlotRenderer, VirtualScrollBody, useVirtualScroll } from '@trellisjs/react';
+import type { ColumnDef } from '@trellisjs/core';
+import { useTrellis, TrellisContext, Table, SlotRenderer } from '@trellisjs/react';
 
-const columns = [
-  { id: 'name', label: 'Name' },
-  { id: 'email', label: 'Email' },
+interface User { id: number; name: string; email: string }
+const users: User[] = [];
+const columns: ColumnDef<User>[] = [
+  { id: 'name', accessor: 'name', header: 'Name' },
+  { id: 'email', accessor: 'email', header: 'Email' },
 ];
 
 function App() {

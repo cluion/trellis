@@ -32,6 +32,8 @@ export class Trellis<T extends object = Record<string, unknown>> {
     private transforms: TransformEntry<T>[];
     private pipelineLock: boolean;
     private filteredData: DataRow<T>[];
+    private started = false;
+    private destroyed = false;
 
     constructor(options: TrellisOptions<T>) {
         this.options = options;
@@ -69,6 +71,10 @@ export class Trellis<T extends object = Record<string, unknown>> {
 
         // 插件註冊完成後執行管線，確保初始 state.data 正確
         this.runPipeline();
+
+        if (options.autoStart !== false) {
+            this.start();
+        }
     }
 
     /**
@@ -113,6 +119,7 @@ export class Trellis<T extends object = Record<string, unknown>> {
         this.pipelineLock = true;
 
         try {
+            withState = this.normalizeUpdate(withState);
             // withState 只在最後一次 setState 寫入，subscriber 不會看到資料還沒更新的中間狀態
             const state = {
                 ...this.store.getState(),
@@ -135,14 +142,19 @@ export class Trellis<T extends object = Record<string, unknown>> {
             );
             this.filteredData = [...data];
 
-            const totalItems = data.length;
+            const remote = state.dataMode === 'server';
+            const totalItems = remote
+                ? state.pagination.totalItems
+                : data.length;
 
             // 校正頁碼：避免刪除/篩選後 page 超出 totalPages
             const totalPages = Math.max(
                 1,
                 Math.ceil(totalItems / state.pagination.pageSize),
             );
-            const page = Math.min(state.pagination.page, totalPages);
+            const page = remote
+                ? state.pagination.page
+                : Math.min(state.pagination.page, totalPages);
             const effectiveState: TableState<T> = {
                 ...state,
                 pagination: { ...state.pagination, page, totalItems },
@@ -164,6 +176,37 @@ export class Trellis<T extends object = Record<string, unknown>> {
         }
     }
 
+    private normalizeUpdate(
+        update?: Partial<TableState<T>>,
+    ): Partial<TableState<T>> | undefined {
+        const prev = this.store.getState();
+
+        if (prev.dataMode !== 'server' || !update) {
+            return update;
+        }
+
+        const changed =
+            (update.filtering &&
+                JSON.stringify(update.filtering) !==
+                    JSON.stringify(prev.filtering)) ||
+            (update.sorting &&
+                JSON.stringify(update.sorting) !==
+                    JSON.stringify(prev.sorting)) ||
+            (update.pagination &&
+                update.pagination.pageSize !== prev.pagination.pageSize);
+
+        return changed
+            ? {
+                  ...update,
+                  pagination: {
+                      ...prev.pagination,
+                      ...update.pagination,
+                      page: 1,
+                  },
+              }
+            : update;
+    }
+
     /**
      * 建構暴露給插件和適配器的公開 API 物件。
      */
@@ -172,7 +215,9 @@ export class Trellis<T extends object = Record<string, unknown>> {
             getState: () => this.store.getState() as TableState<T>,
             setState: (updater) =>
                 this.store.setState(
-                    updater as (prev: TableState<T>) => Partial<TableState<T>>,
+                    (prev) =>
+                        this.normalizeUpdate(updater(prev as TableState<T>)) ??
+                        {},
                 ),
             subscribe: (listener) =>
                 this.store.subscribe(
@@ -191,9 +236,9 @@ export class Trellis<T extends object = Record<string, unknown>> {
             recompute: (withState) => {
                 this.runPipeline(withState);
             },
-            updateSourceData: (data) => {
+            updateSourceData: (data, withState) => {
                 this.sourceData = this.processData(data);
-                this.runPipeline();
+                this.runPipeline(withState);
             },
             addRow: (item) => {
                 const index = this.sourceData.length;
@@ -246,8 +291,26 @@ export class Trellis<T extends object = Record<string, unknown>> {
         return this._api;
     }
 
+    /** 啟動插件資源；重複呼叫不會重複啟動。 */
+    start(): void {
+        if (!this.started && !this.destroyed) {
+            this.started = true;
+            this.pluginManager.startAll();
+        }
+    }
+
+    /** 立即停止插件資源，保留狀態與訂閱供重新掛載使用。 */
+    stop(): void {
+        if (this.started && !this.destroyed) {
+            this.started = false;
+            this.pluginManager.stopAll();
+        }
+    }
+
     /** 銷毀實例 — 清除插件和事件監聽器。 */
     destroy(): void {
+        this.stop();
+        this.destroyed = true;
         this.pluginManager.destroyAll();
         this.eventBus.clear();
     }

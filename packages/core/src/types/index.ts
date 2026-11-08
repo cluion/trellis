@@ -9,6 +9,7 @@ export type {
     SortState,
     FilterState,
     PaginationState,
+    DatasourceState,
     TableState,
 } from './state';
 export type { TransformFn, TransformEntry } from './pipeline';
