@@ -269,6 +269,8 @@ docker compose --env-file docker/.env -f docker/compose.yaml run --rm app pnpm c
 
 Rerun `make setup` after the lockfile changes.
 
+Development-tool security updates use scoped `pnpm.overrides`: `js-beautify > glob` is pinned to `14.0.2`, and `@typescript-eslint/typescript-estree > minimatch` / `editorconfig > minimatch` are pinned to `11.0.1`. These resolve the [glob cancellation advisory](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) and [minimatch amplification advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249) while upstream packages still request the affected major versions. The private demo requires Vite `^6.4.5` for the [Vite development-server advisory](https://github.com/advisories/GHSA-8g5g-mxqh-grgj). The overrides are limited to tooling dependencies and are validated by the full CI gate.
+
 `pnpm.auditConfig.ignoreGhsas` in `package.json` lists advisories with no usable fix:
 
 - `GHSA-vfj7-8cjw-p6xm` (braces) and `GHSA-hp3w-g68c-fv3c` (sprintf-js): no patched release; both come from `@changesets/cli` processing repository files.
