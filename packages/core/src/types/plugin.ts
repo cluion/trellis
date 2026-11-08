@@ -6,7 +6,7 @@ import type {
     TrellisEventMap,
     UnknownEvent,
 } from './event';
-import type { TransformFn } from './pipeline';
+import type { TransformFn, TransformOptions } from './pipeline';
 import type { SlotRenderer } from './slot';
 import type { TableState } from './state';
 
@@ -49,9 +49,12 @@ export interface TrellisAPI<T = Record<string, unknown>> {
         name: string,
         priority: number,
         fn: TransformFn<T>,
+        options?: TransformOptions<T>,
     ) => void;
     /** 重跑管線，可合併狀態更新 */
     recompute: (withState?: Partial<TableState<T>>) => void;
+    /** Refresh the viewport, reusing only explicitly cacheable transforms. */
+    recomputeView: () => void;
     /** 替換原始資料、合併狀態並重跑管線，一次通知訂閱者 */
     updateSourceData: (data: T[], withState?: Partial<TableState<T>>) => void;
     /** 新增一筆資料到 sourceData 末端，重跑管線 */

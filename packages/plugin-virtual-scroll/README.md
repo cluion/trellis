@@ -55,7 +55,7 @@ return (
 只涵蓋已載入頁。切頁、每頁筆數、搜尋或排序改變時回到捲動頂端；資料縮減時
 會校正捲動位置，零筆資料的高度與索引皆為零。
 
-這項修補需搭配支援 `TransformResult` 的新版 core 一起使用；待 Changesets
+這項修補需搭配支援 `TransformResult`／`recomputeView()` 的新版 core 一起使用；待 Changesets
 版本流程產生版號後再一起發布，目前工作目錄的版本號尚未調整。
 
 建議配置：
@@ -105,6 +105,7 @@ interface VirtualScrollState {
 
 - **Transform-based**：透過 `registerTransform` 加入 pipeline（priority=35），與 filter/sort/pagination 一致
 - **rAF 節流**：滾動事件使用 `requestAnimationFrame` + dirty flag 合併，每 frame 只重算一次
+- **視窗快取**：以 `recomputeView()` 重用已宣告依賴的 filter／sort／pagination 結果；未宣告依賴的自訂 transform 仍會執行。外部資料變更使用 `updateRow`、`updateSourceData` 或強制 `recompute()`。
 - **佔位撐高**：上下空白 `<tr>` 佔位，確保滾動條正確反映資料總量
 - **固定行高為主**：v1 以固定行高計算，動態行高標記為 experimental
 

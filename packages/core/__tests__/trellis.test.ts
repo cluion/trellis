@@ -190,6 +190,49 @@ describe('Trellis', () => {
     });
 
     // --- 動態資料操作 ---
+    describe('snapshot ownership', () => {
+        it('protects row metadata and columns without freezing user data or inputs', () => {
+            const data = [{ id: 1, name: 'Alice' }];
+            const columns = [
+                {
+                    id: 'name',
+                    accessor: 'name' as const,
+                    header: 'Name',
+                    attrs: { title: 'original' },
+                },
+            ];
+            const table = new Trellis({ data, columns, rowId: 'id' });
+            const state = table.api.getState();
+            expect(state.data[0].original).toBe(data[0]);
+            expect(Object.isFrozen(data[0])).toBe(false);
+            expect(() => {
+                state.data[0].id = 'changed';
+            }).toThrow(TypeError);
+            expect(() => {
+                table.api.getFilteredData()[0].index = 99;
+            }).toThrow(TypeError);
+            expect(() => {
+                state.columns[0].attrs!.title = 'changed';
+            }).toThrow(TypeError);
+            columns[0].attrs.title = 'outside';
+            expect(state.columns[0].attrs?.title).toBe('original');
+            data[0].name = 'Bob';
+            table.api.recompute();
+            expect(table.api.getState().data[0].original.name).toBe('Bob');
+            expect(table.api.getState().data[0].original).toBe(data[0]);
+        });
+
+        it('preserves framework render values as opaque application objects', () => {
+            const icon = { type: 'span', el: null as object | null };
+            trellis.api.setState(() => ({
+                rowExpansion: { mode: 'multi', expandIcon: icon },
+            }));
+            expect(trellis.api.getState().rowExpansion?.expandIcon).toBe(icon);
+            icon.el = {};
+            expect(Object.isFrozen(icon)).toBe(false);
+        });
+    });
+
     describe('row ID uniqueness', () => {
         it('does not reuse an automatic ID after deletion', () => {
             trellis.api.removeRow('1');

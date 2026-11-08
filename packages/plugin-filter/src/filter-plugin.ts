@@ -86,82 +86,91 @@ export function createFilterPlugin(
 
         install(api: TrellisAPI) {
             // 註冊管線轉換函式 (priority=10)
-            api.registerTransform('filter', 10, (data, state) => {
-                if (state.dataMode === 'server') {
-                    return data;
-                }
-
-                const query = state.filtering.query;
-                const columnFilters = state.filtering.columnFilters;
-                const hasGlobalQuery = !!query;
-                const hasColumnFilters =
-                    columnFilters && Object.keys(columnFilters).length > 0;
-
-                if (!hasGlobalQuery && !hasColumnFilters) {
-                    return data;
-                }
-
-                const lowerQuery = hasGlobalQuery ? query!.toLowerCase() : '';
-
-                // 建立欄位 ID → ColumnDef 映射，供單欄篩選查詢
-                const colMap = new Map(
-                    state.columns.map((col) => [col.id, col]),
-                );
-
-                return data.filter((row) => {
-                    // 全域搜尋：任何欄位包含關鍵字
-                    if (hasGlobalQuery) {
-                        const globalMatch = state.columns.some((column) => {
-                            const value = getCellValue(row, column);
-
-                            if (value == null) {
-                                return false;
-                            }
-
-                            return String(value)
-                                .toLowerCase()
-                                .includes(lowerQuery);
-                        });
-
-                        if (!globalMatch) {
-                            return false;
-                        }
+            api.registerTransform(
+                'filter',
+                10,
+                (data, state) => {
+                    if (state.dataMode === 'server') {
+                        return data;
                     }
 
-                    // 單欄篩選：每個設定值都必須匹配
-                    if (hasColumnFilters) {
-                        for (const [columnId, filterValue] of Object.entries(
-                            columnFilters,
-                        )) {
-                            if (!filterValue) {
-                                continue;
-                            } // 空值跳過
+                    const query = state.filtering.query;
+                    const columnFilters = state.filtering.columnFilters;
+                    const hasGlobalQuery = !!query;
+                    const hasColumnFilters =
+                        columnFilters && Object.keys(columnFilters).length > 0;
 
-                            const column = colMap.get(columnId);
+                    if (!hasGlobalQuery && !hasColumnFilters) {
+                        return data;
+                    }
 
-                            if (!column) {
-                                continue;
-                            }
+                    const lowerQuery = hasGlobalQuery
+                        ? query!.toLowerCase()
+                        : '';
 
-                            const cellValue = getCellValue(row, column);
+                    // 建立欄位 ID → ColumnDef 映射，供單欄篩選查詢
+                    const colMap = new Map(
+                        state.columns.map((col) => [col.id, col]),
+                    );
 
-                            if (cellValue == null) {
-                                return false;
-                            }
+                    return data.filter((row) => {
+                        // 全域搜尋：任何欄位包含關鍵字
+                        if (hasGlobalQuery) {
+                            const globalMatch = state.columns.some((column) => {
+                                const value = getCellValue(row, column);
 
-                            const lowerCell = String(cellValue).toLowerCase();
-                            const lowerFilter =
-                                String(filterValue).toLowerCase();
+                                if (value == null) {
+                                    return false;
+                                }
 
-                            if (!lowerCell.includes(lowerFilter)) {
+                                return String(value)
+                                    .toLowerCase()
+                                    .includes(lowerQuery);
+                            });
+
+                            if (!globalMatch) {
                                 return false;
                             }
                         }
-                    }
 
-                    return true;
-                });
-            });
+                        // 單欄篩選：每個設定值都必須匹配
+                        if (hasColumnFilters) {
+                            for (const [
+                                columnId,
+                                filterValue,
+                            ] of Object.entries(columnFilters)) {
+                                if (!filterValue) {
+                                    continue;
+                                } // 空值跳過
+
+                                const column = colMap.get(columnId);
+
+                                if (!column) {
+                                    continue;
+                                }
+
+                                const cellValue = getCellValue(row, column);
+
+                                if (cellValue == null) {
+                                    return false;
+                                }
+
+                                const lowerCell =
+                                    String(cellValue).toLowerCase();
+                                const lowerFilter =
+                                    String(filterValue).toLowerCase();
+
+                                if (!lowerCell.includes(lowerFilter)) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        return true;
+                    });
+                },
+                { stateKeys: ['filtering', 'columns', 'dataMode'] },
+            );
 
             // 篩選關鍵字變更 → 重跑管線
             api.on('filter:change', (payload) => {

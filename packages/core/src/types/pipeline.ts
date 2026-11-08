@@ -7,6 +7,11 @@ export interface TransformResult<T> {
     state?: Pick<TableState<T>, 'virtualScroll'>;
 }
 
+/** Opt-in cache contract: declare every state field read by a pure transform. */
+export interface TransformOptions<T> {
+    stateKeys: readonly (keyof TableState<T>)[];
+}
+
 /** 純轉換函式 — 接收資料與當前狀態，回傳轉換後的新陣列 */
 export type TransformFn<T> = (
     data: DataRow<T>[],
@@ -21,4 +26,5 @@ export interface TransformEntry<T> {
     priority: number;
     /** 純轉換函式 */
     fn: TransformFn<T>;
+    stateKeys?: readonly (keyof TableState<T>)[];
 }

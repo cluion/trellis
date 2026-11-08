@@ -74,51 +74,56 @@ export function createSortPlugin(): TrellisPlugin {
 
         install(api: TrellisAPI) {
             // 註冊管線轉換函式 (priority=20)
-            api.registerTransform('sort', 20, (data, state) => {
-                if (state.dataMode === 'server') {
-                    return data;
-                }
-
-                const { sortBy } = state.sorting;
-
-                if (sortBy.length === 0) {
-                    return data;
-                }
-
-                // 預建 columnId → ColumnDef 查找表
-                const colMap = new Map(
-                    state.columns.map((col) => [col.id, col]),
-                );
-
-                return [...data].sort((a, b) => {
-                    for (const criterion of sortBy) {
-                        const column = colMap.get(criterion.columnId);
-
-                        if (!column || column.sortable === false) {
-                            continue;
-                        }
-
-                        const valA = getCellValue(a, column);
-                        const valB = getCellValue(b, column);
-
-                        let result: number;
-
-                        if (column.sortFn) {
-                            result = column.sortFn(valA, valB);
-                        } else {
-                            result = compareValues(valA, valB);
-                        }
-
-                        if (result !== 0) {
-                            return criterion.direction === 'desc'
-                                ? -result
-                                : result;
-                        }
+            api.registerTransform(
+                'sort',
+                20,
+                (data, state) => {
+                    if (state.dataMode === 'server') {
+                        return data;
                     }
 
-                    return 0;
-                });
-            });
+                    const { sortBy } = state.sorting;
+
+                    if (sortBy.length === 0) {
+                        return data;
+                    }
+
+                    // 預建 columnId → ColumnDef 查找表
+                    const colMap = new Map(
+                        state.columns.map((col) => [col.id, col]),
+                    );
+
+                    return [...data].sort((a, b) => {
+                        for (const criterion of sortBy) {
+                            const column = colMap.get(criterion.columnId);
+
+                            if (!column || column.sortable === false) {
+                                continue;
+                            }
+
+                            const valA = getCellValue(a, column);
+                            const valB = getCellValue(b, column);
+
+                            let result: number;
+
+                            if (column.sortFn) {
+                                result = column.sortFn(valA, valB);
+                            } else {
+                                result = compareValues(valA, valB);
+                            }
+
+                            if (result !== 0) {
+                                return criterion.direction === 'desc'
+                                    ? -result
+                                    : result;
+                            }
+                        }
+
+                        return 0;
+                    });
+                },
+                { stateKeys: ['sorting', 'columns', 'dataMode'] },
+            );
 
             // 排序變更 → 重跑管線
             api.on('sort:change', (payload) => {

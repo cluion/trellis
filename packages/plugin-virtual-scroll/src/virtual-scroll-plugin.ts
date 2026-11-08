@@ -79,7 +79,7 @@ export function createVirtualScrollPlugin(
             return;
         }
 
-        apiRef.recompute();
+        apiRef.recomputeView();
     }
 
     const plugin: VirtualScrollPlugin = {

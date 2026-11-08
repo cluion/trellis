@@ -6,6 +6,7 @@
         "build": "pnpm -r --stream run build",
         "test": "vitest run && pnpm -r --stream run test",
         "test:watch": "pnpm -r --parallel run test:watch",
+        "bench:pipeline": "node benchmarks/pipeline.mjs",
         "clean": "pnpm -r run clean && rm -rf node_modules",
         "changeset": "changeset",
         "version": "changeset version",
