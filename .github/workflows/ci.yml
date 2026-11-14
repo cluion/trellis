@@ -71,3 +71,62 @@ jobs:
           make audit
           make secret-scan
           make ci
+
+  vue-server-side:
+    name: Vue browser tests (${{ matrix.packages }})
+    needs: commit-policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        packages: [checkout, published]
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --init --ipc=host
+    env:
+      TRELLIS_E2E_PACKAGES: ${{ matrix.packages }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        if: matrix.packages == 'checkout'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: tests/e2e/vue-server-side/package-lock.json
+
+      - name: Build current checkout
+        if: matrix.packages == 'checkout'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      # 此 fixture 刻意不加入 pnpm workspace，published 模式只解析公開 npm 套件。
+      - name: Install isolated browser fixture
+        run: npm ci --prefix tests/e2e/vue-server-side
+
+      - name: Check browser test types
+        run: npm --prefix tests/e2e/vue-server-side run typecheck
+
+      - name: Run Chromium, Firefox and WebKit
+        run: npm run test:e2e:vue
+        env:
+          # GitHub 掛載的 /github/home 屬於 host UID；Firefox 的 root 行程需使用 root 家目錄。
+          HOME: /root
+
+      - name: Upload browser reports and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vue-server-side-${{ matrix.packages }}
+          path: |
+            tests/e2e/vue-server-side/playwright-report/
+            tests/e2e/vue-server-side/test-results/
+          retention-days: 14
+          if-no-files-found: ignore

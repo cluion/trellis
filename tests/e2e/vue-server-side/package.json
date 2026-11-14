@@ -1,0 +1,29 @@
+{
+    "name": "trellis-vue-server-side-e2e",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "test": "playwright test",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@trellisjs/core": "1.14.0",
+        "@trellisjs/plugin-datasource": "3.2.0",
+        "@trellisjs/plugin-filter": "3.3.2",
+        "@trellisjs/plugin-pagination": "3.1.2",
+        "@trellisjs/plugin-sort": "3.1.2",
+        "@trellisjs/server": "0.1.0-alpha.2",
+        "@trellisjs/vue": "1.1.0",
+        "vue": "3.5.44"
+    },
+    "devDependencies": {
+        "@playwright/test": "1.65.1",
+        "@types/node": "24.10.0",
+        "@vitejs/plugin-vue": "6.0.11",
+        "typescript": "5.9.3",
+        "vite": "7.3.7"
+    }
+}

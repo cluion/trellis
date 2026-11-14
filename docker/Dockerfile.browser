@@ -1,0 +1,10 @@
+# syntax=docker/dockerfile:1
+FROM node:24.19.0-bookworm-slim AS node
+
+FROM mcr.microsoft.com/playwright:v1.65.1-noble
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+
+RUN npm install --global pnpm@9.15.4
+# Host UID 在容器中可能沒有 passwd 項目，瀏覽器仍需要可寫入的家目錄。
+ENV HOME=/tmp
+WORKDIR /workspace

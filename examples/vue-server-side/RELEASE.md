@@ -1,5 +1,7 @@
 # Server-side 發布準備 — 2026-11-08
 
+> 此頁保留當時的發布前驗證紀錄。PR #40、#42、#43 的相關版本現已發布；目前套件版本、安裝方式與瀏覽器驗收請見 [整合指南](./README.md#versions-and-release-status)。以下「待發布」等敘述只適用於當時的檢查時間。
+
 本文件保留發布前的本機驗證，以及 [Changesets 版本 PR #40](https://github.com/cluion/trellis/pull/40) 合併前的核對紀錄。[功能 PR #39](https://github.com/cluion/trellis/pull/39) 已 squash 合併至 `main`，提交為 `1f624b700ea8403ed450afdf91e9c55abd91c330`。正式發布狀態以 [GitHub Releases](https://github.com/cluion/trellis/releases) 為準；官網整合需另行驗收。
 
 ## 變更與版本
