@@ -131,23 +131,48 @@ Copy [`UserTable.vue`](./UserTable.vue) into a Vue 3 application and provide `GE
 
 ## Versions and release status
 
-The table below lists the minimum package versions for the server-side APIs and the versions prepared in [version PR #40](https://github.com/cluion/trellis/pull/40). Source manifests and changelogs are versioned together; installation from npm requires the corresponding release workflow to complete. Check [GitHub Releases](https://github.com/cluion/trellis/releases) for publication status.
+The server-side implementation was released through [version PR #40](https://github.com/cluion/trellis/pull/40), followed by correctness fixes in [PR #41](https://github.com/cluion/trellis/pull/41) and [version PR #42](https://github.com/cluion/trellis/pull/42). These are published npm versions, checked on 2026-11-14:
 
-| Package | Server-side minimum | Prepared version |
+| Package | Server-side minimum | Published version |
 | --- | --- | --- |
-| `@trellisjs/core` | 1.13.0 | 1.13.0 |
+| `@trellisjs/core` | 1.13.0 | 1.14.0 |
 | `@trellisjs/plugin-datasource` | 3.2.0 | 3.2.0 |
-| `@trellisjs/plugin-filter` | 3.3.1 | 3.3.1 |
-| `@trellisjs/plugin-sort` | 3.1.1 | 3.1.1 |
-| `@trellisjs/plugin-pagination` | 3.1.1 | 3.1.1 |
+| `@trellisjs/plugin-filter` | 3.3.1 | 3.3.2 |
+| `@trellisjs/plugin-sort` | 3.1.1 | 3.1.2 |
+| `@trellisjs/plugin-pagination` | 3.1.1 | 3.1.2 |
 | `@trellisjs/react` | 3.9.1 | 3.9.1 |
-| `@trellisjs/vue` | 1.1.0 | 1.1.0; use with the updated core/plugins |
+| `@trellisjs/vue` | 1.1.0 | 1.1.0 |
+| `@trellisjs/server` (optional backend helper) | — | 0.1.0-alpha.2 (`alpha`) |
+| `@trellisjs/server-prisma` (optional Prisma helper) | — | 0.1.0-alpha.2 (`alpha`) |
 
-Release these core and plugin updates together. The existing Vue adapter binds the shared core state without a new API.
+Install the compatible Vue frontend set:
 
-The changeset from [feature PR #39](https://github.com/cluion/trellis/pull/39) has been consumed by the versioning workflow. Version PR #40 contains the package version and CHANGELOG updates. Merging that PR triggers the separate publication workflow.
+```sh
+npm install vue@3.5.44 @trellisjs/vue@1.1.0 @trellisjs/core@1.14.0 @trellisjs/plugin-datasource@3.2.0 @trellisjs/plugin-filter@3.3.2 @trellisjs/plugin-sort@3.1.2 @trellisjs/plugin-pagination@3.1.2
+```
 
-## Validation — 2026-11-08
+The Vue adapter binds shared core state without a new API. Install optional helpers in the **backend** project, not the browser bundle:
+
+```sh
+npm install @trellisjs/server@alpha
+# For a Prisma backend, also install:
+npm install @trellisjs/server-prisma@alpha
+```
+
+Backend security fixes were published through [PR #43](https://github.com/cluion/trellis/pull/43). Both helpers use `alpha=0.1.0-alpha.2`; their `latest` tags still point to `0.1.0-alpha.1`, whose API lacks these safety changes. SQL helpers require query-field allowlists; the Prisma helper also requires a trusted `select` or `omit` projection. Follow the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha1) or [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha1). The [GitHub releases](https://github.com/cluion/trellis/releases) contain the published changelogs.
+
+## Real-browser acceptance
+
+The [Playwright suite](../../tests/e2e/vue-server-side/README.md) compiles the exact `UserTable.vue` above and sends native browser requests to a loopback Node HTTP server backed by SQLite. It does not stub `fetch` or intercept API routes. The same eight scenarios run in Chromium, Firefox and WebKit, in two package modes:
+
+- `checkout`: builds and imports the current core, plugins, Vue adapter and server helper, so pull requests exercise their own changes.
+- `published`: uses an independent npm lockfile with the exact frontend versions above and `@trellisjs/server@0.1.0-alpha.2`; it rejects workspace symlinks and resolves the public package exports.
+
+Coverage includes the initial query, merged `scope=active` parameter, cross-page search/sort/page-size resets, remote `total`/`filtered`, superseded and explicitly cancelled HTTP connections, friendly errors and retry for HTTP 503/invalid responses, zero matches, automatic out-of-range correction after backend deletions, and Vue unmount/remount cleanup. The backend records queries, responses and connection closure; tests control held requests explicitly rather than relying on timing delays. Releasing an aborted request confirms that its old rows do not reappear; stale-response revision protection for transports that ignore abort remains covered by the core integration tests.
+
+CI runs both modes and uploads HTML/JSON reports plus failure traces, screenshots and videos. See the [browser guide](../../tests/e2e/vue-server-side/README.md) for reproducible Docker commands and validation results. This local HTTP/SQLite acceptance does not claim official website deployment, production authentication/CORS, MySQL/PostgreSQL browser integration, performance or mobile coverage.
+
+## Earlier implementation validation — 2026-11-08
 
 | Requested behavior | Verification |
 | --- | --- |
@@ -176,7 +201,7 @@ Coverage includes initial queries and plugin order, cross-page search/sort/filte
 
 All seven relevant packages passed ESM/CJS/declaration builds and `tsc --noEmit`. Changed TypeScript files passed ESLint; changed code and the Vue SFC passed Prettier checks. Markdown is excluded by the repository's `.prettierignore`; documentation is checked through local links, example types and response contracts instead. The example's script also passed strict TypeScript checking against the built public declarations with zero diagnostics. `git diff --check` passed.
 
-The Vue example was compiled and mounted in jsdom, with interactions issuing GET requests through a mocked HTTP transport and a local in-memory backend. Separate tests use a real Node HTTP server, native fetch and `@trellisjs/server` query parsing to verify GET search/sort/pagination, POST JSON, HTTP 503 retry and cancellation of an unfinished connection. These checks are not a real-browser or official website/backend integration acceptance. The scoped run above excluded unrelated suites; subsequent [release preparation](./RELEASE.md) passed the full monorepo CI gate with 585 tests. Existing Vue missing-render and React DOM-nesting/`act()` test warnings were observed in their existing test cases; all tests passed.
+At that earlier stage, the Vue example was compiled and mounted in jsdom, with interactions issuing GET requests through a mocked HTTP transport and a local in-memory backend. Separate tests used a real Node HTTP server, native fetch and `@trellisjs/server` query parsing to verify GET search/sort/pagination, POST JSON, HTTP 503 retry and cancellation of an unfinished connection. Those checks did not include real-browser or official website/backend integration acceptance; the new browser suite is documented separately above. The scoped run above excluded unrelated suites; subsequent [release preparation](./RELEASE.md) passed the full monorepo CI gate with 585 tests. Existing Vue missing-render and React DOM-nesting/`act()` test warnings were observed in their existing test cases; all tests passed.
 
 Documentation was checked across 11 related README/guide files: 47 local links resolved and 13 complete TypeScript/React/Vue examples passed strict checking against the built public declarations. The JSON request/response example passed the actual datasource validator. The SQL handler excerpt was executed against an in-memory SQLite dataset: 28 unfiltered rows, 12 matches, and 3 rows on page 2 (`9, 8, 7`), confirming that `filtered` is counted independently from the page length. These were documentation-only checks; the 364-test implementation result above comes from the preceding implementation verification, not another full test run.
 

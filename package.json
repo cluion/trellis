@@ -7,6 +7,7 @@
         "test": "vitest run && pnpm -r --stream run test",
         "test:watch": "pnpm -r --parallel run test:watch",
         "bench:pipeline": "node benchmarks/pipeline.mjs",
+        "test:e2e:vue": "npm --prefix tests/e2e/vue-server-side run test --",
         "clean": "pnpm -r run clean && rm -rf node_modules",
         "changeset": "changeset",
         "version": "changeset version",

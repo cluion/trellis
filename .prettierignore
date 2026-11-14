@@ -1,3 +1,7 @@
 # changesets 產生的 CHANGELOG 與 changeset 檔不受 Prettier 管理
 *.md
 pnpm-lock.yaml
+tests/e2e/vue-server-side/package-lock.json
+**/playwright-report/**
+**/test-results/**
+**/.generated/**

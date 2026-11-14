@@ -186,7 +186,7 @@ trellis.api.emit('sort:change', { columnId: 'age', direction: 'desc' });
 
 Install `createDatasourcePlugin({ datasource, initialQuery })` alongside the existing filter, sort and pagination plugins. They update query state while the backend searches, sorts and paginates. Observe `state.datasource` for loading/errors and remote counts; use `datasource:reload`, `datasource:retry` and `datasource:cancel` commands.
 
-The [integration guide](./examples/vue-server-side/README.md) contains the public API, GET/POST contract, zero/out-of-range behavior, compatible package versions and validation results. The complete [Vue SFC example](./examples/vue-server-side/UserTable.vue) demonstrates the UI flow. Server-side tables require the compatible core, datasource and plugin versions listed in the guide; npm installation depends on completion of the corresponding release workflow.
+The [integration guide](./examples/vue-server-side/README.md) contains the public API, GET/POST contract, zero/out-of-range behavior, published package versions and validation results. The complete [Vue SFC example](./examples/vue-server-side/UserTable.vue) demonstrates the UI flow. The [browser acceptance suite](./tests/e2e/vue-server-side/README.md) runs this exact example against a real HTTP/SQLite backend in Chromium, Firefox and WebKit, using both the current checkout and isolated public npm packages.
 
 ### Backend (Node.js)
 
@@ -253,7 +253,7 @@ Each plugin:
 
 ## Development
 
-Only Docker is required on the host. Node.js, pnpm, ESLint, Prettier and gitleaks all run inside the toolchain container defined in [`docker/`](docker); do not run `pnpm` on the host, because `node_modules` is installed for Linux by the container.
+Only Docker is required on the host. Node.js, pnpm, ESLint, Prettier and gitleaks all run inside the toolchain container defined in [`docker/`](docker); do not run `pnpm` on the host, because `node_modules` is installed for Linux by the container. Browser acceptance uses the separate, version-matched Playwright container described in the [E2E guide](./tests/e2e/vue-server-side/README.md).
 
 ```bash
 cp docker/.env.example docker/.env   # on macOS/Linux, set PUID/PGID to `id -u` / `id -g`
@@ -271,6 +271,8 @@ make lint         # ESLint --fix + Prettier --write
 make ci           # build, lint, format, type check and tests (same gate as CI)
 make audit        # pnpm audit of all dependencies
 make secret-scan  # gitleaks over the git history
+make e2e-vue      # Vue + real HTTP/SQLite in Chromium, Firefox and WebKit (npm packages)
+make e2e-vue E2E_PACKAGES=checkout # same browser suite using current workspace builds
 ```
 
 Anything else runs through the `app` service, for example creating a changeset:
@@ -296,13 +298,13 @@ feat/* · fix/* ──PR squash──▶ main ──▶ changesets release PR �
 
 - Work on a short-lived `feat/*`, `fix/*`, `refactor/*`, `docs/*` or `chore/*` branch, open a PR to `main`, squash-merge it and delete the branch.
 - Commits use Conventional Commits with English (ASCII) subjects. The PR title becomes the squash commit subject, so it follows the same rule.
-- [`ci.yml`](.github/workflows/ci.yml) runs on PRs to `main` and on manual dispatch, not on pushes to `main`. It checks commit subjects and the PR title, then runs `make audit`, `make secret-scan` and `make ci` in the toolchain container.
+- [`ci.yml`](.github/workflows/ci.yml) runs on PRs to `main` and on manual dispatch, not on pushes to `main`. It checks commit subjects and the PR title, then runs `make audit`, `make secret-scan` and `make ci` in the toolchain container. Two additional jobs run the Vue server-side browser suite against checkout builds and public npm packages; failure traces, screenshots, videos and HTML/JSON reports are retained for 14 days.
 - [`dependency-audit.yml`](.github/workflows/dependency-audit.yml) repeats the audit every Monday 09:00 (Asia/Taipei).
 - [`release.yml`](.github/workflows/release.yml) runs on pushes to `main` and publishes through changesets with npm trusted publishing.
 
 ## Status
 
-`@trellisjs/core`, the React and Vue adapters and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha** (`0.1.0-alpha`). See [GitHub issues](https://github.com/cluion/trellis/issues) for planned features.
+`@trellisjs/core`, the React and Vue adapters and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha**: the safety fixes are published as `0.1.0-alpha.2` on the `alpha` tag; `latest` remains `0.1.0-alpha.1`. See [GitHub issues](https://github.com/cluion/trellis/issues) for planned features.
 
 ## License
 

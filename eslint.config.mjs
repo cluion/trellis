@@ -97,6 +97,9 @@ export default defineConfig(
         ignores: [
             '**/dist/**',
             '**/coverage/**',
+            '**/playwright-report/**',
+            '**/test-results/**',
+            '**/.generated/**',
             '.pnpm-store/**',
             '.claude/**',
             'docs/**',
