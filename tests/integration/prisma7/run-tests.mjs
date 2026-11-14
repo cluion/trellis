@@ -21,6 +21,7 @@ const result = spawnSync(
         '--test-reporter=junit',
         `--test-reporter-destination=reports/${provider}.xml`,
         'prisma.integration.ts',
+        'sql.integration.ts',
     ],
     { stdio: 'inherit' },
 );

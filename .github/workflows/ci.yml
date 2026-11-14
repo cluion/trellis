@@ -184,7 +184,7 @@ jobs:
           cache: npm
           cache-dependency-path: tests/integration/prisma7/package-lock.json
 
-      - name: Build adapter and response validator
+      - name: Build SQL helper, adapter and response validator
         run: |
           pnpm install --frozen-lockfile
           pnpm -r --filter @trellisjs/server-prisma... --filter @trellisjs/plugin-datasource... run build
@@ -199,7 +199,7 @@ jobs:
           npm run db:push
           npm run typecheck
 
-      - name: Test real database queries and concurrent writes
+      - name: Test SQL semantics and concurrent database reads
         run: npm --prefix tests/integration/prisma7 test
 
       - name: Upload database test reports

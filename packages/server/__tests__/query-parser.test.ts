@@ -103,7 +103,7 @@ describe('查詢解析器', () => {
                 [{ columnId: 'name', direction: 'asc' }],
                 ['name'],
             );
-            expect(sql).toBe('ORDER BY name ASC');
+            expect(sql).toBe('ORDER BY `name` ASC');
         });
 
         it('多個排序條件', () => {
@@ -114,7 +114,7 @@ describe('查詢解析器', () => {
                 ],
                 ['age', 'name'],
             );
-            expect(sql).toBe('ORDER BY age DESC, name ASC');
+            expect(sql).toBe('ORDER BY `age` DESC, `name` ASC');
         });
 
         it('無排序時回傳空字串', () => {
@@ -244,7 +244,7 @@ describe('查詢解析器', () => {
             const result = buildWhereClause(['name'], {
                 columns: { name: "'; DROP TABLE users;--" },
             });
-            expect(result.sql).toBe('WHERE name LIKE ?');
+            expect(result.sql).toBe("WHERE `name` LIKE ? ESCAPE '!'");
             expect(result.params).toEqual(["%'; DROP TABLE users;--%"]);
         });
     });

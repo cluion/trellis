@@ -11,3 +11,14 @@ export interface WhereClause {
     sql: string;
     params: unknown[];
 }
+
+export type SqlDialect = 'sqlite' | 'mysql' | 'postgresql';
+
+export interface SqlQueryOptions {
+    /** Defaults to SQLite's question-mark parameters. */
+    dialect?: SqlDialect;
+    /** Both modes use contains matching; wildcard enables SQL % and _. */
+    likeMode?: 'literal' | 'wildcard';
+    /** Number of preceding PostgreSQL parameters when composing conditions. */
+    parameterOffset?: number;
+}
