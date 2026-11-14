@@ -219,6 +219,10 @@ The Prisma helper requires trusted output and query-field allowlists. String
 search follows database collation by default; PostgreSQL callers can opt into
 `stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
 and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha1).
+The SQL helper's [unreleased dialect/LIKE contract](./packages/server/README.md#sql-dialect-and-comparison-scope)
+adds reserved-name quoting and literal contains matching. Executed regressions
+cover SQLite/MySQL/PostgreSQL SQL semantics; Prisma filtering retains
+its own provider-defined `contains` behavior.
 These backend helper changes are included in `0.1.0-alpha.2`. Install
 `@trellisjs/server@alpha` and `@trellisjs/server-prisma@alpha` to use them;
 `latest` remains on the earlier API. See the

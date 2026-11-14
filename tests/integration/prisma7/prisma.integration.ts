@@ -3,8 +3,6 @@ import { writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import process from 'node:process';
 import { after, before, beforeEach, test } from 'node:test';
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
-import { PrismaPg } from '@prisma/adapter-pg';
 import { createRemoteDatasource } from '../../../packages/plugin-datasource/dist/index.mjs';
 import type { TrellisServerQuery } from '../../../packages/server/dist/index.mjs';
 import {
@@ -14,32 +12,12 @@ import {
 } from '../../../packages/server-prisma/dist/index.mjs';
 import type { PrismaAdapterOptions } from '../../../packages/server-prisma/dist/index.mjs';
 import type * as Adapter from '../../../packages/server-prisma/dist/index.mjs';
-import { Prisma, PrismaClient } from './generated/client/client.ts';
+import { createClient, provider } from './database.ts';
+import { Prisma } from './generated/client/client.ts';
 
-const provider = process.env.TRELLIS_TEST_PROVIDER;
-assert.ok(provider === 'mysql' || provider === 'postgresql');
-const url = new URL(process.env.TRELLIS_TEST_DATABASE_URL!);
-assert.equal(url.pathname, '/trellis_prisma7_test');
 const require = createRequire(import.meta.url);
-
-function client() {
-    const adapter =
-        provider === 'mysql'
-            ? new PrismaMariaDb({
-                  host: url.hostname,
-                  port: Number(url.port || 3306),
-                  user: decodeURIComponent(url.username),
-                  password: decodeURIComponent(url.password),
-                  database: url.pathname.slice(1),
-                  connectionLimit: 1,
-              })
-            : new PrismaPg({ connectionString: url.href, max: 1 });
-
-    return new PrismaClient({ adapter });
-}
-
-const reader = client();
-const writer = client();
+const reader = createClient();
+const writer = createClient();
 interface Row {
     id: number;
     name: string;

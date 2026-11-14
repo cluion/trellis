@@ -1,4 +1,9 @@
-export type { TrellisServerQuery, WhereClause } from './types';
+export type {
+    TrellisServerQuery,
+    WhereClause,
+    SqlDialect,
+    SqlQueryOptions,
+} from './types';
 export {
     parseTrellisQuery,
     buildWhereClause,

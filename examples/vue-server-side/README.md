@@ -171,6 +171,14 @@ unreleased `withPrismaSnapshot` / consistency-error additions. The
 MySQL/PostgreSQL with committed writes between reads; the Vue browser fixture
 continues to use its own SQLite backend.
 
+The raw SQL helper's **unreleased** changes quote authorized reserved column
+names and make LIKE searches literal contains matches by default. Backends can
+explicitly choose SQLite/MySQL/PostgreSQL rendering and wildcard contains
+matching. See the [SQL behavior and migration guide](../../packages/server/README.md#sql-dialect-and-comparison-scope)
+before adopting the next backend release. Send raw search text from the
+frontend; avoid pre-escaping it. These options apply to SQL builders, while
+Prisma `contains` retains its provider-defined behavior.
+
 ## Real-browser acceptance
 
 The [Playwright suite](../../tests/e2e/vue-server-side/README.md) compiles the exact `UserTable.vue` above and sends native browser requests to a loopback Node HTTP server backed by SQLite. It does not stub `fetch` or intercept API routes. The same eight scenarios run in Chromium, Firefox and WebKit, in two package modes:

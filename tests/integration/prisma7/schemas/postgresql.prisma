@@ -16,3 +16,12 @@ model User {
 
   @@map("trellis_user")
 }
+
+model SqlRow {
+  id          Int    @id
+  orderValue  String @map("order")
+  groupValue  String @map("group")
+  selectValue String @map("select")
+
+  @@map("trellis_sql_row")
+}

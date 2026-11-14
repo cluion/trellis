@@ -1,4 +1,9 @@
-import type { TrellisServerQuery, WhereClause } from './types';
+import type {
+    SqlDialect,
+    SqlQueryOptions,
+    TrellisServerQuery,
+    WhereClause,
+} from './types';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -40,11 +45,76 @@ function parseJSON(value: unknown, name: string): unknown {
 function allowedColumn(column: string, columns: readonly string[]): void {
     if (
         !Array.isArray(columns) ||
+        typeof column !== 'string' ||
         !SAFE_COLUMN_RE.test(column) ||
         !columns.includes(column)
     ) {
         throw new TypeError('Query contains a column that is not allowed.');
     }
+}
+
+function sqlOptions(options: SqlQueryOptions): Required<SqlQueryOptions> {
+    if (!isRecord(options)) {
+        throw new TypeError('SQL options must be an object.');
+    }
+
+    const {
+        dialect = 'sqlite',
+        likeMode = 'literal',
+        parameterOffset = 0,
+    } = options;
+
+    if (
+        dialect !== 'sqlite' &&
+        dialect !== 'mysql' &&
+        dialect !== 'postgresql'
+    ) {
+        throw new TypeError('Unsupported SQL dialect.');
+    }
+
+    if (likeMode !== 'literal' && likeMode !== 'wildcard') {
+        throw new TypeError('Invalid SQL likeMode.');
+    }
+
+    if (
+        typeof parameterOffset !== 'number' ||
+        !Number.isSafeInteger(parameterOffset) ||
+        parameterOffset < 0 ||
+        (dialect !== 'postgresql' && parameterOffset !== 0)
+    ) {
+        throw new RangeError(
+            'parameterOffset must be a non-negative safe integer and is supported only for PostgreSQL.',
+        );
+    }
+
+    return { dialect, likeMode, parameterOffset };
+}
+
+function quotedColumn(
+    column: string,
+    columns: readonly string[],
+    dialect: SqlDialect,
+): string {
+    allowedColumn(column, columns);
+    const quote = dialect === 'postgresql' ? '"' : '`';
+
+    return `${quote}${column}${quote}`;
+}
+
+function containsPattern(
+    value: string,
+    mode: SqlQueryOptions['likeMode'],
+): string {
+    if (value.includes('\0')) {
+        throw new TypeError('SQL LIKE search does not support NUL characters.');
+    }
+
+    const escaped = value.replace(
+        mode === 'wildcard' ? /!/g : /[!%_]/g,
+        (c) => `!${c}`,
+    );
+
+    return `%${escaped}%`;
 }
 
 /**
@@ -148,7 +218,9 @@ export function parseTrellisQuery(
 export function buildWhereClause(
     columns: readonly string[],
     filter?: TrellisServerQuery['filter'],
+    options: SqlQueryOptions = {},
 ): WhereClause {
+    const { dialect, likeMode, parameterOffset } = sqlOptions(options);
     filter = parseTrellisQuery({ filter }).filter;
 
     if (!filter) {
@@ -157,18 +229,34 @@ export function buildWhereClause(
 
     const conditions: string[] = [];
     const params: unknown[] = [];
+    const bind = (value: unknown): string => {
+        params.push(value);
+
+        if (dialect === 'postgresql') {
+            const index = parameterOffset + params.length;
+
+            if (!Number.isSafeInteger(index)) {
+                throw new RangeError(
+                    'SQL parameter index exceeds the safe integer range.',
+                );
+            }
+
+            return `$${index}`;
+        }
+
+        return '?';
+    };
 
     // 全域搜尋 — 所有欄位 OR
     if (filter.global) {
-        if (columns.length === 0) {
+        if (!Array.isArray(columns) || columns.length === 0) {
             throw new TypeError('Global search requires allowed columns.');
         }
 
-        const orConditions = columns.map((col) => {
-            allowedColumn(col, columns);
-            params.push(`%${filter.global}%`);
+        const orConditions = Array.from(columns, (col) => {
+            const name = quotedColumn(col, columns, dialect);
 
-            return `${col} LIKE ?`;
+            return `${name} LIKE ${bind(containsPattern(filter.global!, likeMode))} ESCAPE '!'`;
         });
 
         if (orConditions.length > 0) {
@@ -179,18 +267,18 @@ export function buildWhereClause(
     // 單欄篩選 — AND
     if (filter.columns) {
         for (const [colId, value] of Object.entries(filter.columns)) {
-            allowedColumn(colId, columns);
+            const name = quotedColumn(colId, columns, dialect);
 
             if (value == null || value === '') {
                 continue;
             }
 
             if (typeof value === 'string') {
-                conditions.push(`${colId} LIKE ?`);
-                params.push(`%${value}%`);
+                conditions.push(
+                    `${name} LIKE ${bind(containsPattern(value, likeMode))} ESCAPE '!'`,
+                );
             } else {
-                conditions.push(`${colId} = ?`);
-                params.push(value);
+                conditions.push(`${name} = ${bind(value)}`);
             }
         }
     }
@@ -208,7 +296,9 @@ export function buildWhereClause(
 export function buildOrderByClause(
     sort: TrellisServerQuery['sort'],
     columns: readonly string[],
+    options: SqlQueryOptions = {},
 ): string {
+    const { dialect } = sqlOptions(options);
     sort = parseTrellisQuery({ sort }).sort;
 
     if (!sort || sort.length === 0) {
@@ -216,9 +306,9 @@ export function buildOrderByClause(
     }
 
     const clauses = sort.map((s) => {
-        allowedColumn(s.columnId, columns ?? []);
+        const name = quotedColumn(s.columnId, columns ?? [], dialect);
 
-        return `${s.columnId} ${s.direction === 'desc' ? 'DESC' : 'ASC'}`;
+        return `${name} ${s.direction === 'desc' ? 'DESC' : 'ASC'}`;
     });
 
     return clauses.length > 0 ? `ORDER BY ${clauses.join(', ')}` : '';
