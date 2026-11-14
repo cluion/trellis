@@ -116,6 +116,9 @@ jobs:
 
       - name: Run Chromium, Firefox and WebKit
         run: npm run test:e2e:vue
+        env:
+          # GitHub 掛載的 /github/home 屬於 host UID；Firefox 的 root 行程需使用 root 家目錄。
+          HOME: /root
 
       - name: Upload browser reports and failure traces
         if: always()

@@ -59,6 +59,8 @@ Every case attaches package versions, Node version and backend query/response/ab
 
 The existing `Verify changes` workflow has two additional matrix jobs: `checkout` and `published`. Each runs all three browsers after the commit-policy check, independently of the existing toolchain verification job. CI permits one diagnostic retry; both persistent failures and flaky recovered tests fail the job. Reports and failure artifacts are uploaded even on test failure and retained for 14 days.
 
+The GitHub container runs browsers as root, so that step uses `/root` as its home directory. GitHub's default `/github/home` mount belongs to the host runner UID; Firefox refuses to start as root with another user's home directory. The local Make target instead uses the host UID with the browser image's writable `/tmp` home.
+
 Local validation — 2026-11-14, Linux ARM64, Node 24.19.0, Playwright 1.65.1, TypeScript 5.9.3, Vue 3.5.44 and Vite 7.3.7:
 
 | Check | Result |
