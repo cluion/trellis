@@ -5,3 +5,6 @@ tests/e2e/vue-server-side/package-lock.json
 **/playwright-report/**
 **/test-results/**
 **/.generated/**
+tests/integration/prisma7/package-lock.json
+tests/integration/prisma7/generated/**
+tests/integration/prisma7/reports/**

@@ -6,6 +6,15 @@ interface PrismaModel {
     findMany(args?: any): Promise<any[]>;
 }
 
+export class PrismaConsistencyError extends Error {
+    constructor() {
+        super(
+            'Prisma query returned inconsistent counts or rows. Run the query inside withPrismaSnapshot().',
+        );
+        this.name = 'PrismaConsistencyError';
+    }
+}
+
 export interface PrismaAdapterOptions {
     /** Explicit scalar fields returned by findMany. */
     select: Record<string, boolean>;
@@ -158,6 +167,22 @@ export async function trellisPrismaQuery<T>(
         skip: (parsed.page - 1) * parsed.pageSize,
         take: parsed.pageSize,
     });
+
+    if (
+        !Number.isSafeInteger(total) ||
+        total < 0 ||
+        !Number.isSafeInteger(filtered) ||
+        filtered < 0 ||
+        filtered > total ||
+        !Array.isArray(data) ||
+        data.length !==
+            Math.min(
+                parsed.pageSize,
+                Math.max(0, filtered - (parsed.page - 1) * parsed.pageSize),
+            )
+    ) {
+        throw new PrismaConsistencyError();
+    }
 
     return {
         data: data as T[],

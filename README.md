@@ -193,23 +193,28 @@ The [integration guide](./examples/vue-server-side/README.md) contains the publi
 ```typescript
 import { parseTrellisQuery } from '@trellisjs/server';
 import { trellisPrismaQuery } from '@trellisjs/server-prisma';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from './db'; // Your application's configured Prisma client.
 
 // In your API handler:
 app.get('/api/users', async (req, res) => {
   const query = parseTrellisQuery(req.query);
-  const result = await trellisPrismaQuery(prisma.user, query, {
-    select: { id: true, name: true, email: true },
-    searchableColumns: ['name', 'email'],
-    filterableColumns: ['name', 'email'],
-    sortableColumns: ['id', 'name', 'email'],
-  });
+  const result = await prisma.$transaction(
+    (tx) => trellisPrismaQuery(tx.user, query, {
+      select: { id: true, name: true, email: true },
+      searchableColumns: ['name', 'email'],
+      filterableColumns: ['name', 'email'],
+      sortableColumns: ['id', 'name', 'email'],
+    }),
+    { isolationLevel: 'RepeatableRead' },
+  );
   res.json(result);
 });
 ```
 
+The `./db` import represents your application's generated Prisma client; Prisma 7
+needs a provider driver adapter. The [Prisma integration guide](./packages/server-prisma/README.md#consistent-counts-and-rows)
+explains snapshot reads, the unreleased convenience API and the real-database CI.
+The transaction example above works with the published alpha adapter.
 The Prisma helper requires trusted output and query-field allowlists. String
 search follows database collation by default; PostgreSQL callers can opt into
 `stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
@@ -273,6 +278,7 @@ make audit        # pnpm audit of all dependencies
 make secret-scan  # gitleaks over the git history
 make e2e-vue      # Vue + real HTTP/SQLite in Chromium, Firefox and WebKit (npm packages)
 make e2e-vue E2E_PACKAGES=checkout # same browser suite using current workspace builds
+make test-prisma7 # generated Prisma 7 clients, isolated MySQL/PostgreSQL and concurrent writes
 ```
 
 Anything else runs through the `app` service, for example creating a changeset:
@@ -300,6 +306,7 @@ feat/* · fix/* ──PR squash──▶ main ──▶ changesets release PR �
 - Commits use Conventional Commits with English (ASCII) subjects. The PR title becomes the squash commit subject, so it follows the same rule.
 - [`ci.yml`](.github/workflows/ci.yml) runs on PRs to `main` and on manual dispatch, not on pushes to `main`. It checks commit subjects and the PR title, then runs `make audit`, `make secret-scan` and `make ci` in the toolchain container. Two additional jobs run the Vue server-side browser suite against checkout builds and public npm packages; failure traces, screenshots, videos and HTML/JSON reports are retained for 14 days.
 - [`dependency-audit.yml`](.github/workflows/dependency-audit.yml) repeats the audit every Monday 09:00 (Asia/Taipei).
+- The same verification workflow also runs [Prisma 7 real-database tests](./tests/integration/prisma7/README.md) on MySQL and PostgreSQL, with committed writes interleaved between count/page reads and JUnit/environment reports retained for 14 days.
 - [`release.yml`](.github/workflows/release.yml) runs on pushes to `main` and publishes through changesets with npm trusted publishing.
 
 ## Status

@@ -1,6 +1,7 @@
 COMPOSE := docker compose --env-file docker/.env -f docker/compose.yaml
+PRISMA_COMPOSE := docker compose --env-file /dev/null -f docker/compose.prisma-test.yaml
 
-.PHONY: build setup up down test lint audit secret-scan ci browser-build e2e-vue
+.PHONY: build setup up down test lint audit secret-scan ci browser-build e2e-vue test-prisma7
 
 E2E_PACKAGES ?= published
 
@@ -46,3 +47,9 @@ e2e-vue: browser-build
 		npm ci --prefix tests/e2e/vue-server-side && \
 		npm --prefix tests/e2e/vue-server-side run typecheck && \
 		npm run test:e2e:vue'
+
+test-prisma7:
+	@set -eu; \
+	trap '$(PRISMA_COMPOSE) down' EXIT; \
+	PUID=$$(id -u) PGID=$$(id -g) $(PRISMA_COMPOSE) run --rm test-mysql; \
+	PUID=$$(id -u) PGID=$$(id -g) $(PRISMA_COMPOSE) run --rm test-postgresql
