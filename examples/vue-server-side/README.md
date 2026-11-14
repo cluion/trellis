@@ -123,6 +123,16 @@ Both HTTP responses and custom datasource results are validated:
 - `data.length` must equal `min(pageSize, max(0, filtered - (page - 1) * pageSize))`. Partial pages are valid only at the end; a backend that silently caps page size must instead honor the requested size or reject it.
 - Pages, sizes and calculated offsets must be safe integers; page and size must be positive.
 
+The checkout `@trellisjs/server` helper also validates this contract in
+[`buildResponse`](../../packages/server/README.md#buildresponsedata-options)
+before returning an envelope. This validation is **unreleased**; published
+`0.1.0-alpha.2` does not perform it. Invalid backend results throw rather than
+being clamped. For zero or out-of-range pages, send empty rows with the
+original requested page and unchanged counts; the frontend owns page
+correction. Return a friendly server error for invalid backend results, and
+handle invalid client-query parameters separately. These checks do not replace
+a database snapshot for concurrent counts/page reads.
+
 HTTP status, network, JSON, transform and validation errors reject a direct `datasource.fetch()` call; plugin-managed requests expose them through `state.datasource.error`. Invalid initial page/size configuration throws during construction. Cancellation through the plugin is not reported as an error.
 
 ## Vue example

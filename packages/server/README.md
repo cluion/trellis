@@ -22,6 +22,9 @@ The SQL quoting, dialect options and literal LIKE behavior below are
 identifiers, `?` parameters and unescaped LIKE contains patterns. No package
 version or npm tag has changed. See [migration from alpha.2](#migration-from-010-alpha2-unreleased).
 
+The `buildResponse` contract validation below is also **unreleased**.
+Published `0.1.0-alpha.2` constructs the envelope without these checks.
+
 ## API
 
 ### Types
@@ -186,6 +189,48 @@ Constructs the standard Trellis response envelope with pagination metadata.
 const result = buildResponse(rows, { total, filtered, query });
 ```
 
+**Unreleased contract validation:** the builder rejects a response that would
+fail the frontend datasource's row/count/page-length validation:
+
+- `data` must be an array of non-null, non-array row objects; sparse arrays
+  and primitive rows are rejected. Row fields are not serialized or schema-validated.
+- `total` and `filtered` must be non-negative safe integer numbers with
+  `filtered <= total`. Strings, `bigint`, fractions and non-finite counts are
+  rejected rather than converted or clamped.
+- `query.page` and `query.pageSize` must be positive safe integers, and
+  `(page - 1) * pageSize` must be safe. Pass the effective query used to fetch
+  the data; the builder does not default, cap or normalize pagination. The
+  parser's existing page-size cap of 1000 still applies when parsing requests.
+- The exact page length is
+  `min(pageSize, max(0, filtered - (page - 1) * pageSize))`. A partial page is
+  accepted only at the end. Missing or excess rows are rejected, including
+  non-empty zero-result or out-of-range pages.
+
+| Request / counts | Required rows | Returned metadata |
+| --- | --- | --- |
+| page 1, size 3, total 20, filtered 8 | 3 | page 1, totalPages 3 |
+| page 3, size 3, total 20, filtered 8 | 2 | page 3, totalPages 3 |
+| page 1, size 3, total 20, filtered 0 | 0 | page 1, totalPages 1; total stays 20 |
+| page 1, size 3, total 0, filtered 0 | 0 | page 1, totalPages 1 |
+| page 4, size 3, total 20, filtered 8 | 0 | page 4, totalPages 3 |
+| page 4, size 3, total 20, filtered 0 | 0 | page 4, totalPages 1; total stays 20 |
+
+The builder preserves the requested page, original rows and both counts. It
+does not substitute another page or relabel rows. The frontend can then apply
+its existing out-of-range correction and fetch the corrected page. Zero
+matches always have `totalPages: 1`.
+
+Invalid options, rows, counts or page lengths throw `TypeError`; invalid
+pagination or an unsafe offset throws `RangeError`. These are synchronous
+checks before constructing the envelope. A backend-result validation failure
+should become a friendly server-error response. Handle invalid request input
+separately during query parsing rather than mapping every `TypeError` to HTTP
+400. Error messages are diagnostics, not response payloads for end users.
+
+Validation detects contradictory results; it cannot establish snapshot
+consistency. Keep count/page queries in a suitable transaction when writes
+can occur concurrently. The helper does not manage connections or retry reads.
+
 ## Quick Usage
 
 ```ts
@@ -211,6 +256,11 @@ This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get`
 
 ## Migration from 0.1.0-alpha.2 (unreleased)
 
+- `buildResponse` now rejects invalid counts, row objects, pagination and page
+  lengths instead of emitting an envelope the frontend cannot accept. Keep
+  `total` / `filtered` before pagination, honor the effective requested size,
+  and return empty rows for out-of-range pages without changing the page.
+  Handle backend-result errors separately from invalid client input.
 - SQL identifiers now include quotes, so reserved names work. Existing valid
   two-argument SQLite/MySQL calls retain their `?` parameter format. Adjust
   exact-SQL assertions; do not remove the quotes at runtime.
@@ -239,11 +289,19 @@ from the Prisma adapter snapshot tests. Final run results and supported
 versions are recorded in that fixture guide; neither suite is a production
 load or arbitrary-database compatibility claim.
 
-Local validation on 2026-11-14 (Linux ARM64, Node 24.19.0) passed 78 server
+Earlier SQL-stage validation on 2026-11-14 (Linux ARM64, Node 24.19.0) passed 78 server
 tests, including actual SQLite queries; MySQL 8.4.11 and PostgreSQL 18.6 each
 passed 21 SQL cases plus 12 Prisma snapshot regressions. The checkout Vue
-example also passed its Chromium/Firefox/WebKit regression. These source
-changes and migration rules are not yet published to npm.
+example also passed its Chromium/Firefox/WebKit regression.
+
+The response-contract stage adds 74 package cases and six real HTTP cases.
+On 2026-11-14, all 152 server tests, nine loopback HTTP tests and 52 datasource
+tests passed, along with the server ESM/CJS/declaration build, type check and
+changed-code lint/format checks. This stage covers invalid counts/rows/query
+pagination/page lengths, full and partial final pages, empty datasets, zero
+matches and unchanged out-of-range metadata. It did not rerun the database or
+browser suites, full monorepo CI, or remote CI. These source changes and
+migration rules are not yet published to npm.
 
 ## Migration from 0.1.0-alpha.1
 
