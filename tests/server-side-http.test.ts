@@ -11,6 +11,7 @@ import type { TrellisQuery } from '../packages/plugin-datasource/src';
 import { createFilterPlugin } from '../packages/plugin-filter/src';
 import { createPaginationPlugin } from '../packages/plugin-pagination/src';
 import { createSortPlugin } from '../packages/plugin-sort/src';
+import { buildResponse } from '../packages/server/src';
 import { parseTrellisQuery } from '../packages/server/src/query-parser';
 
 const users = Array.from({ length: 6 }, (_, index) => ({
@@ -108,6 +109,105 @@ afterEach(async () => {
 });
 
 describe('server-side 本機真實 HTTP', () => {
+    it.each([
+        {
+            name: '完整頁面',
+            data: users,
+            page: 1,
+            filter: undefined,
+            ids: [1, 2],
+            total: 6,
+            filtered: 6,
+            totalPages: 3,
+        },
+        {
+            name: '最後一頁',
+            data: users,
+            page: 2,
+            filter: { global: 'Taipei' },
+            ids: [5],
+            total: 6,
+            filtered: 3,
+            totalPages: 2,
+        },
+        {
+            name: '搜尋零筆',
+            data: users,
+            page: 1,
+            filter: { global: 'Osaka' },
+            ids: [],
+            total: 6,
+            filtered: 0,
+            totalPages: 1,
+        },
+        {
+            name: '空資料集',
+            data: [],
+            page: 1,
+            filter: undefined,
+            ids: [],
+            total: 0,
+            filtered: 0,
+            totalPages: 1,
+        },
+        {
+            name: '越界頁面',
+            data: users,
+            page: 4,
+            filter: undefined,
+            ids: [],
+            total: 6,
+            filtered: 6,
+            totalPages: 3,
+        },
+        {
+            name: '搜尋零筆的越界頁面',
+            data: users,
+            page: 4,
+            filter: { global: 'Osaka' },
+            ids: [],
+            total: 6,
+            filtered: 0,
+            totalPages: 1,
+        },
+    ])(
+        'buildResponse 的$name通過 HTTP datasource 驗證',
+        async ({ data, page, filter, ids, total, filtered, totalPages }) => {
+            const backend = createStaticDatasource<User>(data);
+            const url = await serve(async (request, response) => {
+                const query = await queryFromRequest(request);
+                const result = await backend.fetch(query);
+                response.setHeader('Content-Type', 'application/json');
+                response.end(
+                    JSON.stringify(
+                        buildResponse(result.data, {
+                            total: result.total,
+                            filtered: result.filtered,
+                            query,
+                        }),
+                    ),
+                );
+            });
+            const datasource = createRemoteDatasource<User>({
+                url,
+                method: 'GET',
+            });
+            const result = await datasource.fetch({
+                page,
+                pageSize: 2,
+                filter,
+            });
+            expect(result.data.map((row) => row.id)).toEqual(ids);
+            expect(result).toMatchObject({
+                total,
+                filtered,
+                page,
+                pageSize: 2,
+                totalPages,
+            });
+        },
+    );
+
     it('GET 與 server parser 串接，跨頁搜尋排序並保留遠端總數', async () => {
         const queries: TrellisQuery[] = [];
         const tenants: (string | null)[] = [];
