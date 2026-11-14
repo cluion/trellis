@@ -1,0 +1,82 @@
+name: trellis-prisma7-test
+
+x-runner: &runner
+  image: trellis:app
+  init: true
+  user: '${PUID:-1000}:${PGID:-1000}'
+  working_dir: /workspace
+  volumes:
+    - ../:/workspace
+  command: >-
+    sh -c 'pnpm install --frozen-lockfile
+    && pnpm -r --filter @trellisjs/server-prisma... --filter @trellisjs/plugin-datasource... run build
+    && cd tests/integration/prisma7
+    && npm ci
+    && npm run generate
+    && npm run db:push
+    && npm run typecheck
+    && npm test'
+
+x-environment: &environment
+  HOME: /tmp
+  npm_config_cache: /tmp/npm-cache
+  npm_config_store_dir: /workspace/.pnpm-store
+  PRISMA_SKIP_POSTINSTALL_GENERATE: '1'
+
+services:
+  mysql:
+    image: mysql:8.4.11
+    environment:
+      MYSQL_ROOT_PASSWORD: trellis-root-test
+      MYSQL_DATABASE: trellis_prisma7_test
+      MYSQL_USER: trellis
+      MYSQL_PASSWORD: trellis-test
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'mysqladmin ping -h 127.0.0.1 -uroot -ptrellis-root-test --silent',
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  postgresql:
+    image: postgres:18.6-bookworm
+    environment:
+      POSTGRES_USER: trellis
+      POSTGRES_PASSWORD: trellis-test
+      POSTGRES_DB: trellis_prisma7_test
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'pg_isready -h 127.0.0.1 -U trellis -d trellis_prisma7_test',
+        ]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+
+  test-mysql:
+    <<: *runner
+    environment:
+      <<: *environment
+      TRELLIS_TEST_PROVIDER: mysql
+      TRELLIS_TEST_DATABASE_URL: mysql://trellis:trellis-test@mysql:3306/trellis_prisma7_test
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  test-postgresql:
+    <<: *runner
+    environment:
+      <<: *environment
+      TRELLIS_TEST_PROVIDER: postgresql
+      TRELLIS_TEST_DATABASE_URL: postgresql://trellis:trellis-test@postgresql:5432/trellis_prisma7_test
+    depends_on:
+      postgresql:
+        condition: service_healthy

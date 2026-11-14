@@ -1,0 +1,18 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/client"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id           Int    @id
+  name         String
+  email        String
+  privateField String
+
+  @@map("trellis_user")
+}

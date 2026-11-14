@@ -130,3 +130,83 @@ jobs:
             tests/e2e/vue-server-side/test-results/
           retention-days: 14
           if-no-files-found: ignore
+
+  prisma7:
+    name: Prisma 7 (${{ matrix.provider }})
+    needs: commit-policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - provider: mysql
+            image: mysql:8.4.11
+            port: 3306
+            url: mysql://trellis:trellis-test@127.0.0.1:3306/trellis_prisma7_test
+            health: mysqladmin ping -h 127.0.0.1 -uroot -ptrellis-root-test --silent
+          - provider: postgresql
+            image: postgres:18.6-bookworm
+            port: 5432
+            url: postgresql://trellis:trellis-test@127.0.0.1:5432/trellis_prisma7_test
+            health: pg_isready -h 127.0.0.1 -U trellis -d trellis_prisma7_test
+    services:
+      database:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: trellis-root-test
+          MYSQL_DATABASE: trellis_prisma7_test
+          MYSQL_USER: trellis
+          MYSQL_PASSWORD: trellis-test
+          POSTGRES_USER: trellis
+          POSTGRES_PASSWORD: trellis-test
+          POSTGRES_DB: trellis_prisma7_test
+        ports:
+          - ${{ matrix.port }}:${{ matrix.port }}
+        options: >-
+          --health-cmd="${{ matrix.health }}"
+          --health-interval=2s --health-timeout=3s --health-retries=60
+    env:
+      TRELLIS_TEST_PROVIDER: ${{ matrix.provider }}
+      TRELLIS_TEST_DATABASE_URL: ${{ matrix.url }}
+      PRISMA_SKIP_POSTINSTALL_GENERATE: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+          cache: npm
+          cache-dependency-path: tests/integration/prisma7/package-lock.json
+
+      - name: Build adapter and response validator
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm -r --filter @trellisjs/server-prisma... --filter @trellisjs/plugin-datasource... run build
+
+      - name: Install pinned Prisma 7 fixture
+        run: npm ci --prefix tests/integration/prisma7
+
+      - name: Generate client and initialize disposable schema
+        working-directory: tests/integration/prisma7
+        run: |
+          npm run generate
+          npm run db:push
+          npm run typecheck
+
+      - name: Test real database queries and concurrent writes
+        run: npm --prefix tests/integration/prisma7 test
+
+      - name: Upload database test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prisma7-${{ matrix.provider }}
+          path: tests/integration/prisma7/reports/
+          retention-days: 14
+          if-no-files-found: ignore

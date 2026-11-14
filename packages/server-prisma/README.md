@@ -11,6 +11,13 @@ npm install @trellisjs/server-prisma@alpha @trellisjs/server@alpha @prisma/clien
 
 Requires `@prisma/client` >= 5.
 
+The continuous integration matrix currently exercises Prisma **7.10.1**, Node
+**24.19.0**, MySQL **8.4.11** and PostgreSQL **18.6** with the official
+`@prisma/adapter-mariadb` / `@prisma/adapter-pg` drivers. Prisma 7 requires a
+generated client configured with a driver adapter; see the executable
+[database fixture](../../tests/integration/prisma7/README.md). This matrix does
+not establish support for every version allowed by the existing peer range.
+
 ## Alpha release channel
 
 `0.1.0-alpha.2` includes the required projection, query-field allowlists and
@@ -54,7 +61,62 @@ returned projection: a field may be allowed for sorting without being returned.
 The adapter uses `AND` to combine global and column filters, and preserves
 multi-column sorting order.
 
-**Returns:**
+### Consistent counts and rows
+
+Counts and rows must come from the same database snapshot when other requests
+can write concurrently. A normal delegate does not create a transaction, and
+PostgreSQL's default ReadCommitted transaction does not provide one snapshot
+across all three reads. Pass the **transaction-bound** delegate inside a
+RepeatableRead transaction for MySQL/PostgreSQL. This works with the published
+`0.1.0-alpha.2` API:
+
+```ts
+const result = await prisma.$transaction(
+  (tx) => trellisPrismaQuery(tx.user, query, {
+    select: { id: true, name: true, email: true },
+    searchableColumns: ['name', 'email'],
+    filterableColumns: ['name', 'email'],
+    sortableColumns: ['id', 'name', 'email'],
+  }),
+  { isolationLevel: 'RepeatableRead' },
+);
+```
+
+**Unreleased checkout API:** `withPrismaSnapshot(client, operation)` supplies
+the same RepeatableRead boundary, preserves the callback result type and passes
+the generated transaction client to the callback:
+
+```ts
+import { trellisPrismaQuery, withPrismaSnapshot } from '@trellisjs/server-prisma';
+
+const result = await withPrismaSnapshot(prisma, (tx) =>
+  trellisPrismaQuery(tx.user, query, options),
+);
+```
+
+Pass the root PrismaClient to this helper; an existing transaction client is
+rejected, because a nested transaction cannot establish the promised isolation
+boundary independently of its parent. Use `tx.user` inside the callback;
+reading through the outer `prisma.user`
+bypasses the snapshot. The helper is intended for short read operations on
+MySQL/PostgreSQL. Keep authentication and other network work outside the
+transaction. Client-level transaction timeout/max-wait settings still apply;
+database and callback errors propagate without automatic retries. Other
+providers are not validated for this helper. An application already managing
+a suitable transaction can call `trellisPrismaQuery(tx.user, ...)` directly.
+Separate page requests each get a new snapshot; this does not freeze a dataset
+across a user's whole browsing session. See Prisma's
+[transaction isolation documentation](https://www.prisma.io/docs/orm/v7/prisma-client/queries/transactions#transaction-isolation-level).
+
+Also **unreleased**: `trellisPrismaQuery` checks safe non-negative counts,
+`filtered <= total` and the exact page length before returning. Contradictory
+results throw the exported `PrismaConsistencyError`; counts are not clamped
+and rows are not silently relabelled. This catches observable races outside a
+snapshot, but cannot prove that a structurally valid result came from one
+snapshot. Use the transaction boundary for that guarantee. Handle errors with
+a friendly application HTTP response instead of returning raw database errors.
+
+**`trellisPrismaQuery` returns:**
 
 ```ts
 {
@@ -76,13 +138,16 @@ import { trellisPrismaQuery } from '@trellisjs/server-prisma';
 // Express / Fastify handler
 app.get('/api/users', async (req, res) => {
   const query = parseTrellisQuery(req.query);
-  const result = await trellisPrismaQuery(prisma.user, query, {
-    select: { id: true, name: true, email: true },
-    searchableColumns: ['name', 'email'],
-    filterableColumns: ['name', 'email'],
-    sortableColumns: ['id', 'name', 'email'],
-    // PostgreSQL: add stringFilterMode: 'insensitive' when required.
-  });
+  const result = await prisma.$transaction(
+    (tx) => trellisPrismaQuery(tx.user, query, {
+      select: { id: true, name: true, email: true },
+      searchableColumns: ['name', 'email'],
+      filterableColumns: ['name', 'email'],
+      sortableColumns: ['id', 'name', 'email'],
+      // PostgreSQL: add stringFilterMode: 'insensitive' when required.
+    }),
+    { isolationLevel: 'RepeatableRead' },
+  );
   res.json(result);
 });
 ```
@@ -105,8 +170,17 @@ those restrictions are needed, including for both count operations.
 On 2026-11-08, isolated MySQL 8.4.11 and PostgreSQL 18 databases were exercised
 with generated Prisma 6.19.0 clients. Explicit projections, global search,
 column filters, sorting, pagination and counts passed on both providers;
-unauthorized field requests were rejected before database calls. Other Prisma
-versions/providers are not covered by that integration run.
+unauthorized field requests were rejected before database calls. That earlier
+run did not validate concurrent writes.
+
+On 2026-11-14 the new Prisma 7.10.1 fixture passed **12 cases per provider** on
+MySQL 8.4.11 and PostgreSQL 18.6. Separate reader and writer clients prove
+committed insert/delete/update interleavings, filtered and unfiltered snapshot
+pagination, rejection of non-snapshot inconsistencies, CJS/ESM exports and
+connection cleanup after errors. Snapshot pagination responses are also checked
+through the frontend datasource's real HTTP validator. See the
+[fixture guide](../../tests/integration/prisma7/README.md) for exact scope,
+reproduction and CI status.
 
 ## License
 

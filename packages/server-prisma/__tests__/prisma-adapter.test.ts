@@ -1,6 +1,9 @@
 import type { TrellisServerQuery } from '@trellisjs/server';
 import { describe, it, expect, vi } from 'vitest';
-import { trellisPrismaQuery } from '../src/prisma-adapter';
+import {
+    PrismaConsistencyError,
+    trellisPrismaQuery,
+} from '../src/prisma-adapter';
 
 // Mock Prisma Model
 function createMockModel() {
@@ -16,7 +19,8 @@ describe('Prisma 轉接器', () => {
         model.count
             .mockResolvedValueOnce(100) // total
             .mockResolvedValueOnce(100); // filtered
-        model.findMany.mockResolvedValueOnce([{ name: 'Alice' }]);
+        const data = Array.from({ length: 10 }, () => ({ name: 'Alice' }));
+        model.findMany.mockResolvedValueOnce(data);
 
         const query: TrellisServerQuery = { page: 1, pageSize: 10 };
         const result = await trellisPrismaQuery(model, query, {
@@ -25,7 +29,7 @@ describe('Prisma 轉接器', () => {
 
         expect(result.total).toBe(100);
         expect(result.filtered).toBe(100);
-        expect(result.data).toEqual([{ name: 'Alice' }]);
+        expect(result.data).toEqual(data);
 
         // 驗證 findMany 的 skip/take
         expect(model.findMany).toHaveBeenCalledWith(
@@ -38,7 +42,7 @@ describe('Prisma 轉接器', () => {
 
     it('帶排序條件', async () => {
         const model = createMockModel();
-        model.count.mockResolvedValue(50);
+        model.count.mockResolvedValue(0);
         model.findMany.mockResolvedValue([]);
 
         const query: TrellisServerQuery = {
@@ -60,7 +64,7 @@ describe('Prisma 轉接器', () => {
 
     it('帶全域搜尋', async () => {
         const model = createMockModel();
-        model.count.mockResolvedValue(50);
+        model.count.mockResolvedValue(0);
         model.findMany.mockResolvedValue([]);
 
         const query: TrellisServerQuery = {
@@ -84,7 +88,7 @@ describe('Prisma 轉接器', () => {
 
     it('帶單欄篩選', async () => {
         const model = createMockModel();
-        model.count.mockResolvedValue(50);
+        model.count.mockResolvedValue(0);
         model.findMany.mockResolvedValue([]);
 
         const query: TrellisServerQuery = {
@@ -103,7 +107,7 @@ describe('Prisma 轉接器', () => {
 
     it('分頁正確計算 skip', async () => {
         const model = createMockModel();
-        model.count.mockResolvedValue(100);
+        model.count.mockResolvedValue(20);
         model.findMany.mockResolvedValue([]);
 
         const query: TrellisServerQuery = { page: 3, pageSize: 10 };
@@ -123,7 +127,7 @@ describe('Prisma 安全邊界', () => {
 
     function model() {
         return {
-            count: vi.fn().mockResolvedValue(20),
+            count: vi.fn().mockResolvedValue(0),
             findMany: vi.fn().mockResolvedValue([]),
         };
     }
@@ -308,5 +312,60 @@ describe('Prisma 安全邊界', () => {
         }
 
         expect(db.count).not.toHaveBeenCalled();
+    });
+});
+
+describe('Prisma 回應一致性', () => {
+    it.each([
+        { total: 1, filtered: 2, data: [{ id: 1 }, { id: 2 }] },
+        { total: 2, filtered: 2, data: [{ id: 1 }] },
+        { total: -1, filtered: 0, data: [] },
+        { total: 2, filtered: -1, data: [] },
+        { total: NaN, filtered: 0, data: [] },
+        { total: Number.MAX_SAFE_INTEGER + 1, filtered: 0, data: [] },
+    ])('拒絕不一致的回應 %j', async ({ total, filtered, data }) => {
+        const model = {
+            count: vi
+                .fn()
+                .mockResolvedValueOnce(total)
+                .mockResolvedValueOnce(filtered),
+            findMany: vi.fn().mockResolvedValue(data),
+        };
+        await expect(
+            trellisPrismaQuery(
+                model,
+                { page: 1, pageSize: 10, filter: { global: 'x' } },
+                { select: { id: true }, searchableColumns: ['name'] },
+            ),
+        ).rejects.toBeInstanceOf(PrismaConsistencyError);
+    });
+
+    it('沒有篩選時也拒絕 count 與資料列長度不同的回應', async () => {
+        await expect(
+            trellisPrismaQuery(
+                {
+                    count: async () => 2,
+                    findMany: async () => [{ id: 1 }],
+                },
+                { page: 1, pageSize: 10 },
+                { select: { id: true } },
+            ),
+        ).rejects.toBeInstanceOf(PrismaConsistencyError);
+    });
+
+    it('保留原始資料庫錯誤', async () => {
+        const failure = new Error('database unavailable');
+        await expect(
+            trellisPrismaQuery(
+                {
+                    count: async () => {
+                        throw failure;
+                    },
+                    findMany: async () => [],
+                },
+                { page: 1, pageSize: 10 },
+                { select: { id: true } },
+            ),
+        ).rejects.toBe(failure);
     });
 });

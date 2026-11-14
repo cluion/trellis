@@ -159,7 +159,17 @@ npm install @trellisjs/server@alpha
 npm install @trellisjs/server-prisma@alpha
 ```
 
-Backend security fixes were published through [PR #43](https://github.com/cluion/trellis/pull/43). Both helpers use `alpha=0.1.0-alpha.2`; their `latest` tags still point to `0.1.0-alpha.1`, whose API lacks these safety changes. SQL helpers require query-field allowlists; the Prisma helper also requires a trusted `select` or `omit` projection. Follow the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha1) or [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha1). The [GitHub releases](https://github.com/cluion/trellis/releases) contain the published changelogs.
+Backend security fixes were published through [PR #43](https://github.com/cluion/trellis/pull/43). Both helpers use `alpha=0.1.0-alpha.2`; their `latest` tags still point to `0.1.0-alpha.1`, whose API lacks these safety changes. SQL helpers require query-field allowlists; the Prisma helper also requires a trusted `select` projection (`omit` is not supported). Follow the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha1) or [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha1). The [GitHub releases](https://github.com/cluion/trellis/releases) contain the published changelogs.
+
+When concurrent requests can write, read Prisma counts and page rows inside one
+RepeatableRead transaction using its `tx.user` delegate. This ensures the
+frontend receives counts and rows from the same snapshot. The
+[Prisma consistency guide](../../packages/server-prisma/README.md#consistent-counts-and-rows)
+shows the published-compatible transaction pattern and clearly labels the
+unreleased `withPrismaSnapshot` / consistency-error additions. The
+[Prisma 7 database fixture](../../tests/integration/prisma7/README.md) tests
+MySQL/PostgreSQL with committed writes between reads; the Vue browser fixture
+continues to use its own SQLite backend.
 
 ## Real-browser acceptance
 

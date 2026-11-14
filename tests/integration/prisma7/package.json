@@ -1,0 +1,25 @@
+{
+    "name": "trellis-prisma7-integration",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "generate": "prisma generate",
+        "db:push": "prisma db push",
+        "typecheck": "tsc --noEmit",
+        "test": "node run-tests.mjs"
+    },
+    "dependencies": {
+        "@prisma/adapter-mariadb": "7.10.1",
+        "@prisma/adapter-pg": "7.10.1",
+        "@prisma/client": "7.10.1"
+    },
+    "devDependencies": {
+        "@types/node": "24.10.0",
+        "prisma": "7.10.1",
+        "tsx": "4.23.15",
+        "typescript": "5.9.3"
+    }
+}

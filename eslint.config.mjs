@@ -100,6 +100,8 @@ export default defineConfig(
             '**/playwright-report/**',
             '**/test-results/**',
             '**/.generated/**',
+            'tests/integration/prisma7/generated/**',
+            'tests/integration/prisma7/reports/**',
             '.pnpm-store/**',
             '.claude/**',
             'docs/**',
