@@ -1,6 +1,6 @@
 # @trellisjs/server-prisma
 
-## Unreleased
+## 0.1.0-alpha.3
 
 - Add `withPrismaSnapshot(client, operation)` for a single RepeatableRead snapshot across counts and rows on MySQL/PostgreSQL.
 - Reject contradictory counts and page lengths with `PrismaConsistencyError` instead of returning a response the frontend cannot accept.
@@ -8,7 +8,7 @@
 - Require `@prisma/client@^7.10.1`; the adapter supports MySQL and PostgreSQL.
 - Match `%`, `_` and backslash literally in global and column text searches, and reject NUL before querying. Both databases exercise this contract in CI.
 
-These changes are available in the checkout only; the published `0.1.0-alpha.2` packages are unchanged. See [migration from alpha.2](./README.md#migration-from-010-alpha2-unreleased).
+Use with `@trellisjs/server@0.1.0-alpha.3`. See [migration from alpha.2](./README.md#migration-from-010-alpha2) for the Prisma version and search changes.
 
 ## 0.1.0-alpha.2
 

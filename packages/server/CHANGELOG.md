@@ -1,6 +1,6 @@
 # @trellisjs/server
 
-## Unreleased
+## 0.1.0-alpha.3
 
 - Validate `buildResponse` counts, row objects, safe pagination and exact requested page lengths before constructing a response. Reject malformed results explicitly; preserve valid zero-result, final and out-of-range pages without clamping counts or changing the requested page.
 - Add response-builder regressions and real HTTP datasource acceptance for full/final pages, zero matches, empty datasets and out-of-range requests.
@@ -10,7 +10,7 @@
 - Reject NUL search text explicitly rather than allowing SQLite LIKE pattern truncation.
 - Add executed SQLite/MySQL/PostgreSQL regressions for special characters, Unicode, authorization, parameter composition and unchanged filtered pagination.
 
-These changes are not published in `0.1.0-alpha.2`; follow the migration notes before adopting a future backend release.
+See [migration from alpha.2](./README.md#migration-from-010-alpha2) for the changes to response validation and SQL output.
 
 ## 0.1.0-alpha.2
 

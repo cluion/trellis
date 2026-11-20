@@ -213,20 +213,19 @@ app.get('/api/users', async (req, res) => {
 
 The `./db` import represents your application's generated Prisma client; Prisma 7
 needs a provider driver adapter. The [Prisma integration guide](./packages/server-prisma/README.md#consistent-counts-and-rows)
-explains snapshot reads, the unreleased convenience API and the real-database CI.
-The transaction example above works with the published alpha adapter.
+explains snapshot reads, the alpha.3 helper and the real-database CI.
+The explicit transaction example above also works with alpha.2.
 The Prisma helper requires trusted output and query-field allowlists. String
 search follows database collation by default; PostgreSQL callers can opt into
-`stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
-and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha1).
-The SQL helper's [unreleased dialect/LIKE contract](./packages/server/README.md#sql-dialect-and-comparison-scope)
+`stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha2)
+and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha2).
+The alpha.3 [SQL dialect/LIKE contract](./packages/server/README.md#sql-dialect-and-comparison-scope)
 adds reserved-name quoting and literal contains matching. The Prisma adapter
-also has an unreleased [literal text search contract](./packages/server-prisma/README.md#literal-text-search-unreleased)
+also has a [literal text search contract](./packages/server-prisma/README.md#literal-text-search)
 and narrows its [Prisma support](./packages/server-prisma/README.md#prisma-support)
 to `@prisma/client@^7.10.1` on MySQL and PostgreSQL.
-Install `@trellisjs/server@alpha` and `@trellisjs/server-prisma@alpha` for the
-published projection and query-field checks in `0.1.0-alpha.2`;
-`latest` remains on the earlier API. See the
+Install both helpers at the same version and check the npm `alpha` tags before
+using the alpha.3 APIs. See the
 [backend release-channel policy](./.changeset/README.md#backend-alpha-channel).
 
 ## Architecture
@@ -316,7 +315,7 @@ feat/* · fix/* ──PR squash──▶ main ──▶ changesets release PR �
 
 ## Status
 
-`@trellisjs/core`, the React and Vue adapters and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha**: the safety fixes are published as `0.1.0-alpha.2` on the `alpha` tag; `latest` remains `0.1.0-alpha.1`. See [GitHub issues](https://github.com/cluion/trellis/issues) for planned features.
+`@trellisjs/core`, the React and Vue adapters and the plugins are stable (1.x and above). `@trellisjs/server` and `@trellisjs/server-prisma` are still in **alpha**. Use their npm `alpha` tags to find the current prerelease. See [GitHub issues](https://github.com/cluion/trellis/issues) for planned features.
 
 ## License
 

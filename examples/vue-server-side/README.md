@@ -123,11 +123,11 @@ Both HTTP responses and custom datasource results are validated:
 - `data.length` must equal `min(pageSize, max(0, filtered - (page - 1) * pageSize))`. Partial pages are valid only at the end; a backend that silently caps page size must instead honor the requested size or reject it.
 - Pages, sizes and calculated offsets must be safe integers; page and size must be positive.
 
-The checkout `@trellisjs/server` helper also validates this contract in
+Starting in `0.1.0-alpha.3`, `@trellisjs/server` also validates this contract in
 [`buildResponse`](../../packages/server/README.md#buildresponsedata-options)
-before returning an envelope. This validation is **unreleased**; published
-`0.1.0-alpha.2` does not perform it. Invalid backend results throw rather than
-being clamped. For zero or out-of-range pages, send empty rows with the
+before returning an envelope. Alpha.2 does not perform this check.
+Invalid backend results throw rather than being clamped. For zero or
+out-of-range pages, send empty rows with the
 original requested page and unchanged counts; the frontend owns page
 correction. Return a friendly server error for invalid backend results, and
 handle invalid client-query parameters separately. These checks do not replace
@@ -152,8 +152,6 @@ The server-side implementation was released through [version PR #40](https://git
 | `@trellisjs/plugin-pagination` | 3.1.1 | 3.1.2 |
 | `@trellisjs/react` | 3.9.1 | 3.9.1 |
 | `@trellisjs/vue` | 1.1.0 | 1.1.0 |
-| `@trellisjs/server` (optional backend helper) | — | 0.1.0-alpha.2 (`alpha`) |
-| `@trellisjs/server-prisma` (optional Prisma helper) | — | 0.1.0-alpha.2 (`alpha`) |
 
 Install the compatible Vue frontend set:
 
@@ -161,33 +159,38 @@ Install the compatible Vue frontend set:
 npm install vue@3.5.44 @trellisjs/vue@1.1.0 @trellisjs/core@1.14.0 @trellisjs/plugin-datasource@3.2.0 @trellisjs/plugin-filter@3.3.2 @trellisjs/plugin-sort@3.1.2 @trellisjs/plugin-pagination@3.1.2
 ```
 
-The Vue adapter binds shared core state without a new API. Install optional helpers in the **backend** project, not the browser bundle:
+The Vue adapter binds shared core state without a new API. Install optional
+helpers in the **backend** project. Choose the install command for your backend:
 
 ```sh
+# SQL backend
 npm install @trellisjs/server@alpha
-# For a Prisma backend, also install:
-npm install @trellisjs/server-prisma@alpha @prisma/client@7.10.1
+# Prisma backend
+npm install @trellisjs/server@alpha @trellisjs/server-prisma@alpha @prisma/client@7.10.1
 ```
 
-Backend security fixes were published through [PR #43](https://github.com/cluion/trellis/pull/43). Both helpers use `alpha=0.1.0-alpha.2`; their `latest` tags still point to `0.1.0-alpha.1`, whose API lacks these safety changes. SQL helpers require query-field allowlists; the Prisma helper also requires a trusted `select` projection (`omit` is not supported). Follow the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha1) or [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha1). The [GitHub releases](https://github.com/cluion/trellis/releases) contain the published changelogs.
+Install both backend helpers at the same version and check the npm `alpha`
+tags before using the `0.1.0-alpha.3` APIs below. The SQL helper requires
+query-field allowlists; the Prisma helper also requires a trusted `select`
+projection. See the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha2)
+and [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha2).
 
 When concurrent requests can write, read Prisma counts and page rows inside one
 RepeatableRead transaction using its `tx.user` delegate. This ensures the
 frontend receives counts and rows from the same snapshot. The
 [Prisma consistency guide](../../packages/server-prisma/README.md#consistent-counts-and-rows)
-shows the published-compatible transaction pattern and clearly labels the
-unreleased `withPrismaSnapshot` / consistency-error additions. The
-[Prisma 7 database fixture](../../tests/integration/prisma7/README.md) tests
+shows the explicit transaction pattern and the alpha.3 `withPrismaSnapshot`
+and `PrismaConsistencyError` APIs. The [Prisma 7 database fixture](../../tests/integration/prisma7/README.md) tests
 MySQL/PostgreSQL with committed writes between reads; the Vue browser fixture
 continues to use its own SQLite backend.
 
-The raw SQL helper's **unreleased** changes quote authorized reserved column
-names and make LIKE searches literal contains matches by default. Backends can
+In alpha.3, the raw SQL helper quotes authorized reserved column
+names and makes LIKE searches literal contains matches by default. Backends can
 explicitly choose SQLite/MySQL/PostgreSQL rendering and wildcard contains
 matching. See the [SQL behavior and migration guide](../../packages/server/README.md#sql-dialect-and-comparison-scope)
-before adopting the next backend release. The Prisma adapter's **unreleased**
+before upgrading. The Prisma adapter's alpha.3
 [support range](../../packages/server-prisma/README.md#prisma-support) targets
-Prisma 7 on MySQL/PostgreSQL. Its [search contract](../../packages/server-prisma/README.md#literal-text-search-unreleased)
+Prisma 7 on MySQL/PostgreSQL. Its [search contract](../../packages/server-prisma/README.md#literal-text-search)
 also treats `%`, `_` and backslash literally and rejects NUL. Send raw search
 text from the frontend; the backend helper handles escaping.
 
