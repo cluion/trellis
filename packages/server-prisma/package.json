@@ -33,7 +33,7 @@
     },
     "peerDependencies": {
         "@trellisjs/server": "workspace:^",
-        "@prisma/client": ">=5.0.0"
+        "@prisma/client": "^7.10.1"
     },
     "devDependencies": {
         "@trellisjs/server": "workspace:*",

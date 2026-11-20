@@ -274,9 +274,8 @@ This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get`
   rather than letting a database truncate the pattern.
 - PostgreSQL callers must pass `{ dialect: 'postgresql' }` and compose any
   preceding/later parameter indices correctly.
-- These options apply to the SQL builders only. `server-prisma` continues to
-  use Prisma's provider-defined `contains` behavior; this change does not
-  rewrite its filter values or unify it with the SQL helper's literal mode.
+- These options apply to the SQL builders only. The Prisma adapter has a
+  separate [literal text search contract](../server-prisma/README.md#literal-text-search-unreleased).
 
 ## Validation
 

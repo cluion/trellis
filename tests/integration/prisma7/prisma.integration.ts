@@ -202,6 +202,96 @@ test('provider string mode and column mapping use generated clients', async () =
     assert.equal(result.filtered, 1);
 });
 
+test('global and column searches match LIKE characters literally', async () => {
+    const names = [
+        'Rate 25% off',
+        'User_name',
+        'Path\\file',
+        'Path\\',
+        'Mix\\%_end',
+        'MixXYend',
+    ];
+    await writer.user.createMany({
+        data: names.map((name, index) => ({
+            ...seed[index],
+            id: 13 + index,
+            name,
+        })),
+    });
+
+    const cases = [
+        { value: '%', ids: [13, 17] },
+        { value: '_', ids: [14, 17] },
+        { value: '\\', ids: [15, 16, 17] },
+        { value: 'Path\\', ids: [15, 16] },
+        { value: 'Mix\\%_', ids: [17] },
+        { value: 'No%_\\match', ids: [] },
+    ];
+    const modes: PrismaAdapterOptions['stringFilterMode'][] =
+        provider === 'postgresql' ? ['default', 'insensitive'] : ['default'];
+
+    for (const stringFilterMode of modes) {
+        for (const { value, ids } of cases) {
+            const text =
+                stringFilterMode === 'insensitive'
+                    ? value.toLowerCase()
+                    : value;
+
+            for (const filter of [
+                { global: text },
+                { columns: { name: text } },
+            ]) {
+                const requested = { ...query, filter };
+                const result = await withPrismaSnapshot(reader, (tx) =>
+                    trellisPrismaQuery<Row>(tx.user, requested, {
+                        ...options,
+                        stringFilterMode,
+                    }),
+                );
+                const label = `${stringFilterMode}: ${JSON.stringify(filter)}`;
+                assert.deepEqual(
+                    result.data.map((row) => row.id),
+                    ids,
+                    label,
+                );
+                assert.equal(result.filtered, ids.length, label);
+                assert.equal(result.total, seed.length + names.length, label);
+            }
+        }
+    }
+});
+
+test('NUL search text is rejected before a query reaches the database', async () => {
+    let calls = 0;
+    const model = {
+        count: (args?: Prisma.UserCountArgs) => {
+            calls++;
+
+            return reader.user.count(args);
+        },
+        findMany: (args?: Prisma.UserFindManyArgs) => {
+            calls++;
+
+            return reader.user.findMany(args);
+        },
+    };
+
+    for (const value of ['\u0000', 'User\u000012']) {
+        for (const filter of [
+            { global: value },
+            { columns: { name: value } },
+        ]) {
+            await assert.rejects(
+                trellisPrismaQuery(model, { ...query, filter }, options),
+                { name: 'TypeError', message: /NUL/ },
+                JSON.stringify(filter),
+            );
+        }
+    }
+
+    assert.equal(calls, 0);
+});
+
 test('unauthorized fields reject before a model query reaches the database', async () => {
     let calls = 0;
     const model = {

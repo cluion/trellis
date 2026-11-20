@@ -22,7 +22,7 @@ export interface PrismaAdapterOptions {
     filterableColumns?: readonly string[];
     sortableColumns?: readonly string[];
     columnMap?: Record<string, string>;
-    /** Defaults to database collation; insensitive is opt-in for PostgreSQL/MongoDB. */
+    /** Defaults to database collation; PostgreSQL supports opt-in insensitive search. */
     stringFilterMode?: 'default' | 'insensitive';
 }
 
@@ -120,13 +120,25 @@ export async function trellisPrismaQuery<T>(
 
         return resolveCol(id);
     };
-    const contains = (value: string) => ({
-        contains: value,
-        ...(stringFilterMode === 'insensitive' ? { mode: 'insensitive' } : {}),
-    });
+    const contains = (value: string) => {
+        if (value.includes('\0')) {
+            throw new TypeError(
+                'Prisma text search does not support NUL characters.',
+            );
+        }
+
+        return {
+            contains: value.replace(/[\\%_]/g, (character) => `\\${character}`),
+            ...(stringFilterMode === 'insensitive'
+                ? { mode: 'insensitive' }
+                : {}),
+        };
+    };
     const conditions: Record<string, unknown>[] = [];
 
-    if (parsed.filter?.global) {
+    const globalSearch = parsed.filter?.global;
+
+    if (globalSearch) {
         if (
             !Array.isArray(searchableColumns) ||
             searchableColumns.length === 0
@@ -134,9 +146,10 @@ export async function trellisPrismaQuery<T>(
             throw new TypeError('Global search requires searchableColumns.');
         }
 
+        const match = contains(globalSearch);
         conditions.push({
             OR: searchableColumns.map((id) => ({
-                [resolveCol(id)]: contains(parsed.filter!.global!),
+                [resolveCol(id)]: match,
             })),
         });
     }
