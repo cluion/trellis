@@ -220,11 +220,12 @@ search follows database collation by default; PostgreSQL callers can opt into
 `stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
 and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha1).
 The SQL helper's [unreleased dialect/LIKE contract](./packages/server/README.md#sql-dialect-and-comparison-scope)
-adds reserved-name quoting and literal contains matching. Executed regressions
-cover SQLite/MySQL/PostgreSQL SQL semantics; Prisma filtering retains
-its own provider-defined `contains` behavior.
-These backend helper changes are included in `0.1.0-alpha.2`. Install
-`@trellisjs/server@alpha` and `@trellisjs/server-prisma@alpha` to use them;
+adds reserved-name quoting and literal contains matching. The Prisma adapter
+also has an unreleased [literal text search contract](./packages/server-prisma/README.md#literal-text-search-unreleased)
+and narrows its [Prisma support](./packages/server-prisma/README.md#prisma-support)
+to `@prisma/client@^7.10.1` on MySQL and PostgreSQL.
+Install `@trellisjs/server@alpha` and `@trellisjs/server-prisma@alpha` for the
+published projection and query-field checks in `0.1.0-alpha.2`;
 `latest` remains on the earlier API. See the
 [backend release-channel policy](./.changeset/README.md#backend-alpha-channel).
 

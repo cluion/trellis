@@ -166,7 +166,7 @@ The Vue adapter binds shared core state without a new API. Install optional help
 ```sh
 npm install @trellisjs/server@alpha
 # For a Prisma backend, also install:
-npm install @trellisjs/server-prisma@alpha
+npm install @trellisjs/server-prisma@alpha @prisma/client@7.10.1
 ```
 
 Backend security fixes were published through [PR #43](https://github.com/cluion/trellis/pull/43). Both helpers use `alpha=0.1.0-alpha.2`; their `latest` tags still point to `0.1.0-alpha.1`, whose API lacks these safety changes. SQL helpers require query-field allowlists; the Prisma helper also requires a trusted `select` projection (`omit` is not supported). Follow the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha1) or [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha1). The [GitHub releases](https://github.com/cluion/trellis/releases) contain the published changelogs.
@@ -185,9 +185,11 @@ The raw SQL helper's **unreleased** changes quote authorized reserved column
 names and make LIKE searches literal contains matches by default. Backends can
 explicitly choose SQLite/MySQL/PostgreSQL rendering and wildcard contains
 matching. See the [SQL behavior and migration guide](../../packages/server/README.md#sql-dialect-and-comparison-scope)
-before adopting the next backend release. Send raw search text from the
-frontend; avoid pre-escaping it. These options apply to SQL builders, while
-Prisma `contains` retains its provider-defined behavior.
+before adopting the next backend release. The Prisma adapter's **unreleased**
+[support range](../../packages/server-prisma/README.md#prisma-support) targets
+Prisma 7 on MySQL/PostgreSQL. Its [search contract](../../packages/server-prisma/README.md#literal-text-search-unreleased)
+also treats `%`, `_` and backslash literally and rejects NUL. Send raw search
+text from the frontend; the backend helper handles escaping.
 
 ## Real-browser acceptance
 

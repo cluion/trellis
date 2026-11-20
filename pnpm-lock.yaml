@@ -480,7 +480,7 @@ importers:
   packages/server-prisma:
     dependencies:
       '@prisma/client':
-        specifier: '>=5.0.0'
+        specifier: ^7.10.1
         version: 7.10.1(typescript@5.9.3)
     devDependencies:
       '@trellisjs/server':

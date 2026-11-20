@@ -5,8 +5,10 @@
 - Add `withPrismaSnapshot(client, operation)` for a single RepeatableRead snapshot across counts and rows on MySQL/PostgreSQL.
 - Reject contradictory counts and page lengths with `PrismaConsistencyError` instead of returning a response the frontend cannot accept.
 - Add generated Prisma 7.10.1 client integration CI on MySQL 8.4.11 and PostgreSQL 18.6, including committed inserts, deletes and updates between reads.
+- Require `@prisma/client@^7.10.1`; the adapter supports MySQL and PostgreSQL.
+- Match `%`, `_` and backslash literally in global and column text searches, and reject NUL before querying. Both databases exercise this contract in CI.
 
-These additions are available in the checkout only; the published `0.1.0-alpha.2` packages are unchanged.
+These changes are available in the checkout only; the published `0.1.0-alpha.2` packages are unchanged. See [migration from alpha.2](./README.md#migration-from-010-alpha2-unreleased).
 
 ## 0.1.0-alpha.2
 

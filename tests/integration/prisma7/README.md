@@ -83,7 +83,7 @@ The counts and rows themselves always come from real Prisma queries; none are
 stubbed, and there are no timing sleeps. Writer-side queries assert that the
 change is committed while the reader still sees its original snapshot.
 
-Each provider runs these twelve cases:
+Each provider runs these fourteen adapter cases:
 
 1. Projection, global/column search, sorting, pagination, zero/out-of-range and public HTTP response validation.
 2. Column mapping and provider-specific case sensitivity.
@@ -97,6 +97,8 @@ Each provider runs these twelve cases:
 10. Without a snapshot, committed insert/deletion races produce an explicit consistency error.
 11. CommonJS uses the same transaction/response contract as ESM.
 12. A callback failure propagates and releases the connection for the next query.
+13. Global search and string column filters match literal `%`, `_` and backslash, including trailing backslashes, mixed characters and zero matches. PostgreSQL exercises both `LIKE` and case-insensitive `ILIKE`. Assertions cover the returned IDs and both counts.
+14. NUL alone or inside text rejects with `TypeError` for global and column searches before either delegate method is called.
 
 Representative snapshot responses go through a native loopback HTTP server and
 the public datasource validator, checking the same count/page-length contract
@@ -117,13 +119,12 @@ reserved-name search/filter/sort/pagination with counts; explicit wildcard
 mode; preceding scope-parameter composition; numeric equality/empty filters;
 parameterized SQL payloads/authorization; NUL-pattern rejection; and executed CommonJS clauses.
 PostgreSQL uses numbered bindings, including the scope offset; MySQL uses `?`.
-These cases are additional to the 12 snapshot/adapter cases above. Node's
+These cases are additional to the 14 snapshot/adapter cases above. Node's
 in-memory SQLite SQL regressions run separately in the server package suite.
 
-Literal versus wildcard matching is the SQL helper's explicit contract.
-Database collation/case behavior is unchanged; Prisma adapter `contains`
-filters are not rewritten by these SQL rendering options. See the
-[SQL guide](../../../packages/server/README.md#sql-dialect-and-comparison-scope).
+Only the SQL helper offers wildcard mode. See the separate
+[SQL guide](../../../packages/server/README.md#sql-dialect-and-comparison-scope)
+and [Prisma search guide](../../../packages/server-prisma/README.md#literal-text-search-unreleased).
 
 ## CI and validation
 
@@ -134,6 +135,13 @@ generates the provider-specific Prisma 7 client and runs the type/integration
 checks. The suite runs without automatic retries. Database service startup is
 bounded by health checks and each job has a 15-minute timeout. Reports upload
 even on failure and are retained for 14 days.
+
+Prisma search validation — 2026-11-19, Linux ARM64, Node 24.19.0 and Prisma
+7.10.1: MySQL 8.4.11 and PostgreSQL 18.6 each passed **35 cases** locally
+(14 adapter + 21 SQL), including generated-client type checks. The
+`@trellisjs/server-prisma` package suite passed **34** additional tests.
+The new cases run through the existing CI matrix. This result is from local
+Docker; it does not report a GitHub run for these changes.
 
 Earlier snapshot validation — 2026-11-14, Linux ARM64 and Node 24.19.0:
 
@@ -153,10 +161,8 @@ That snapshot run uses one reader connection and one independent writer
 connection, including the error/reuse case. Both disposable databases and the
 test network were removed on completion. These are scoped checks; the full
 monorepo suite and Vue browser suite were not rerun for this backend change.
-The workflow configuration is local until this branch is pushed; local Docker
-success does not establish that a GitHub runner has passed.
 
-Current SQL-stage validation — 2026-11-14, Linux ARM64 and Node 24.19.0:
+Earlier SQL validation — 2026-11-14, Linux ARM64 and Node 24.19.0:
 
 | Check | Result |
 | --- | --- |
@@ -172,8 +178,8 @@ Current SQL-stage validation — 2026-11-14, Linux ARM64 and Node 24.19.0:
 Both database legs use the final SQL implementation, including NUL rejection.
 The server suite also reproduces SQLite's raw NUL truncation before verifying
 that the builder rejects it. No full-monorepo run or new published-package
-browser run was performed for this stage. The additional SQL cases are wired
-into CI, but their remote execution awaits a pushed branch/PR.
+browser run was performed for this local stage. The SQL regressions have since
+run in [GitHub CI](https://github.com/cluion/trellis/actions/runs/43561794333).
 
 This matrix validates Prisma 7.10.1 on the two listed providers. The earlier
 Prisma 6.19.0 release checks are historical evidence, not another matrix leg.

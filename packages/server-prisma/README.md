@@ -6,22 +6,29 @@ into fully resolved Prisma operations and get back a standard response.
 ## Installation
 
 ```bash
-npm install @trellisjs/server-prisma@alpha @trellisjs/server@alpha @prisma/client
+npm install @trellisjs/server-prisma@alpha @trellisjs/server@alpha @prisma/client@7.10.1
+npm install --save-dev prisma@7.10.1
 ```
 
-Requires `@prisma/client` >= 5.
+Install `@prisma/adapter-mariadb@7.10.1` for MySQL or
+`@prisma/adapter-pg@7.10.1` for PostgreSQL and pass it to your generated Prisma
+client. See the executable [database fixture](../../tests/integration/prisma7/README.md).
 
-The continuous integration matrix currently exercises Prisma **7.10.1**, Node
-**24.19.0**, MySQL **8.4.11** and PostgreSQL **18.6** with the official
-`@prisma/adapter-mariadb` / `@prisma/adapter-pg` drivers. Prisma 7 requires a
-generated client configured with a driver adapter; see the executable
-[database fixture](../../tests/integration/prisma7/README.md). This matrix does
-not establish support for every version allowed by the existing peer range.
+## Prisma support
+
+The unreleased checkout requires `@prisma/client` **`^7.10.1`**
+(stable versions `>=7.10.1 <8`). The supported providers are MySQL and
+PostgreSQL. CI pins Prisma **7.10.1**, Node **24.19.0**, MySQL **8.4.11**
+and PostgreSQL **18.6** using the drivers above. Prisma 5, 6, 8, and other
+providers are outside this support contract. MySQL sessions must leave
+`NO_BACKSLASH_ESCAPES` disabled for literal search.
 
 ## Alpha release channel
 
 `0.1.0-alpha.2` includes the required projection, query-field allowlists and
-provider-compatible string filtering documented below. Install both backend
+configurable case sensitivity. Its original peer range is `>=5.0.0` and it
+passes search text directly to Prisma as a LIKE pattern. The narrower peer
+range and literal search described here are unreleased. Install both backend
 packages from the `alpha` tag or pin `0.1.0-alpha.2`; the `latest` tags continue
 to use the earlier API. Backend helpers are versioned together outside the stable
 Changesets version PR. See the
@@ -50,9 +57,9 @@ The returned `total` is unfiltered and `filtered` is counted over the full filte
   - `columnMap` -- maps Trellis column IDs to different Prisma field names.
     Mapping does not authorize a column; lists use the incoming column IDs.
   - `stringFilterMode` -- `'default'` (default) follows database collation and
-    omits Prisma's `mode` property. Use `'insensitive'` explicitly with a
-    supporting provider such as PostgreSQL or MongoDB. MySQL uses collation and
-    must use `'default'`; this adapter does not infer the provider.
+    omits Prisma's `mode` property. Use `'insensitive'` explicitly with
+    PostgreSQL when case-insensitive search is needed. MySQL must use
+    `'default'`; this adapter does not infer the provider.
 
 Missing projections, unknown query columns, invalid mappings and malformed
 queries reject before any database call. Global search also rejects if no
@@ -60,6 +67,18 @@ searchable columns are configured. Query permissions are independent of the
 returned projection: a field may be allowed for sorting without being returned.
 The adapter uses `AND` to combine global and column filters, and preserves
 multi-column sorting order.
+
+### Literal text search (unreleased)
+
+Global search and string column filters use literal substring matching. Pass
+the text as entered: `%`, `_` and backslash match themselves, including a
+backslash at the end of the search term. The adapter escapes the text for
+Prisma `contains`; LIKE patterns are not part of this API. Case and accent
+comparison still follow the database collation and `stringFilterMode`.
+
+A search string containing NUL (`\u0000`) rejects with `TypeError` before
+`count` or `findMany`. Handle it as invalid client input. Empty search text
+and non-string equality filters keep their existing behavior.
 
 ### Consistent counts and rows
 
@@ -157,13 +176,21 @@ app.get('/api/users', async (req, res) => {
 Add `select` and separate query-field allowlists to every call. Previously
 unrestricted sorting and column filtering are now rejected by default. The old
 implicit case-insensitive mode is opt-in, so PostgreSQL callers needing that
-behavior must set `stringFilterMode: 'insensitive'`. Explicit `select` works with
-the supported Prisma >= 5 range; `omit` is not required or forwarded.
+behavior must set `stringFilterMode: 'insensitive'`. Use explicit `select`;
+`omit` is not forwarded.
 
 Handle invalid client queries with a friendly HTTP error. Keep your own
 authentication and tenant/row authorization in the backend; these field
 permissions do not implement them. Pass an appropriately scoped delegate when
 those restrictions are needed, including for both count operations.
+
+## Migration from 0.1.0-alpha.2 (unreleased)
+
+- Upgrade the Prisma CLI, generated client and driver adapter to Prisma 7.10.1
+  or a matching supported Prisma 7 version, then regenerate the client.
+- Remove any caller-side LIKE escaping. Search terms are now literal; callers
+  that intentionally accepted wildcard patterns need a separate backend query.
+- Treat NUL in search text as an invalid query, consistently on both databases.
 
 ## Validation
 
