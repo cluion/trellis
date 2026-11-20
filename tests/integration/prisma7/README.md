@@ -67,8 +67,8 @@ consistency. Use the transaction helper, or manage a suitable transaction and
 pass its delegate directly. No count clamping, automatic retry, provider
 inference or new tenant-authorization mechanism is added.
 
-`withPrismaSnapshot` and the consistency error/check are **unreleased**. The
-published alpha.2 API can use the equivalent explicit
+`withPrismaSnapshot` and the consistency error/check are available in
+`0.1.0-alpha.3`. The alpha.2 API can use an explicit
 `prisma.$transaction(callback, { isolationLevel: 'RepeatableRead' })` pattern
 shown in the [package guide](../../../packages/server-prisma/README.md#consistent-counts-and-rows).
 
@@ -124,7 +124,7 @@ in-memory SQLite SQL regressions run separately in the server package suite.
 
 Only the SQL helper offers wildcard mode. See the separate
 [SQL guide](../../../packages/server/README.md#sql-dialect-and-comparison-scope)
-and [Prisma search guide](../../../packages/server-prisma/README.md#literal-text-search-unreleased).
+and [Prisma search guide](../../../packages/server-prisma/README.md#literal-text-search).
 
 ## CI and validation
 

@@ -11,19 +11,15 @@ npm install @trellisjs/server@alpha
 
 ## Alpha release channel
 
-`0.1.0-alpha.2` includes the query validation and column authorization changes
-documented below. Install the `alpha` tag or pin that version; the `latest` tag
-continues to use the earlier API. Backend helpers are versioned together outside
-the stable Changesets version PR. See the
+This guide describes `0.1.0-alpha.3`. The install command uses the current npm
+`alpha` tag; check the tag before adopting the alpha.3 APIs. Backend helpers
+are versioned together outside the stable Changesets PR. See the
 [release-channel policy](../../.changeset/README.md#backend-alpha-channel).
 
-The SQL quoting, dialect options and literal LIKE behavior below are
-**unreleased checkout changes**. Published `0.1.0-alpha.2` still emits unquoted
-identifiers, `?` parameters and unescaped LIKE contains patterns. No package
-version or npm tag has changed. See [migration from alpha.2](#migration-from-010-alpha2-unreleased).
-
-The `buildResponse` contract validation below is also **unreleased**.
-Published `0.1.0-alpha.2` constructs the envelope without these checks.
+Alpha.3 adds SQL quoting, dialect options, literal LIKE matching, and
+`buildResponse` contract validation. Alpha.2 uses unquoted identifiers, `?`
+parameters and unescaped LIKE patterns, and builds responses without these
+contract checks. See [migration from alpha.2](#migration-from-010-alpha2).
 
 ## API
 
@@ -42,7 +38,7 @@ interface TrellisServerQuery {
 
 **`WhereClause`** -- built WHERE result: `{ sql: string; params: unknown[] }`.
 
-**`SqlQueryOptions` / `SqlDialect`** -- unreleased backend SQL configuration:
+**`SqlQueryOptions` / `SqlDialect`** -- backend SQL configuration (alpha.3):
 
 ```ts
 type SqlDialect = 'sqlite' | 'mysql' | 'postgresql';
@@ -189,7 +185,7 @@ Constructs the standard Trellis response envelope with pagination metadata.
 const result = buildResponse(rows, { total, filtered, query });
 ```
 
-**Unreleased contract validation:** the builder rejects a response that would
+**Contract validation (alpha.3):** the builder rejects a response that would
 fail the frontend datasource's row/count/page-length validation:
 
 - `data` must be an array of non-null, non-array row objects; sparse arrays
@@ -254,7 +250,7 @@ return buildResponse(rows, { total: total.count, filtered: filtered.count, query
 
 This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get` adapter; run its queries within a driver-managed snapshot when writes can occur concurrently. GET uses `req.query`; POST uses `req.body` after your framework's JSON middleware. `parseTrellisQuery` caps page size at 1000, so keep the frontend's allowed sizes within that limit or reject unsupported sizes before parsing. A server-side response must include exactly the requested page's rows, with empty `data` for out-of-range pages; do not silently substitute another page. See the [frontend protocol and validation rules](../../examples/vue-server-side/README.md#http-and-response-validation).
 
-## Migration from 0.1.0-alpha.2 (unreleased)
+## Migration from 0.1.0-alpha.2
 
 - `buildResponse` now rejects invalid counts, row objects, pagination and page
   lengths instead of emitting an envelope the frontend cannot accept. Keep
@@ -275,7 +271,7 @@ This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get`
 - PostgreSQL callers must pass `{ dialect: 'postgresql' }` and compose any
   preceding/later parameter indices correctly.
 - These options apply to the SQL builders only. The Prisma adapter has a
-  separate [literal text search contract](../server-prisma/README.md#literal-text-search-unreleased).
+  separate [literal text search contract](../server-prisma/README.md#literal-text-search).
 
 ## Validation
 

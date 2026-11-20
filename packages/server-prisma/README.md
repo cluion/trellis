@@ -16,7 +16,7 @@ client. See the executable [database fixture](../../tests/integration/prisma7/RE
 
 ## Prisma support
 
-The unreleased checkout requires `@prisma/client` **`^7.10.1`**
+Version `0.1.0-alpha.3` requires `@prisma/client` **`^7.10.1`**
 (stable versions `>=7.10.1 <8`). The supported providers are MySQL and
 PostgreSQL. CI pins Prisma **7.10.1**, Node **24.19.0**, MySQL **8.4.11**
 and PostgreSQL **18.6** using the drivers above. Prisma 5, 6, 8, and other
@@ -25,13 +25,11 @@ providers are outside this support contract. MySQL sessions must leave
 
 ## Alpha release channel
 
-`0.1.0-alpha.2` includes the required projection, query-field allowlists and
-configurable case sensitivity. Its original peer range is `>=5.0.0` and it
-passes search text directly to Prisma as a LIKE pattern. The narrower peer
-range and literal search described here are unreleased. Install both backend
-packages from the `alpha` tag or pin `0.1.0-alpha.2`; the `latest` tags continue
-to use the earlier API. Backend helpers are versioned together outside the stable
-Changesets version PR. See the
+This guide describes `0.1.0-alpha.3`. Install both backend helpers at the same
+version and check the npm `alpha` tags before adopting the alpha.3 APIs.
+Alpha.2 already requires projections and query-field allowlists. Its Prisma
+peer range was `>=5.0.0`, and it passed search text directly to Prisma
+`contains`. See [migration from alpha.2](#migration-from-010-alpha2) and the
 [release-channel policy](../../.changeset/README.md#backend-alpha-channel).
 
 ## API
@@ -68,7 +66,7 @@ returned projection: a field may be allowed for sorting without being returned.
 The adapter uses `AND` to combine global and column filters, and preserves
 multi-column sorting order.
 
-### Literal text search (unreleased)
+### Literal text search
 
 Global search and string column filters use literal substring matching. Pass
 the text as entered: `%`, `_` and backslash match themselves, including a
@@ -101,7 +99,7 @@ const result = await prisma.$transaction(
 );
 ```
 
-**Unreleased checkout API:** `withPrismaSnapshot(client, operation)` supplies
+**Since alpha.3**, `withPrismaSnapshot(client, operation)` supplies
 the same RepeatableRead boundary, preserves the callback result type and passes
 the generated transaction client to the callback:
 
@@ -127,7 +125,7 @@ Separate page requests each get a new snapshot; this does not freeze a dataset
 across a user's whole browsing session. See Prisma's
 [transaction isolation documentation](https://www.prisma.io/docs/orm/v7/prisma-client/queries/transactions#transaction-isolation-level).
 
-Also **unreleased**: `trellisPrismaQuery` checks safe non-negative counts,
+Since alpha.3, `trellisPrismaQuery` checks safe non-negative counts,
 `filtered <= total` and the exact page length before returning. Contradictory
 results throw the exported `PrismaConsistencyError`; counts are not clamped
 and rows are not silently relabelled. This catches observable races outside a
@@ -184,13 +182,17 @@ authentication and tenant/row authorization in the backend; these field
 permissions do not implement them. Pass an appropriately scoped delegate when
 those restrictions are needed, including for both count operations.
 
-## Migration from 0.1.0-alpha.2 (unreleased)
+## Migration from 0.1.0-alpha.2
 
+- Upgrade both Trellis backend helpers together to `0.1.0-alpha.3`.
 - Upgrade the Prisma CLI, generated client and driver adapter to Prisma 7.10.1
   or a matching supported Prisma 7 version, then regenerate the client.
 - Remove any caller-side LIKE escaping. Search terms are now literal; callers
   that intentionally accepted wildcard patterns need a separate backend query.
 - Treat NUL in search text as an invalid query, consistently on both databases.
+- Use `withPrismaSnapshot` or keep an existing RepeatableRead transaction for
+  consistent counts and rows. Handle `PrismaConsistencyError` as a backend
+  error rather than returning an invalid page.
 
 ## Validation
 
