@@ -226,7 +226,7 @@ and narrows its [Prisma support](./packages/server-prisma/README.md#prisma-suppo
 to `@prisma/client@^7.10.1` on MySQL and PostgreSQL.
 Install both helpers at the same version and check the npm `alpha` tags before
 using the alpha.3 APIs. See the
-[backend release-channel policy](./.changeset/README.md#backend-alpha-channel).
+[backend release-channel policy](./.changeset/README.md#backend-release-channels).
 
 ## Architecture
 

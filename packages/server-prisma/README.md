@@ -30,7 +30,7 @@ version and check the npm `alpha` tags before adopting the alpha.3 APIs.
 Alpha.2 already requires projections and query-field allowlists. Its Prisma
 peer range was `>=5.0.0`, and it passed search text directly to Prisma
 `contains`. See [migration from alpha.2](#migration-from-010-alpha2) and the
-[release-channel policy](../../.changeset/README.md#backend-alpha-channel).
+[release-channel policy](../../.changeset/README.md#backend-release-channels).
 
 ## API
 
