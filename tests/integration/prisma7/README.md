@@ -83,7 +83,7 @@ The counts and rows themselves always come from real Prisma queries; none are
 stubbed, and there are no timing sleeps. Writer-side queries assert that the
 change is committed while the reader still sees its original snapshot.
 
-Each provider runs these fourteen adapter cases:
+Each provider runs these fifteen adapter cases:
 
 1. Projection, global/column search, sorting, pagination, zero/out-of-range and public HTTP response validation.
 2. Column mapping and provider-specific case sensitivity.
@@ -99,6 +99,7 @@ Each provider runs these fourteen adapter cases:
 12. A callback failure propagates and releases the connection for the next query.
 13. Global search and string column filters match literal `%`, `_` and backslash, including trailing backslashes, mixed characters and zero matches. PostgreSQL exercises both `LIKE` and case-insensitive `ILIKE`. Assertions cover the returned IDs and both counts.
 14. NUL alone or inside text rejects with `TypeError` for global and column searches before either delegate method is called.
+15. The shared pagination example produces ID-ordered pages by default, resolves ties across page boundaries, and preserves an explicit descending ID sort.
 
 Representative snapshot responses go through a native loopback HTTP server and
 the public datasource validator, checking the same count/page-length contract
@@ -113,13 +114,13 @@ SQL helper directly rather than Prisma's filter construction. A separate
 mapped model creates actual columns named `order`, `group` and `select`.
 `database.ts` shares the pinned driver setup with the snapshot suite.
 
-Each provider has 21 SQL cases: global and column literal searches for `%`, `_`,
+Each provider has 22 SQL cases: global and column literal searches for `%`, `_`,
 `!`, backslash, quotes, Unicode and combined special characters; combined
 reserved-name search/filter/sort/pagination with counts; explicit wildcard
 mode; preceding scope-parameter composition; numeric equality/empty filters;
-parameterized SQL payloads/authorization; NUL-pattern rejection; and executed CommonJS clauses.
+parameterized SQL payloads/authorization; NUL-pattern rejection; executed CommonJS clauses; and deterministic pagination with default ordering and ties across page boundaries.
 PostgreSQL uses numbered bindings, including the scope offset; MySQL uses `?`.
-These cases are additional to the 14 snapshot/adapter cases above. Node's
+These cases are additional to the 15 snapshot/adapter cases above. Node's
 in-memory SQLite SQL regressions run separately in the server package suite.
 
 Only the SQL helper offers wildcard mode. See the separate
@@ -135,6 +136,11 @@ generates the provider-specific Prisma 7 client and runs the type/integration
 checks. The suite runs without automatic retries. Database service startup is
 bounded by health checks and each job has a 15-minute timeout. Reports upload
 even on failure and are retained for 14 days.
+
+Pagination order validation — 2026-11-22, Linux ARM64, Node 24.19.0 and Prisma
+7.10.1: the local MySQL 8.4.11 and PostgreSQL 18.6 fixtures each passed **37
+cases** (15 adapter + 22 SQL), including generated-client type checks. The
+SQL suite also runs the shared ordering example on in-memory SQLite.
 
 Prisma search validation — 2026-11-19, Linux ARM64, Node 24.19.0 and Prisma
 7.10.1: MySQL 8.4.11 and PostgreSQL 18.6 each passed **35 cases** locally

@@ -194,10 +194,12 @@ The [integration guide](./examples/vue-server-side/README.md) contains the publi
 import { parseTrellisQuery } from '@trellisjs/server';
 import { trellisPrismaQuery } from '@trellisjs/server-prisma';
 import { prisma } from './db'; // Your application's configured Prisma client.
+import { orderUserPages } from './user-page-order'; // Copy the shared backend example.
 
 // In your API handler:
 app.get('/api/users', async (req, res) => {
-  const query = parseTrellisQuery(req.query);
+  const requested = parseTrellisQuery(req.query);
+  const query = { ...requested, sort: orderUserPages(requested.sort) };
   const result = await prisma.$transaction(
     (tx) => trellisPrismaQuery(tx.user, query, {
       select: { id: true, name: true, email: true },
@@ -215,6 +217,10 @@ The `./db` import represents your application's generated Prisma client; Prisma 
 needs a provider driver adapter. The [Prisma integration guide](./packages/server-prisma/README.md#consistent-counts-and-rows)
 explains snapshot reads, the alpha.3 helper and the real-database CI.
 The explicit transaction example above also works with alpha.2.
+For offset pagination, the [shared sort example](./examples/vue-server-side/user-page-order.ts)
+defaults to a unique ID and appends it to break ties. See the
+[SQL support scope](./packages/server/README.md#support-scope-for-the-first-stable-release)
+and [Prisma support scope](./packages/server-prisma/README.md#prisma-support).
 The Prisma helper requires trusted output and query-field allowlists. String
 search follows database collation by default; PostgreSQL callers can opt into
 `stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha2)

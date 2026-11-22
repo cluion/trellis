@@ -139,6 +139,15 @@ HTTP status, network, JSON, transform and validation errors reject a direct `dat
 
 Copy [`UserTable.vue`](./UserTable.vue) into a Vue 3 application and provide `GET /api/users` using the protocol above. It includes search, sorting, pagination, page size, loading, cancellation and error retry. `useTrellis()` returns the existing reactive `state` ref; no framework-specific request controller is needed.
 
+Apply the sort policy on the **backend**, including when the frontend sends
+no sort or clears it. The [shared example](./user-page-order.ts) defaults to
+`id ASC` and appends `id ASC` when the requested sort does not already include
+that unique key. Both the [SQL](../../packages/server/README.md#pagination-order)
+and [Prisma](../../packages/server-prisma/README.md#pagination-order) handlers
+show how to apply it before fetching the page. A deterministic order prevents
+arbitrary reordering of ties; separate offset requests can still see changes
+to the underlying rows.
+
 ## Versions and release status
 
 The server-side implementation was released through [version PR #40](https://github.com/cluion/trellis/pull/40), followed by correctness fixes in [PR #41](https://github.com/cluion/trellis/pull/41) and [version PR #42](https://github.com/cluion/trellis/pull/42). These are published npm versions, checked on 2026-11-14:

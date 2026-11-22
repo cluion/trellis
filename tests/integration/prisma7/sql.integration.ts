@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { after, before, test } from 'node:test';
+import { orderUserPages } from '../../../examples/vue-server-side/user-page-order.ts';
 import {
     buildOrderByClause,
     buildWhereClause,
@@ -102,6 +103,46 @@ for (const [value, expected] of literalCases) {
         assert.deepEqual(await ids({ columns: { order: value } }), expected);
     });
 }
+
+test('SQL pages use an explicit default and break ties with a unique ID', async () => {
+    const size = 3;
+    const limit = provider === 'postgresql' ? '$1 OFFSET $2' : '? OFFSET ?';
+    const quote = provider === 'postgresql' ? '"' : '`';
+    const readPages = async (sort: TrellisServerQuery['sort']) => {
+        const order = buildOrderByClause(
+            orderUserPages(sort),
+            ['group', 'id'],
+            options,
+        );
+        const expectedOrder = sort?.length
+            ? `${quote}group${quote} DESC, ${quote}id${quote} ASC`
+            : `${quote}id${quote} ASC`;
+        assert.equal(order, `ORDER BY ${expectedOrder}`);
+        const pages: number[][] = [];
+
+        for (const offset of [0, 3, 6, 9]) {
+            const rows = await client.$queryRawUnsafe<{ id: number }[]>(
+                `SELECT id FROM trellis_sql_row ${order} LIMIT ${limit}`,
+                size,
+                offset,
+            );
+            pages.push(rows.map(({ id }) => id));
+        }
+
+        return pages;
+    };
+
+    assert.deepEqual(await readPages(undefined), [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [10],
+    ]);
+    assert.deepEqual(
+        await readPages([{ columnId: 'group', direction: 'desc' }]),
+        [[9, 10, 7], [8, 5, 6], [3, 4, 1], [2]],
+    );
+});
 
 test('reserved identifiers work in search, filtering, sort and pagination', async () => {
     const where = buildWhereClause(

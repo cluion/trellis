@@ -16,11 +16,15 @@ client. See the executable [database fixture](../../tests/integration/prisma7/RE
 
 ## Prisma support
 
-Version `0.1.0-alpha.3` requires `@prisma/client` **`^7.10.1`**
-(stable versions `>=7.10.1 <8`). The supported providers are MySQL and
-PostgreSQL. CI pins Prisma **7.10.1**, Node **24.19.0**, MySQL **8.4.11**
-and PostgreSQL **18.6** using the drivers above. Prisma 5, 6, 8, and other
-providers are outside this support contract. MySQL sessions must leave
+The first stable release targets Node.js 24 LTS and generated Prisma 7
+clients on MySQL and PostgreSQL with the respective official driver adapter.
+The `@prisma/client` peer range is **`^7.10.1`** (`>=7.10.1 <8` for stable
+versions). CI verifies Prisma and drivers **7.10.1** with Node **24.19.0**,
+MySQL **8.4.11** and PostgreSQL **18.6**. Package compatibility includes ESM,
+CommonJS and TypeScript declarations; follow [Prisma 7's system requirements](https://www.prisma.io/docs/orm/v7/reference/system-requirements)
+when generating your client. The peer range does not mean that other Prisma 7,
+Node or database versions have passed this matrix. Prisma 5, 6, 8 and other
+providers are outside the support contract. MySQL sessions must leave
 `NO_BACKSLASH_ESCAPES` disabled for literal search.
 
 ## Alpha release channel
@@ -65,6 +69,21 @@ searchable columns are configured. Query permissions are independent of the
 returned projection: a field may be allowed for sorting without being returned.
 The adapter uses `AND` to combine global and column filters, and preserves
 multi-column sorting order.
+
+### Pagination order
+
+`trellisPrismaQuery` only passes an explicit sort to Prisma; it does not infer
+a primary key or guarantee a default order. Before passing the query to the
+adapter, apply the [shared example](../../examples/vue-server-side/user-page-order.ts)
+policy in your handler. It defaults to `id ASC`, appends `id ASC` for ties when
+the request does not already sort by `id`, and preserves an explicit `id DESC`.
+Allow the key in `sortableColumns`. If you use `columnMap`, use the exposed
+column ID that maps to the unique field as the tie-breaker. The key must be
+unique and non-null across all rows eligible for the query.
+
+This yields a consistent order for an unchanged result set. The snapshot
+helper keeps the counts and rows together within one response; it does not
+freeze the result set across separate offset page requests.
 
 ### Literal text search
 
@@ -151,10 +170,12 @@ a friendly application HTTP response instead of returning raw database errors.
 ```ts
 import { parseTrellisQuery } from '@trellisjs/server';
 import { trellisPrismaQuery } from '@trellisjs/server-prisma';
+import { orderUserPages } from './user-page-order'; // Copy the shared backend example.
 
 // Express / Fastify handler
 app.get('/api/users', async (req, res) => {
-  const query = parseTrellisQuery(req.query);
+  const requested = parseTrellisQuery(req.query);
+  const query = { ...requested, sort: orderUserPages(requested.sort) };
   const result = await prisma.$transaction(
     (tx) => trellisPrismaQuery(tx.user, query, {
       select: { id: true, name: true, email: true },
