@@ -8,9 +8,13 @@ on:
       channel:
         description: Release channel
         type: choice
-        options: [stable, backend-alpha]
+        options: [stable, backend-alpha, backend-stable, backend-promote]
         default: stable
         required: true
+      release_sha:
+        description: Full staged source commit (required for backend-promote)
+        type: string
+        required: false
 
 concurrency:
   group: release-${{ github.ref }}
@@ -26,6 +30,7 @@ jobs:
     name: Release
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,6 +63,19 @@ jobs:
         run: node scripts/backend-release.mjs publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish backend stable candidates to next
+        if: github.event_name == 'workflow_dispatch' && inputs.channel == 'backend-stable'
+        run: node scripts/backend-release.mjs stage-stable
+
+      - name: Promote verified backend candidates to latest
+        if: github.event_name == 'workflow_dispatch' && inputs.channel == 'backend-promote'
+        run: |
+          npm install -g npm@11.21.3
+          node scripts/backend-release.mjs promote-stable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRELLIS_RELEASE_SHA: ${{ inputs.release_sha }}
 
       - name: Create Release Pull Request or Publish
         if: (github.event_name == 'push' || inputs.channel == 'stable') && steps.backend.outputs.backend_pending == 'false'

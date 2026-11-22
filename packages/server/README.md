@@ -14,7 +14,7 @@ npm install @trellisjs/server@alpha
 This guide describes `0.1.0-alpha.3`. The install command uses the current npm
 `alpha` tag; check the tag before adopting the alpha.3 APIs. Backend helpers
 are versioned together outside the stable Changesets PR. See the
-[release-channel policy](../../.changeset/README.md#backend-alpha-channel).
+[release-channel policy](../../.changeset/README.md#backend-release-channels).
 
 Alpha.3 adds SQL quoting, dialect options, literal LIKE matching, and
 `buildResponse` contract validation. Alpha.2 uses unquoted identifiers, `?`
