@@ -1,5 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { orderUserPages } from '../../../examples/vue-server-side/user-page-order';
 import { buildOrderByClause, buildWhereClause } from '../src/query-parser';
 import type { SqlQueryOptions, TrellisServerQuery } from '../src/types';
 
@@ -176,6 +177,34 @@ describe('SQLite SQL execution', () => {
             expect(ids({ columns: { order: value } })).toEqual(expected);
         },
     );
+
+    it('paginates in ID order by default and uses ID to resolve equal sort values', () => {
+        const pageIds = (sort: TrellisServerQuery['sort'], offset: number) => {
+            const order = buildOrderByClause(orderUserPages(sort), [
+                'id',
+                'group',
+            ]);
+
+            return db
+                .prepare(`SELECT id FROM sample ${order} LIMIT ? OFFSET ?`)
+                .all(3, offset)
+                .map(({ id }) => id);
+        };
+        const byGroup = [{ columnId: 'group', direction: 'desc' }] as const;
+        const byId = [{ columnId: 'id', direction: 'desc' }] as const;
+
+        expect(pageIds(undefined, 0)).toEqual([1, 2, 3]);
+        expect(pageIds([], 3)).toEqual([4, 5, 6]);
+        expect(pageIds([...byGroup], 0)).toEqual([9, 10, 7]);
+        expect(pageIds([...byGroup], 3)).toEqual([8, 5, 6]);
+        expect(orderUserPages(byGroup)).toEqual([
+            ...byGroup,
+            { columnId: 'id', direction: 'asc' },
+        ]);
+        expect(byGroup).toHaveLength(1);
+        expect(orderUserPages(byId)).toEqual(byId);
+        expect(pageIds([...byId], 0)).toEqual([10, 9, 8]);
+    });
 
     it('handles reserved columns in combined search, filtering, sorting and pagination', () => {
         const where = buildWhereClause(['group', 'select'], {

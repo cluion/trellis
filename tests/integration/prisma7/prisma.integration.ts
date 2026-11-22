@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import process from 'node:process';
 import { after, before, beforeEach, test } from 'node:test';
+import { orderUserPages } from '../../../examples/vue-server-side/user-page-order.ts';
 import { createRemoteDatasource } from '../../../packages/plugin-datasource/dist/index.mjs';
 import type { TrellisServerQuery } from '../../../packages/server/dist/index.mjs';
 import {
@@ -167,6 +168,50 @@ test('projection, search, column filters, sort, pagination, zero and out-of-rang
         assert.equal(empty.total, 12);
         await validResponse(empty, requested);
     }
+});
+
+test('Prisma pages use an explicit default and break ties with a unique ID', async () => {
+    await writer.user.updateMany({ data: { name: 'Group A' } });
+    await writer.user.updateMany({
+        where: { id: { in: [2, 4, 6, 8, 10, 12] } },
+        data: { name: 'Group B' },
+    });
+
+    const readPages = async (sort: TrellisServerQuery['sort']) => {
+        const pages: number[][] = [];
+
+        for (const page of [1, 2, 3]) {
+            const requested = { ...query, page, sort: orderUserPages(sort) };
+            const result = await withPrismaSnapshot(reader, (tx) =>
+                trellisPrismaQuery<Row>(tx.user, requested, options),
+            );
+            assert.equal(result.total, 12);
+            assert.equal(result.filtered, 12);
+            assert.equal(result.totalPages, 3);
+            pages.push(result.data.map(({ id }) => id));
+        }
+
+        return pages;
+    };
+
+    assert.deepEqual(await readPages(undefined), [
+        [1, 2, 3, 4, 5],
+        [6, 7, 8, 9, 10],
+        [11, 12],
+    ]);
+    assert.deepEqual(
+        await readPages([{ columnId: 'name', direction: 'desc' }]),
+        [
+            [2, 4, 6, 8, 10],
+            [12, 1, 3, 5, 7],
+            [9, 11],
+        ],
+    );
+    assert.deepEqual(await readPages([{ columnId: 'id', direction: 'desc' }]), [
+        [12, 11, 10, 9, 8],
+        [7, 6, 5, 4, 3],
+        [2, 1],
+    ]);
 });
 
 test('provider string mode and column mapping use generated clients', async () => {

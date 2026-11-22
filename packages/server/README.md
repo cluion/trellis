@@ -21,6 +21,16 @@ Alpha.3 adds SQL quoting, dialect options, literal LIKE matching, and
 parameters and unescaped LIKE patterns, and builds responses without these
 contract checks. See [migration from alpha.2](#migration-from-010-alpha2).
 
+## Support scope for the first stable release
+
+The planned release baseline is Node.js 24 LTS with ESM, CommonJS and TypeScript
+declarations. CI uses Node.js 24.19.0. The query parser and response builder
+are database independent. SQL generation supports SQLite (`node:sqlite` in
+tests), MySQL (8.4.11 in CI), and PostgreSQL (18.6 in CI). These are the tested
+versions; other database versions, runtimes and driver combinations are outside
+the first stable release's verified scope. Use parameters in your driver and
+keep count and page reads in a suitable snapshot when writes can occur.
+
 ## API
 
 ### Types
@@ -167,13 +177,29 @@ Unknown or unsafe column names throw `TypeError`; they are not silently dropped.
 Every authorized field is quoted for the selected dialect, preserving the
 caller-specified multi-column sorting order.
 
+SQL formatting includes identifier quotes and explicit LIKE escapes. Pass the
+SQL clause and its parameters to the driver without rewriting the quotes or
+substituting values.
+
 ```ts
-const orderBy = buildOrderByClause(query.sort, ['name', 'email']);
+const orderBy = buildOrderByClause(query.sort, ['id', 'name', 'email']);
 ```
 
-SQL formatting now includes identifier quotes and explicit LIKE escapes. Treat
-the returned SQL as a clause with its paired values, not a string to rewrite by
-removing quotes or substituting values.
+### Pagination order
+
+`buildOrderByClause` returns an empty string for an omitted or empty sort. It
+does not know your schema or infer a primary key. Before applying `LIMIT` and
+`OFFSET`, the handler must supply a sort that uniquely orders the result set.
+The [shared example](../../examples/vue-server-side/user-page-order.ts) uses a
+non-null primary key: missing or empty sort becomes `id ASC`, and `name DESC`
+becomes `name DESC, id ASC`. A request already sorting on `id` keeps its
+position and direction. Every field, including the default key, must be in the
+trusted sort allowlist; choose another key for results where `id` is not unique.
+
+This guarantees a repeatable order for the same rows, filters and sort.
+Separate offset page requests can still see inserts, deletes or reordered rows
+between snapshots. See the [MySQL LIMIT guide](https://dev.mysql.com/doc/refman/8.4/en/limit-optimization.html)
+and [PostgreSQL LIMIT guide](https://www.postgresql.org/docs/18/queries-limit.html).
 
 ### `buildResponse(data, options)`
 
@@ -236,11 +262,12 @@ import {
   buildOrderByClause,
   buildResponse,
 } from '@trellisjs/server';
+import { orderUserPages } from './user-page-order'; // Copy the shared backend example.
 
 // Inside an Express handler:
 const query = parseTrellisQuery(req.query);
 const { sql, params } = buildWhereClause(['name', 'email'], query.filter);
-const orderBy = buildOrderByClause(query.sort, ['name', 'email']);
+const orderBy = buildOrderByClause(orderUserPages(query.sort), ['id', 'name', 'email']);
 const rows = await db.all(`SELECT id, name, email FROM users ${sql} ${orderBy} LIMIT ? OFFSET ?`,
   [...params, query.pageSize, (query.page - 1) * query.pageSize]);
 const total = await db.get(`SELECT COUNT(*) AS count FROM users`);
