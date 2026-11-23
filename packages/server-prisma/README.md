@@ -33,7 +33,8 @@ This guide describes `0.1.0-alpha.3`. Install both backend helpers at the same
 version and check the npm `alpha` tags before adopting the alpha.3 APIs.
 Alpha.2 already requires projections and query-field allowlists. Its Prisma
 peer range was `>=5.0.0`, and it passed search text directly to Prisma
-`contains`. See [migration from alpha.2](#migration-from-010-alpha2) and the
+`contains`. See [direct migration from alpha.1](#migration-from-010-alpha1),
+[migration from alpha.2](#migration-from-010-alpha2), and the
 [release-channel policy](../../.changeset/README.md#backend-release-channels).
 
 ## API
@@ -192,16 +193,46 @@ app.get('/api/users', async (req, res) => {
 
 ## Migration from 0.1.0-alpha.1
 
-Add `select` and separate query-field allowlists to every call. Previously
-unrestricted sorting and column filtering are now rejected by default. The old
-implicit case-insensitive mode is opt-in, so PostgreSQL callers needing that
-behavior must set `stringFilterMode: 'insensitive'`. Use explicit `select`;
-`omit` is not forwarded.
+Upgrade the two backend packages together; no intermediate alpha.2 install
+is needed. Use Node.js 24 LTS and a matching Prisma 7 CLI, client and driver.
+These commands pin the versions tested by Trellis:
 
-Handle invalid client queries with a friendly HTTP error. Keep your own
-authentication and tenant/row authorization in the backend; these field
-permissions do not implement them. Pass an appropriately scoped delegate when
-those restrictions are needed, including for both count operations.
+```sh
+npm install --save-exact @trellisjs/server@0.1.0-alpha.3 @trellisjs/server-prisma@0.1.0-alpha.3 @prisma/client@7.10.1
+npm install --save-dev --save-exact prisma@7.10.1
+# Choose one driver:
+npm install --save-exact @prisma/adapter-pg@7.10.1
+# npm install --save-exact @prisma/adapter-mariadb@7.10.1
+```
+
+Configure your schema and generator for Prisma 7, run `npx prisma generate`,
+then initialize `PrismaClient` with the selected adapter. If moving from an
+older Prisma major, follow the [Prisma 7 upgrade guide](https://www.prisma.io/docs/guides/upgrade-prisma-orm/v7).
+See the [Trellis support matrix](#prisma-support) for verified providers and
+the MySQL SQL mode requirement.
+
+1. **Pass trusted options to `trellisPrismaQuery`.** The third argument now
+   requires a scalar `select` with at least one `true` field. Explicitly list
+   `searchableColumns`, `filterableColumns`, and `sortableColumns`; unlisted
+   fields are rejected. `columnMap` resolves names and does not grant access.
+   Keep tenant and row scoping in your application, covering both count and row
+   reads. Use `select` to choose returned fields; the helper does not forward `omit`.
+2. **Review search behavior.** Default case sensitivity follows database
+   collation. PostgreSQL can opt into `stringFilterMode: 'insensitive'`;
+   MySQL should use the default. Pass raw strings without LIKE escaping:
+   `%`, `_`, and backslash are literal, and NUL is rejected as invalid input.
+   This adapter does not expose wildcard mode.
+3. **Use consistent pagination.** Parse the request with `parseTrellisQuery`
+   and supply a unique default or tie-break sort from the handler. Call
+   `trellisPrismaQuery` with the transaction delegate (`tx.user`) inside
+   `withPrismaSnapshot`, or keep an existing RepeatableRead transaction.
+   Handle `PrismaConsistencyError` as a backend error, separately from
+   invalid client input. Preserve `total`, `filtered`, and the requested
+   page; an out-of-range or zero-result page has empty `data`.
+
+The [updated Prisma handler](#quick-usage) shows the required allowlists and
+transaction delegate. Before deploying, verify the projection, rejected fields,
+literal search, and response counts across pages.
 
 ## Migration from 0.1.0-alpha.2
 

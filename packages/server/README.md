@@ -19,7 +19,8 @@ are versioned together outside the stable Changesets PR. See the
 Alpha.3 adds SQL quoting, dialect options, literal LIKE matching, and
 `buildResponse` contract validation. Alpha.2 uses unquoted identifiers, `?`
 parameters and unescaped LIKE patterns, and builds responses without these
-contract checks. See [migration from alpha.2](#migration-from-010-alpha2).
+contract checks. See [direct migration from alpha.1](#migration-from-010-alpha1)
+or [migration from alpha.2](#migration-from-010-alpha2).
 
 ## Support scope for the first stable release
 
@@ -277,6 +278,50 @@ return buildResponse(rows, { total: total.count, filtered: filtered.count, query
 
 This is a handler excerpt using an asynchronous SQLite-style `db.all` / `db.get` adapter; run its queries within a driver-managed snapshot when writes can occur concurrently. GET uses `req.query`; POST uses `req.body` after your framework's JSON middleware. `parseTrellisQuery` caps page size at 1000, so keep the frontend's allowed sizes within that limit or reject unsupported sizes before parsing. A server-side response must include exactly the requested page's rows, with empty `data` for out-of-range pages; do not silently substitute another page. See the [frontend protocol and validation rules](../../examples/vue-server-side/README.md#http-and-response-validation).
 
+## Migration from 0.1.0-alpha.1
+
+You can upgrade directly to `0.1.0-alpha.3`. Pin the version, since a bare
+install resolves the npm `latest` tag and may still select alpha.1:
+
+```sh
+npm install --save-exact @trellisjs/server@0.1.0-alpha.3
+```
+
+If you also use the Prisma adapter, follow its
+[paired upgrade guide](../server-prisma/README.md#migration-from-010-alpha1).
+
+1. **Authorize query fields.** Pass a backend-owned allowlist as the second
+   argument to `buildOrderByClause`. The first argument to `buildWhereClause`
+   now allows both global search and column filters, so include only fields
+   intended for those uses. Unknown fields now fail instead of being accepted
+   or ignored. Keep authorization for rows and the returned projection in
+   your application.
+2. **Validate the request at the HTTP boundary.** Use `parseTrellisQuery`.
+   Send integer `page` / `pageSize`, valid sort directions, and scalar column
+   filter values. GET may encode `sort` / `filter` as JSON; POST can send them
+   directly. Malformed criteria and unsafe pagination now fail explicitly.
+   The parser still caps `pageSize` at 1000; keep the frontend within that
+   limit or reject an excessive request before parsing.
+3. **Update SQL and search.** Pass the database dialect to both SQL builders
+   where needed. PostgreSQL uses numbered bindings, including earlier scope
+   parameters; SQLite/MySQL use `?`. Keep the helper's identifier quotes and
+   bind values through your driver. Send raw search text: `%`, `_`, and
+   backslash are literal by default, and NUL is rejected. If your application
+   intentionally offers `%` / `_` patterns, set `likeMode: 'wildcard'` in
+   trusted backend code. Remove any caller-side LIKE escaping.
+4. **Make page results consistent.** Apply a default order and use a unique
+   key to break ties before fetching the slice. Pass the effective query and
+   two numeric counts to `buildResponse`: `total` before filtering,
+   `filtered` after filtering and before pagination. Return only the rows
+   belonging to the requested page; for zero results or an out-of-range
+   page, return `[]` with the original page number. Read counts and rows from
+   a suitable snapshot when writes are possible. Treat invalid request data
+   as a client error and invalid database results as a server error.
+
+The [updated SQL handler](#quick-usage) shows the full call sequence. Before
+deploying, verify same-value rows over two pages, literal search, the final
+partial page, and empty or out-of-range results.
+
 ## Migration from 0.1.0-alpha.2
 
 - `buildResponse` now rejects invalid counts, row objects, pagination and page
@@ -322,17 +367,8 @@ tests passed, along with the server ESM/CJS/declaration build, type check and
 changed-code lint/format checks. This stage covers invalid counts/rows/query
 pagination/page lengths, full and partial final pages, empty datasets, zero
 matches and unchanged out-of-range metadata. It did not rerun the database or
-browser suites, full monorepo CI, or remote CI. These source changes and
-migration rules are not yet published to npm.
-
-## Migration from 0.1.0-alpha.1
-
-Pass the sortable-column list as the second argument to every
-`buildOrderByClause` call. The `columns` argument to `buildWhereClause` now
-authorizes column filters as well as global search. Define these lists in
-trusted backend code. Invalid queries now fail explicitly; handle validation
-errors before sending a response. Authentication, tenant restrictions and the
-columns returned by your SQL query remain application responsibilities.
+browser suites, full monorepo CI, or remote CI. Those response changes are
+included in the published `0.1.0-alpha.3`.
 
 ## License
 

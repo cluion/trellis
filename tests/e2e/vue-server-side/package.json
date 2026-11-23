@@ -15,7 +15,7 @@
         "@trellisjs/plugin-filter": "3.3.2",
         "@trellisjs/plugin-pagination": "3.1.2",
         "@trellisjs/plugin-sort": "3.1.2",
-        "@trellisjs/server": "0.1.0-alpha.2",
+        "@trellisjs/server": "0.1.0-alpha.3",
         "@trellisjs/vue": "1.1.0",
         "vue": "3.5.44"
     },

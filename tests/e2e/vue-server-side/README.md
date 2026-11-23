@@ -2,7 +2,11 @@
 
 This private fixture copies the repository's [`UserTable.vue`](../../../examples/vue-server-side/UserTable.vue) unchanged into `.generated/` at startup. Vite compiles it as a real Vue application. Chromium, Firefox and WebKit send native GET requests to a loopback Node HTTP server using an in-memory SQLite database and the real `@trellisjs/server` parser, SQL allowlists and response builder. No `fetch` stubs or Playwright API-route interception are used.
 
-The fixture deliberately stays outside the pnpm workspace. Its independent `package-lock.json` pins the published npm packages and browser toolchain. No release or changeset is required for this test-only package.
+The fixture deliberately stays outside the pnpm workspace. Its independent
+`package-lock.json` pins the published npm packages and browser toolchain,
+including `@trellisjs/server@0.1.0-alpha.3`. Published mode checks the
+installed versions against the fixture manifest before starting the server.
+No release or changeset is required for this test-only package.
 
 ## Run with Docker
 
@@ -61,7 +65,13 @@ The existing `Verify changes` workflow has two additional matrix jobs: `checkout
 
 The GitHub container runs browsers as root, so that step uses `/root` as its home directory. GitHub's default `/github/home` mount belongs to the host runner UID; Firefox refuses to start as root with another user's home directory. The local Make target instead uses the host UID with the browser image's writable `/tmp` home.
 
-Local validation — 2026-11-14, Linux ARM64, Node 24.19.0, Playwright 1.65.1, TypeScript 5.9.3, Vue 3.5.44 and Vite 7.3.7:
+Published alpha.3 validation — 2026-11-22, Linux ARM64 in `trellis:browser`,
+Node 24.19.0 and Playwright 1.65.1: `npm ci` and the fixture TypeScript check
+passed. Chromium, Firefox and WebKit each passed all **8** cases, with **0**
+failures, skips or retries. Every case recorded `published` mode and
+`@trellisjs/server@0.1.0-alpha.3`. This was a local run of published mode.
+
+Earlier local validation — 2026-11-14, Linux ARM64, Node 24.19.0, Playwright 1.65.1, TypeScript 5.9.3, Vue 3.5.44 and Vite 7.3.7:
 
 | Check | Result |
 | --- | --- |

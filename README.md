@@ -223,8 +223,9 @@ defaults to a unique ID and appends it to break ties. See the
 and [Prisma support scope](./packages/server-prisma/README.md#prisma-support).
 The Prisma helper requires trusted output and query-field allowlists. String
 search follows database collation by default; PostgreSQL callers can opt into
-`stringFilterMode: 'insensitive'`. See the [Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha2)
-and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha2).
+`stringFilterMode: 'insensitive'`. For a direct upgrade from alpha.1, see the
+[Prisma migration guide](./packages/server-prisma/README.md#migration-from-010-alpha1)
+and [SQL helper migration guide](./packages/server/README.md#migration-from-010-alpha1).
 The alpha.3 [SQL dialect/LIKE contract](./packages/server/README.md#sql-dialect-and-comparison-scope)
 adds reserved-name quoting and literal contains matching. The Prisma adapter
 also has a [literal text search contract](./packages/server-prisma/README.md#literal-text-search)
