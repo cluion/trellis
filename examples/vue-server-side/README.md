@@ -181,8 +181,12 @@ npm install @trellisjs/server@alpha @trellisjs/server-prisma@alpha @prisma/clien
 Install both backend helpers at the same version and check the npm `alpha`
 tags before using the `0.1.0-alpha.3` APIs below. The SQL helper requires
 query-field allowlists; the Prisma helper also requires a trusted `select`
-projection. See the [SQL migration guide](../../packages/server/README.md#migration-from-010-alpha2)
-and [Prisma migration guide](../../packages/server-prisma/README.md#migration-from-010-alpha2).
+projection. If you installed the backend helpers without a tag and are still
+on `0.1.0-alpha.1`, use the direct [SQL upgrade guide](../../packages/server/README.md#migration-from-010-alpha1)
+or [paired Prisma upgrade guide](../../packages/server-prisma/README.md#migration-from-010-alpha1).
+Those guides pin alpha.3 explicitly. For an existing alpha.2 deployment, see
+the [SQL](../../packages/server/README.md#migration-from-010-alpha2) and
+[Prisma](../../packages/server-prisma/README.md#migration-from-010-alpha2) changes since alpha.2.
 
 When concurrent requests can write, read Prisma counts and page rows inside one
 RepeatableRead transaction using its `tx.user` delegate. This ensures the
@@ -208,7 +212,7 @@ text from the frontend; the backend helper handles escaping.
 The [Playwright suite](../../tests/e2e/vue-server-side/README.md) compiles the exact `UserTable.vue` above and sends native browser requests to a loopback Node HTTP server backed by SQLite. It does not stub `fetch` or intercept API routes. The same eight scenarios run in Chromium, Firefox and WebKit, in two package modes:
 
 - `checkout`: builds and imports the current core, plugins, Vue adapter and server helper, so pull requests exercise their own changes.
-- `published`: uses an independent npm lockfile with the exact frontend versions above and `@trellisjs/server@0.1.0-alpha.2`; it rejects workspace symlinks and resolves the public package exports.
+- `published`: uses an independent npm lockfile with the exact frontend versions above and `@trellisjs/server@0.1.0-alpha.3`; it rejects workspace symlinks and resolves the public package exports.
 
 Coverage includes the initial query, merged `scope=active` parameter, cross-page search/sort/page-size resets, remote `total`/`filtered`, superseded and explicitly cancelled HTTP connections, friendly errors and retry for HTTP 503/invalid responses, zero matches, automatic out-of-range correction after backend deletions, and Vue unmount/remount cleanup. The backend records queries, responses and connection closure; tests control held requests explicitly rather than relying on timing delays. Releasing an aborted request confirms that its old rows do not reappear; stale-response revision protection for transports that ignore abort remains covered by the core integration tests.
 
